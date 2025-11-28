@@ -1,0 +1,3 @@
+# CRITIC FEEDBACK
+
+Error: 400 * GenerateContentRequest.model: unexpected model name format

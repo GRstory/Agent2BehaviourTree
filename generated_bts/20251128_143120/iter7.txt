@@ -1,0 +1,13 @@
+root : Selector
+    Sequence
+        is_player_hp_low
+        is_ability_ready Heal
+        use_ability Heal
+    Sequence
+        is_player_hp_low
+        use_ability Defend
+    Sequence
+        is_enemy_hp_low
+        is_ability_ready HeavyAttack
+        use_ability HeavyAttack
+    use_ability LightAttack

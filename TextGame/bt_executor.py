@@ -12,7 +12,7 @@ import os
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import BTNode, parse_bt_dsl
+from bt_parser import BTNode, parse_bt_dsl
 from .game_engine import GameState, ActionType
 from .bt_nodes import create_condition_node, create_action_node, BTCondition, BTAction
 
@@ -58,6 +58,7 @@ class BTExecutor:
         # Sequence node - execute children in order, all must succeed
         elif node_type == "sequence":
             self.execution_trace.append(f"Sequence: checking {len(node.children)} children")
+            last_result = None
             for i, child in enumerate(node.children):
                 # If it's a condition, evaluate it
                 if child.node_type.lower() == "condition":
@@ -68,14 +69,13 @@ class BTExecutor:
                 # If it's an action or composite, execute it
                 else:
                     result = self._execute_node(child, state)
-                    if result is None and i < len(node.children) - 1:
+                    if result is not None:
+                        last_result = result
+                    elif i < len(node.children) - 1:
                         # Non-final node failed
                         self.execution_trace.append(f"Sequence: child {i} failed")
                         return None
-                    elif result is not None:
-                        # Got an action, return it
-                        return result
-            return None
+            return last_result
         
         # Condition node - evaluate condition
         elif node_type == "condition":
@@ -198,12 +198,12 @@ EXAMPLE_BT_BALANCED = """
 root :
     selector :
         sequence :
-            condition : IsPlayerHPLow(30)
+            condition : IsPlayerHPLevel(Low)
             condition : CanHeal()
             task : Heal()
         sequence :
-            condition : IsPlayerHPLow(45)
-            condition : IsEnemyHPHigh(60)
+            condition : IsPlayerHPLevel(Low)
+            condition : IsEnemyHPLevel(High)
             task : Defend()
         sequence :
             condition : HasComboReady(TripleLight)
@@ -212,7 +212,7 @@ root :
             condition : HasComboReady(CounterStrike)
             task : HeavyAttack()
         sequence :
-            condition : IsEnemyHPLow(30)
+            condition : IsEnemyHPLevel(Low)
             task : HeavyAttack()
         task : LightAttack()
 """

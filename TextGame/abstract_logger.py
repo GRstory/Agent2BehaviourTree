@@ -41,23 +41,15 @@ class AbstractLogger:
     
     @staticmethod
     def abstract_hp(current: int, maximum: int) -> str:
-        """Convert HP to abstract level"""
+        """Convert HP to abstract level (Low/Mid/High)"""
         percentage = (current / maximum) * 100 if maximum > 0 else 0
         
-        if percentage >= 95:
-            return AbstractionLevel.FULL
-        elif percentage >= 75:
-            return AbstractionLevel.VERY_HIGH
-        elif percentage >= 50:
-            return AbstractionLevel.HIGH
-        elif percentage >= 30:
-            return AbstractionLevel.MEDIUM
-        elif percentage >= 15:
-            return AbstractionLevel.LOW
-        elif percentage > 0:
-            return AbstractionLevel.VERY_LOW
+        if percentage >= 66.67:
+            return "High"  # 66-100%
+        elif percentage >= 33.33:
+            return "Mid"   # 33-66%
         else:
-            return AbstractionLevel.CRITICAL
+            return "Low"   # 0-33%
     
     @staticmethod
     def abstract_damage(damage: int, target_max_hp: int) -> str:
@@ -138,7 +130,7 @@ class AbstractLogger:
             log_entry += f"Result: Hit! Enemy took {damage_level} damage\n"
             
             if combo:
-                log_entry += f"🔥 COMBO ACTIVATED: {combo}! 🔥\n"
+                log_entry += f"[COMBO] {combo} ACTIVATED!\n"
             
             # Tactical observations
             enemy_hp_pct = state.enemy.hp_percentage()
@@ -185,7 +177,7 @@ class AbstractLogger:
             # Tactical observations
             player_hp_pct = state.player.hp_percentage()
             if player_hp_pct < 20:
-                log_entry += "⚠️ WARNING: Player HP is CRITICAL! ⚠️\n"
+                log_entry += "[WARNING] Player HP is CRITICAL!\n"
             elif player_hp_pct < 35:
                 log_entry += "Caution: Player HP is getting low, consider healing or defending\n"
         else:
@@ -197,7 +189,7 @@ class AbstractLogger:
     def log_floor_cleared(self, floor: int):
         """Log floor completion"""
         log_entry = f"\n{'*'*60}\n"
-        log_entry += f"✓ FLOOR {floor} CLEARED!\n"
+        log_entry += f"[CLEARED] FLOOR {floor} CLEARED!\n"
         log_entry += f"{'*'*60}\n"
         self._add_log(log_entry)
     
@@ -205,9 +197,9 @@ class AbstractLogger:
         """Log game end"""
         log_entry = f"\n{'='*60}\n"
         if victory:
-            log_entry += "🎉 VICTORY! All 10 floors cleared! 🎉\n"
+            log_entry += "[VICTORY] All 10 floors cleared!\n"
         else:
-            log_entry += f"💀 DEFEAT on Floor {final_floor} 💀\n"
+            log_entry += f"[DEFEAT] on Floor {final_floor}\n"
         log_entry += f"{'='*60}\n"
         self._add_log(log_entry)
     

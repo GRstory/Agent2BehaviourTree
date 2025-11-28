@@ -1,0 +1,16 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The agent's defeat was a direct result of a critical tactical error on the first turn. With **Low HP** and a **Heal** available, the agent chose to use a low-impact `LightAttack` against a **High HP** enemy. This decision ignored the immediate threat of death. The enemy's subsequent attack was fatal, a predictable outcome that could have been easily avoided.
+
+The Behaviour Tree (BT) evidently lacks a fundamental survival instinct, prioritizing offense even when in a critical state.
+
+## Improvement Suggestions
+1.  **Implement a High-Priority "Emergency Heal" Selector.** The BT's root should first check for a survival condition. If `Player HP` is `Low` (e.g., below 30%) AND `Heal` is `READY`, the tree must execute the `Heal` action. This check should take precedence over all offensive actions.
+    *   **Reasoning:** This ensures the agent prioritizes survival above all else when threatened, preventing easily avoidable deaths and extending its combat longevity.
+
+2.  **Create a "Defensive" State when Hurt and Unable to Heal.** If `Player HP` is `Low` but `Heal` is *not* ready, the BT should default to a `Defend` action (if available) instead of a `LightAttack`.
+    *   **Reasoning:** A `LightAttack` against a high-health enemy is strategically insignificant. Defending mitigates incoming damage, increasing the chance of surviving another turn until the `Heal` ability becomes available again.
+
+3.  **Refine Offensive Logic Based on Player Health.** The decision to attack should be conditional on the agent's health status. The BT should only proceed to its offensive branches if `Player HP` is above the "Low" threshold.
+    *   **Reasoning:** This creates a clear separation between "safe" and "danger" states in the BT, forcing it to evaluate its own survivability before considering offensive maneuvers.

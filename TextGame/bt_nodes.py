@@ -64,6 +64,29 @@ class IsPlayerHPHigh(BTCondition):
         return f"IsPlayerHPHigh({self.threshold})"
 
 
+# Abstract HP conditions (Low/Mid/High only)
+class IsPlayerHPLevel(BTCondition):
+    """Check if player HP matches a specific level (Low/Mid/High)"""
+    
+    def __init__(self, level: str = "Low"):
+        self.level = level.strip()
+    
+    def evaluate(self, state: GameState) -> bool:
+        hp_pct = state.player.hp_percentage()
+        
+        if self.level == "Low":
+            return hp_pct < 33.33  # 0-33%
+        elif self.level == "Mid":
+            return 33.33 <= hp_pct < 66.67  # 33-66%
+        elif self.level == "High":
+            return hp_pct >= 66.67  # 66-100%
+        else:
+            return False
+    
+    def __repr__(self):
+        return f"IsPlayerHPLevel({self.level})"
+
+
 class IsEnemyHPLow(BTCondition):
     """Check if enemy HP is below threshold percentage"""
     
@@ -92,6 +115,31 @@ class IsEnemyHPHigh(BTCondition):
     
     def __repr__(self):
         return f"IsEnemyHPHigh({self.threshold})"
+
+
+class IsEnemyHPLevel(BTCondition):
+    """Check if enemy HP matches a specific level (Low/Mid/High)"""
+    
+    def __init__(self, level: str = "Low"):
+        self.level = level.strip()
+    
+    def evaluate(self, state: GameState) -> bool:
+        if not state.enemy:
+            return False
+        
+        hp_pct = state.enemy.hp_percentage()
+        
+        if self.level == "Low":
+            return hp_pct < 33.33  # 0-33%
+        elif self.level == "Mid":
+            return 33.33 <= hp_pct < 66.67  # 33-66%
+        elif self.level == "High":
+            return hp_pct >= 66.67  # 66-100%
+        else:
+            return False
+    
+    def __repr__(self):
+        return f"IsEnemyHPLevel({self.level})"
 
 
 class CanHeal(BTCondition):
@@ -234,10 +282,14 @@ def create_condition_node(node_type: str, param: Optional[str] = None) -> BTCond
         return IsPlayerHPLow(threshold if threshold else 30)
     elif node_type == "IsPlayerHPHigh":
         return IsPlayerHPHigh(threshold if threshold else 70)
+    elif node_type == "IsPlayerHPLevel":
+        return IsPlayerHPLevel(combo_name if combo_name else "Low")
     elif node_type == "IsEnemyHPLow":
         return IsEnemyHPLow(threshold if threshold else 30)
     elif node_type == "IsEnemyHPHigh":
         return IsEnemyHPHigh(threshold if threshold else 70)
+    elif node_type == "IsEnemyHPLevel":
+        return IsEnemyHPLevel(combo_name if combo_name else "Low")
     elif node_type == "CanHeal":
         return CanHeal()
     elif node_type == "IsDefending":

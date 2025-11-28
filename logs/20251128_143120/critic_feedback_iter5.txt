@@ -1,0 +1,21 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The critical failure was a complete disregard for self-preservation. The AI was at **Low HP** with a **Heal** available but chose to use a low-impact **LightAttack** instead. This offensive action had a negligible effect on the high-HP enemy and left the player vulnerable to a fatal counter-attack, which led directly to the DEFEAT.
+
+The Behaviour Tree (BT) appears to have a flawed priority system, favoring any offensive action over critical, life-saving measures.
+
+## Improvement Suggestions
+1.  **Implement a High-Priority "Critical Heal" Rule.** The BT must check for a low-health state before considering any other action.
+    *   **Logic:** `IF Player HP is Low AND Heal is READY, THEN use Heal.`
+    *   **Reasoning:** This is the most fundamental survival instinct. This single rule would have prevented the death in the log by forcing the AI to prioritize staying alive over dealing insignificant damage. This check should be at the very top of the BT's priority selector.
+
+2.  **Introduce HP Thresholds for Tactical States.** The AI should change its behavior based on its current health.
+    *   **Logic:** Define HP thresholds (e.g., Critical < 30%, Wounded < 60%). When HP drops below a threshold, the AI should prioritize defensive or healing actions over offensive ones.
+    *   **Reasoning:** This makes the AI's decision-making more robust. Instead of just attacking, it would correctly identify that at 30% HP, its only goal is to survive the turn.
+
+3.  **Evaluate Action Utility.** The BT should weigh the expected outcome of actions instead of following a static order.
+    *   **Logic:** Compare the utility of `Heal` vs. `LightAttack` in the given context.
+        *   Utility of Heal: High (prevents death, extends the fight).
+        *   Utility of LightAttack: Very Low (minor damage to a high-HP enemy, does not change the outcome).
+    *   **Reasoning:** This encourages the BT to make smarter, context-aware decisions. It would correctly calculate that the value of surviving is infinitely higher than the value of a weak attack, leading it to choose the heal.

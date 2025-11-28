@@ -1,0 +1,14 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The agent was defeated due to a critical failure in threat assessment. With `Low` HP and a `Heal` available, the agent chose a low-impact `LightAttack` instead of prioritizing its own survival. This decision indicates the Behaviour Tree (BT) incorrectly favors offense over self-preservation, even in a life-threatening situation. The `LightAttack` did not neutralize the enemy, leaving the agent vulnerable to a fatal counter-attack.
+
+## Improvement Suggestions
+1.  **Implement a High-Priority Survival Check:** The BT's root node should first check for critical survival conditions. A rule like `IF Player HP is Low AND Heal is READY THEN use Heal` must be evaluated before any offensive actions are considered. This ensures the agent saves itself whenever possible.
+
+2.  **Define Action Thresholds Based on HP:** The BT should use HP thresholds to decide its strategy. For example:
+    *   **HP < 35% (Critical):** Prioritize `Heal` or `Defend`. Do not attack unless it guarantees a win.
+    *   **HP > 35% (Safe):** Execute standard offensive combos and actions.
+    This prevents the agent from making reckless offensive moves when its health is dangerously low.
+
+3.  **Re-order Action Priorities:** The current BT logic appears to be `Attack > Heal`. This must be inverted. The fundamental priority order for the BT should be **`Survival > Offense`**. The agent should only consider attacking after it has confirmed it is not in immediate danger of being defeated.

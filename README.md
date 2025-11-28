@@ -1,272 +1,86 @@
 # PORTAL-Inspired Dungeon Game with LLM Behaviour Tree Agent
 
-A clone of the PORTAL framework (from "Agents Play Thousands of 3D Video Games") adapted for text-based games. This project demonstrates how LLM agents can learn to play games by iteratively improving Behaviour Trees based on gameplay feedback.
+10층 던전 게임을 클리어하기 위해 LLM이 Behaviour Tree를 반복적으로 개선하는 시스템입니다.
 
-## Overview
+## 빠른 시작
 
-This system enables an LLM agent to:
-1. **Generate** initial Behaviour Trees from game rules
-2. **Execute** BTs to play a 10-floor turn-based dungeon game
-3. **Analyze** abstract gameplay logs to identify mistakes
-4. **Improve** BTs based on tactical feedback
-5. **Iterate** until victory or convergence
-
-### Key Differences from PORTAL
-
-- **Input**: Text logs instead of video gameplay
-- **Game**: Turn-based dungeon crawler instead of 3D FPS
-- **Feedback**: Log-based tactical analysis instead of VLM video analysis
-- **Output**: Behaviour Tree DSL instead of direct policy code
-
-## Game Mechanics
-
-### 10-Floor Dungeon Crawler
-- **Turn-based combat**: Player acts first, then enemy
-- **4 Actions**: Light Attack, Heavy Attack, Defend, Heal
-- **Combo system**: Chain attacks for massive damage multipliers
-- **Floor progression**: Enemies get stronger each floor (floors 5 & 10 are bosses)
-
-### Combo Patterns
-1. **Triple Light** (4x damage): Light → Light → Light
-2. **Heavy Finisher** (3x damage): Light → Light → Heavy
-3. **Counter Strike** (2.5x damage): Defend → Heavy
-
-### Abstract Logging
-Numerical stats are converted to natural language:
-- HP: "Critical", "Very Low", "Low", "Medium", "High", "Very High", "Full"
-- Damage: "Minimal", "Light", "Medium", "Heavy", "Massive"
-- Includes tactical hints and observations
-
-## Installation
+### 1. 패키지 설치
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd Agent2BehaviourTree
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Set OpenAI API key (if using real LLM)
-export OPENAI_API_KEY="your-api-key-here"
-# Or create .env file with: OPENAI_API_KEY=your-api-key-here
 ```
 
-## Usage
-
-### Quick Start (Mock LLM - No API Calls)
+### 2. 실행
 
 ```bash
-python runner.py --mock --iterations 3
+# Mock LLM으로 테스트 (API 키 불필요)
+python main.py --mock --iterations 3
+
+# Gemini API 사용 (API 키 필요)
+python main.py --iterations 5
 ```
 
-This runs 3 iterations using a mock LLM (no API costs, for testing).
+## Gemini API 키 설정
 
-### Full Run (Real LLM)
+1. `.env.example`을 `.env`로 복사
+2. `.env` 파일에 API 키 입력:
+   ```
+   GEMINI_API_KEY=your_api_key_here
+   ```
+3. API 키 발급: https://makersuite.google.com/app/apikey
 
-```bash
-python runner.py --iterations 5
-```
+## 모델 설정
 
-This runs 5 iterations using GPT-4 to generate and improve BTs.
-
-### Command Line Options
-
-```bash
-python runner.py [OPTIONS]
-
-Options:
-  --iterations N    Number of improvement iterations (default: 5)
-  --mock           Use mock LLM (no API calls, for testing)
-  --bt PATH        Path to initial BT file (skip LLM generation)
-  --no-save        Don't save logs and BTs to disk
-  --quiet          Minimal console output
-```
-
-### Example: Use Custom Initial BT
-
-```bash
-python runner.py --bt examples/example_bt_balanced.txt --iterations 3
-```
-
-## Project Structure
-
-```
-Agent2BehaviourTree/
-├── main.py                    # Original BT parser
-├── runner.py                  # Main orchestration script
-├── config.py                  # Configuration settings
-├── requirements.txt           # Python dependencies
-├── README.md                  # This file
-│
-├── TextGame/                  # Game engine and BT system
-│   ├── game_engine.py         # Turn-based combat engine
-│   ├── abstract_logger.py     # LLM-friendly log generation
-│   ├── bt_nodes.py            # Condition and action nodes
-│   ├── bt_executor.py         # BT execution engine
-│   ├── bt_dsl_spec.md         # DSL specification for LLM
-│   ├── llm_agent.py           # LLM integration
-│   └── prompts.py             # Prompt templates
-│
-├── examples/                  # Example BTs
-│   ├── example_bt_aggressive.txt
-│   ├── example_bt_defensive.txt
-│   └── example_bt_balanced.txt
-│
-├── logs/                      # Generated gameplay logs (created on run)
-└── generated_bts/             # Generated BTs (created on run)
-```
-
-## Behaviour Tree DSL
-
-### Example BT
-
-```
-root :
-    selector :
-        sequence :
-            condition : IsPlayerHPLow(30)
-            condition : CanHeal()
-            task : Heal()
-        sequence :
-            condition : HasComboReady(TripleLight)
-            task : LightAttack()
-        sequence :
-            condition : IsEnemyHPLow(25)
-            task : HeavyAttack()
-        task : LightAttack()
-```
-
-### Available Nodes
-
-**Conditions:**
-- `IsPlayerHPLow(threshold)` / `IsPlayerHPHigh(threshold)`
-- `IsEnemyHPLow(threshold)` / `IsEnemyHPHigh(threshold)`
-- `CanHeal()` - Check if heal is off cooldown
-- `HasComboReady(combo_name)` - Check if combo is ready
-- `IsFloorBoss()` - Check if current floor is boss
-- `IsTurnEarly(threshold)` - Check if early in fight
-
-**Actions:**
-- `LightAttack()` - Base damage attack
-- `HeavyAttack()` - 2x damage attack
-- `Defend()` - Increase defense
-- `Heal()` - Restore 30 HP (3-turn cooldown)
-
-See `TextGame/bt_dsl_spec.md` for complete specification.
-
-## How It Works
-
-### PORTAL-Inspired Improvement Loop
-
-```
-1. LLM generates initial BT from game rules
-   ↓
-2. BT executes in game → produces abstract logs
-   ↓
-3. LLM analyzes logs → identifies mistakes
-   ↓
-4. LLM generates tactical feedback
-   ↓
-5. LLM creates improved BT
-   ↓
-6. Repeat until victory or max iterations
-```
-
-### Example Iteration
-
-**Iteration 1**: Simple aggressive BT → Dies on Floor 3
-- **Analysis**: "Not using combos, healing too late"
-- **Feedback**: "Add combo detection, heal at 40% instead of 30%"
-- **Improved BT**: Adds `HasComboReady` conditions
-
-**Iteration 2**: Combo-aware BT → Reaches Floor 6
-- **Analysis**: "Good combo usage, but too aggressive when low HP"
-- **Feedback**: "Add defensive sequence when HP < 50%"
-- **Improved BT**: Adds defend logic
-
-**Iteration 3**: Balanced BT → Victory! (All 10 floors cleared)
-
-## Configuration
-
-Edit `config.py` to customize:
-
+`config.py`에서 모델 변경:
 ```python
-# LLM settings
-model = "gpt-4"  # or "gpt-3.5-turbo"
-temperature = 0.7
-
-# Game settings
-max_floors = 10
-player_starting_hp = 100
-
-# Runner settings
-max_iterations = 5
-victory_early_stop = True
+model: str = "gemini-1.5-flash"  # 또는 gemini-1.5-pro
 ```
 
-## Development
+## 게임 규칙
 
-### Running Tests
+- **10층 던전**: 5층, 10층은 보스
+- **4가지 행동**: 약공격, 강공격, 방어, 힐
+- **콤보 시스템**: 
+  - Triple Light (4배): 약→약→약
+  - Heavy Finisher (3배): 약→약→강
+  - Counter Strike (2.5배): 방어→강
+
+## Behaviour Tree 조건 노드
+
+### 추상적 체력 조건 (권장)
+- `IsPlayerHPLevel(Low)` - 플레이어 HP 0-33%
+- `IsPlayerHPLevel(Mid)` - 플레이어 HP 33-66%
+- `IsPlayerHPLevel(High)` - 플레이어 HP 66-100%
+- `IsEnemyHPLevel(Low)` - 적 HP 0-33%
+- `IsEnemyHPLevel(Mid)` - 적 HP 33-66%
+- `IsEnemyHPLevel(High)` - 적 HP 66-100%
+
+### 숫자 기반 체력 조건 (레거시)
+- `IsPlayerHPLow(threshold)` - 플레이어 HP < threshold%
+- `IsPlayerHPHigh(threshold)` - 플레이어 HP > threshold%
+- `IsEnemyHPLow(threshold)` - 적 HP < threshold%
+- `IsEnemyHPHigh(threshold)` - 적 HP > threshold%
+
+### 기타 조건
+- `CanHeal()` - 힐 사용 가능 여부
+- `HasComboReady(combo_name)` - 콤보 준비 상태
+- `IsFloorBoss()` - 보스층 여부
+- `IsTurnEarly(threshold)` - 초반 턴 여부
+
+## 명령어 옵션
 
 ```bash
-# Test game engine
-python -c "from TextGame.game_engine import DungeonGame; game = DungeonGame(); print('Game engine OK')"
+python main.py [OPTIONS]
 
-# Test BT parsing
-python main.py
-
-# Test BT execution
-python -c "from TextGame.bt_executor import EXAMPLE_BT_BALANCED, create_bt_executor_from_dsl; exec = create_bt_executor_from_dsl(EXAMPLE_BT_BALANCED); print('BT executor OK')"
-
-# Test full run with mock LLM
-python runner.py --mock --iterations 1 --quiet
+옵션:
+  --iterations N    반복 횟수 (기본값: 5)
+  --mock           Mock LLM 사용 (API 호출 없음)
+  --bt PATH        초기 BT 파일 경로
+  --no-save        로그/BT 저장 안 함
+  --quiet          최소 출력
 ```
 
-### Adding New Condition Nodes
+## 출력 파일
 
-1. Define class in `TextGame/bt_nodes.py`
-2. Add to `create_condition_node()` factory
-3. Document in `TextGame/bt_dsl_spec.md`
-
-### Adding New Action Nodes
-
-1. Define class in `TextGame/bt_nodes.py`
-2. Add to `create_action_node()` factory
-3. Document in `TextGame/bt_dsl_spec.md`
-
-## Results and Analysis
-
-After running, check:
-- `logs/` - Gameplay logs with abstract descriptions
-- `generated_bts/` - All generated BTs (initial and improved)
-- Console output - Performance history and final summary
-
-## Limitations
-
-- Text-based only (no visual gameplay)
-- Simple enemy AI (pattern-based)
-- Limited to turn-based combat
-- LLM API costs for real runs
-
-## Future Enhancements
-
-- [ ] More complex enemy behaviors
-- [ ] Item system (potions, weapons, armor)
-- [ ] Multiple player classes
-- [ ] Procedurally generated enemies
-- [ ] Visualization of BT execution
-- [ ] Performance metrics dashboard
-
-## References
-
-- **PORTAL Paper**: "Agents Play Thousands of 3D Video Games" - Demonstrates VLM-based tactical feedback for game-playing agents
-- **Behaviour Trees**: Common AI pattern in game development for decision-making
-
-## License
-
-MIT License
-
-## Author
-
-Created as a clone project inspired by the PORTAL framework.
+- `generated_bts/` - 생성된 모든 BT
+- `logs/` - 게임플레이 로그 및 Critic 피드백

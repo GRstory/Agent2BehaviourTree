@@ -4,6 +4,10 @@ Configuration Settings for Dungeon Game and LLM Agent
 
 import os
 from dataclasses import dataclass
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 @dataclass
@@ -31,8 +35,8 @@ class GameConfig:
 @dataclass
 class LLMConfig:
     """LLM agent configuration"""
-    api_key: str = None  # Will use environment variable if None
-    model: str = "gpt-4"
+    api_key: str = None
+    model: str = "gemini-2.5-pro"
     temperature_generation: float = 0.7
     temperature_analysis: float = 0.5
     temperature_feedback: float = 0.6
@@ -40,7 +44,7 @@ class LLMConfig:
     
     def __post_init__(self):
         if self.api_key is None:
-            self.api_key = os.getenv("OPENAI_API_KEY")
+            self.api_key = os.getenv("GEMINI_API_KEY")
 
 
 @dataclass

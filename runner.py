@@ -75,7 +75,7 @@ class GameRunner:
         if state.heal_cooldown > 0:
             print(f"│ 힐 쿨다운:   {state.heal_cooldown}턴 남음" + " " * 44 + "│")
         else:
-            print(f"│ 힐 상태:     사용 가능 ✓" + " " * 41 + "│")
+            print(f"│ 힐 상태:     사용 가능" + " " * 43 + "│")
         
         print(f"{'─'*70}")
     
@@ -89,7 +89,7 @@ class GameRunner:
         if action in [ActionType.LIGHT_ATTACK, ActionType.HEAVY_ATTACK]:
             print(f"적에게 {enemy_damage} 데미지!", end="")
             if combo:
-                print(f" 🔥 {combo} 콤보!", end="")
+                print(f" [COMBO: {combo}]", end="")
         elif action == ActionType.DEFEND:
             print(f"방어 태세!", end="")
         elif action == ActionType.HEAL:
@@ -129,7 +129,7 @@ class GameRunner:
             action = self.executor.execute(self.game.state)
             
             if action is None:
-                self._print_debug("⚠️ BT가 행동을 결정하지 못함, 기본 약공격 사용")
+                self._print_debug("[WARNING] BT가 행동을 결정하지 못함, 기본 약공격 사용")
                 action = ActionType.LIGHT_ATTACK
             
             # Store old state for logging
@@ -167,7 +167,7 @@ class GameRunner:
                 self.logger.log_floor_cleared(turn_info['floor'] - 1)
                 if self.verbose:
                     print(f"{'─'*70}")
-                    print(f"│ {'✓ ' + str(turn_info['floor'] - 1) + '층 클리어!':^66} │")
+                    print(f"│ {str(turn_info['floor'] - 1) + '층 클리어!':^66} │")
                     print(f"{'─'*70}\n")
                 
                 # Start new stage for next floor
@@ -183,10 +183,10 @@ class GameRunner:
         if self.verbose:
             print("\n" + "="*70)
             if self.game.victory:
-                print(" "*25 + "🎉 승리! 🎉")
+                print(" "*25 + "[승리!]")
                 print(f" "*20 + f"전체 10층 클리어!")
             else:
-                print(" "*25 + "💀 패배 💀")
+                print(" "*25 + "[패배]")
                 print(f" "*20 + f"{self.game.state.current_floor}층에서 사망")
             print(f" "*20 + f"총 {total_turns}턴 소요")
             print("="*70 + "\n")
@@ -222,44 +222,49 @@ class ImprovementLoop:
                 model=self.llm_config.model
             )
         
-        # Create output directories
+        # Session timestamp for consistent file naming
+        self.session_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Create session-specific directories
         if self.config.save_logs:
-            os.makedirs(self.config.log_directory, exist_ok=True)
+            self.session_log_dir = os.path.join(self.config.log_directory, self.session_timestamp)
+            os.makedirs(self.session_log_dir, exist_ok=True)
         if self.config.save_bts:
-            os.makedirs(self.config.bt_directory, exist_ok=True)
+            self.session_bt_dir = os.path.join(self.config.bt_directory, self.session_timestamp)
+            os.makedirs(self.session_bt_dir, exist_ok=True)
         
         # Track performance
         self.performance_history = []
         self.best_bt = None
         self.best_floor = 0
     
-    def save_bt(self, bt_dsl: str, iteration: int, label: str = ""):
+    def save_bt(self, bt_dsl: str, iteration: int):
         """Save BT to file"""
         if not self.config.save_bts:
             return
         
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"bt_iter{iteration}_{label}_{timestamp}.txt"
-        filepath = os.path.join(self.config.bt_directory, filename)
+        # Save in session directory with simple filename
+        filename = f"iter{iteration}.txt"
+        filepath = os.path.join(self.session_bt_dir, filename)
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(bt_dsl)
         
-        print(f"💾 Saved BT: {filename}")
+        print(f"[SAVED] BT: {self.session_timestamp}/{filename}")
     
     def save_log(self, log: str, iteration: int):
         """Save gameplay log to file"""
         if not self.config.save_logs:
             return
         
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"log_iter{iteration}_{timestamp}.txt"
-        filepath = os.path.join(self.config.log_directory, filename)
+        # Save in session directory with simple filename
+        filename = f"log_iter{iteration}.txt"
+        filepath = os.path.join(self.session_log_dir, filename)
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(log)
         
-        print(f"💾 Saved log: {filename}")
+        print(f"[SAVED] Log: {self.session_timestamp}/{filename}")
     
     def run_iteration(self, bt_dsl: str, iteration: int) -> dict:
         """Run one iteration: execute game and collect results"""
@@ -268,7 +273,7 @@ class ImprovementLoop:
         print(f"{'='*60}\n")
         
         # Run game
-        print("🎮 Running game...")
+        print("[GAME] Running game...")
         runner = GameRunner(bt_dsl, verbose=self.config.verbose)
         results = runner.run_game()
         
@@ -306,14 +311,17 @@ class ImprovementLoop:
         print("PORTAL-INSPIRED DUNGEON GAME - LLM IMPROVEMENT LOOP")
         print("="*60 + "\n")
         
-        # Generate or use initial BT
+        # Use predefined initial BT instead of generating
         if initial_bt:
             print("Using provided initial BT")
             current_bt = initial_bt
         else:
-            current_bt = self.agent.generate_initial_bt()
+            print("Using predefined balanced BT")
+            # Import from bt_executor
+            from TextGame.bt_executor import EXAMPLE_BT_BALANCED
+            current_bt = EXAMPLE_BT_BALANCED
         
-        self.save_bt(current_bt, 0, "initial")
+        self.save_bt(current_bt, 0)
         
         # Run iterations
         for i in range(1, self.config.max_iterations + 1):
@@ -322,7 +330,7 @@ class ImprovementLoop:
             
             # Check for early stop (victory)
             if results['victory'] and self.config.victory_early_stop:
-                print("🎉 VICTORY ACHIEVED! Stopping early.")
+                print("[VICTORY] Stopping early.")
                 break
             
             # Check if this is the last iteration
@@ -331,7 +339,7 @@ class ImprovementLoop:
                 break
             
             # Improve BT for next iteration
-            print("\n🤖 Generating improved BT...")
+            print("\n[LLM] Generating improved BT...")
             improvement_result = self.agent.two_stage_improvement(
                 current_bt=current_bt,
                 last_stage_log=results['last_stage_log'],  # Only last stage
@@ -340,12 +348,12 @@ class ImprovementLoop:
             )
             
             current_bt = improvement_result['improved_bt']
-            self.save_bt(current_bt, i, "improved")
+            self.save_bt(current_bt, i + 1)
             
             # Save critic feedback
             if self.config.save_logs:
                 feedback_file = os.path.join(
-                    self.config.log_directory, 
+                    self.session_log_dir, 
                     f"critic_feedback_iter{i}.txt"
                 )
                 with open(feedback_file, 'w', encoding='utf-8') as f:
@@ -360,7 +368,7 @@ class ImprovementLoop:
         print(f"Best Floor Reached: {self.best_floor}")
         print(f"\nPerformance History:")
         for perf in self.performance_history:
-            status = "✓ VICTORY" if perf['victory'] else f"Floor {perf['floor']}"
+            status = "VICTORY" if perf['victory'] else f"Floor {perf['floor']}"
             print(f"  Iteration {perf['iteration']}: {status} ({perf['turns']} turns)")
         print("="*60 + "\n")
 

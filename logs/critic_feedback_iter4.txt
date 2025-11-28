@@ -1,0 +1,12 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The defeat was caused by a fundamental failure in **Self-Preservation Priority**. The player entered the turn with **Low HP** and a **Heal ability READY**, yet the Behaviour Tree chose to execute a `LightAttack` against a **High HP** enemy.
+
+This suggests the BT prioritizes offensive actions over survival, or the "Low HP" threshold is set too low to trigger defensive measures before it is too late. Because the enemy had High HP, the `LightAttack` failed to eliminate the threat, allowing the enemy to deliver the killing blow immediately.
+
+## Improvement Suggestions
+
+1.  **Elevate Healing Priority**: Move the "Heal" subtree to a higher priority position than the "Attack" subtree. The agent must check for `HP < Threshold` and `Heal == READY` *before* considering any offensive moves.
+2.  **Implement "Lethal Check" Exception**: Only allow an attack when HP is critical *if and only if* that specific attack is guaranteed to kill the enemy (i.e., `Enemy HP <= Attack Damage`). Since the Enemy HP was "High," the agent should have defaulted to healing or defending.
+3.  **Adjust Health Thresholds**: Increase the definition of "Low HP" within the BT variables. The current threshold is too risky; the agent needs to heal earlier (e.g., at 40-50% HP) rather than waiting until one hit causes death.

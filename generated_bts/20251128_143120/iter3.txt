@@ -1,0 +1,17 @@
+root : selector ?
+    sequence ->
+        is_hp_below(35%)
+        selector ?
+            sequence ->
+                is_skill_ready(Heal)
+                use_skill(Heal)
+            use_skill(Defend)
+    selector ?
+        sequence ->
+            is_enemy_hp_below(25%)
+            is_skill_ready(HeavyAttack)
+            use_skill(HeavyAttack)
+        sequence ->
+            is_skill_ready(HeavyAttack)
+            use_skill(HeavyAttack)
+        use_skill(LightAttack)

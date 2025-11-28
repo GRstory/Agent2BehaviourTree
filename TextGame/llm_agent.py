@@ -14,11 +14,11 @@ import os
 from typing import Optional, Dict, List, Any
 
 try:
-    from openai import OpenAI
-    OPENAI_AVAILABLE = True
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
 except ImportError:
-    OPENAI_AVAILABLE = False
-    OpenAI = None
+    GEMINI_AVAILABLE = False
+    genai = None
 
 from .prompts import (
     SYSTEM_PROMPT_BT_GENERATOR,
@@ -34,25 +34,27 @@ from .prompts import (
 class LLMAgent:
     """LLM agent for BT generation and improvement"""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-1.5-flash"):
         """
         Initialize LLM agent
         
         Args:
-            api_key: OpenAI API key (or None to use environment variable)
-            model: Model to use (default: gpt-4)
+            api_key: Gemini API key (or None to use environment variable)
+            model: Model to use (default: gemini-1.5-flash)
+                   Options: gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash-exp
         """
-        if not OPENAI_AVAILABLE:
-            raise ImportError("OpenAI package not installed. Install with: pip install openai")
+        if not GEMINI_AVAILABLE:
+            raise ImportError("google-generativeai package not installed. Install with: pip install google-generativeai")
         
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.model = model
-        self.client = OpenAI(api_key=self.api_key) if self.api_key else None
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        if not self.api_key:
+            raise ValueError("Gemini API key not set. Set GEMINI_API_KEY environment variable or pass api_key parameter.")
         
-        # Track conversation history for each role
-        self.bt_generator_history = []
-        self.log_analyzer_history = []
-        self.feedback_generator_history = []
+        self.model_name = model
+        
+        # Configure Gemini
+        genai.configure(api_key=self.api_key)
+        self.model = genai.GenerativeModel(self.model_name)
     
     def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float = 0.7) -> str:
         """
@@ -66,22 +68,61 @@ class LLMAgent:
         Returns:
             LLM response text
         """
-        if not self.client:
-            raise ValueError("OpenAI API key not set. Set OPENAI_API_KEY environment variable.")
+        # Gemini doesn't have separate system/user roles in the same way
+        # Combine system prompt into the user prompt
+        combined_prompt = f"{system_prompt}\n\n{user_prompt}"
         
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-        
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
+        generation_config = genai.types.GenerationConfig(
             temperature=temperature,
-            max_tokens=2000
+            max_output_tokens=2000,
         )
         
-        return response.choices[0].message.content
+        # Safety settings - disable blocking for game-related content
+        # Using HarmBlockThreshold.BLOCK_NONE for all categories
+        from google.generativeai.types import HarmCategory, HarmBlockThreshold
+        
+        safety_settings = [
+            {
+                "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
+                "threshold": HarmBlockThreshold.BLOCK_NONE,
+            },
+            {
+                "category": HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                "threshold": HarmBlockThreshold.BLOCK_NONE,
+            },
+            {
+                "category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                "threshold": HarmBlockThreshold.BLOCK_NONE,
+            },
+            {
+                "category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                "threshold": HarmBlockThreshold.BLOCK_NONE,
+            },
+        ]
+        
+        try:
+            response = self.model.generate_content(
+                combined_prompt,
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
+            
+            # Check if response was blocked
+            if not response.parts:
+                print(f"\n[ERROR] Response blocked!")
+                print(f"Finish reason: {response.candidates[0].finish_reason}")
+                print(f"Safety ratings:")
+                for rating in response.candidates[0].safety_ratings:
+                    print(f"  - {rating.category}: {rating.probability}")
+                return "Error: Response was blocked by safety filters. Please try again."
+            
+            return response.text
+            
+        except Exception as e:
+            print(f"[ERROR] LLM call failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return f"Error: {str(e)}"
     
     def generate_initial_bt(self) -> str:
         """
@@ -90,14 +131,14 @@ class LLMAgent:
         Returns:
             BT DSL string
         """
-        print("🤖 LLM: Generating initial Behaviour Tree...")
+        print("[LLM] Generating initial Behaviour Tree...")
         
         prompt = create_initial_bt_prompt()
         response = self._call_llm(SYSTEM_PROMPT_BT_GENERATOR, prompt, temperature=0.8)
         
         bt_dsl = extract_bt_from_response(response)
         
-        print("✓ Initial BT generated")
+        print("[OK] Initial BT generated")
         return bt_dsl
     
     def critique_last_stage(
@@ -119,12 +160,12 @@ class LLMAgent:
         Returns:
             Critic feedback text
         """
-        print("🤖 Critic LLM: Analyzing last stage...")
+        print("[CRITIC] Analyzing last stage...")
         
         prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt)
         feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5)
         
-        print("✓ Critic analysis complete")
+        print("[OK] Critic analysis complete")
         return feedback
     
     def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> str:
@@ -138,14 +179,14 @@ class LLMAgent:
         Returns:
             Improved BT DSL string
         """
-        print("🤖 Generator LLM: Creating improved Behaviour Tree...")
+        print("[GENERATOR] Creating improved Behaviour Tree...")
         
         prompt = create_generator_prompt(current_bt, critic_feedback)
         response = self._call_llm(SYSTEM_PROMPT_BT_GENERATOR, prompt, temperature=0.7)
         
         improved_bt = extract_bt_from_response(response)
         
-        print("✓ Improved BT generated")
+        print("[OK] Improved BT generated")
         return improved_bt
     
     def two_stage_improvement(

@@ -1,0 +1,13 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The agent's defeat was a direct result of a critical tactical error. At the start of the turn, the agent was at **Low HP** with a **Heal** available. Instead of prioritizing survival by healing, the Behaviour Tree chose to perform a low-impact `LightAttack`. This decision left the agent vulnerable and led to its immediate defeat, likely from the enemy's subsequent attack.
+
+The core issue is a failure in the Behaviour Tree's priority system. It appears to favor offensive actions regardless of the agent's own critical health status, demonstrating a lack of self-preservation logic.
+
+## Improvement Suggestions
+1.  **Implement a High-Priority "Survival" Check:** The BT must evaluate the agent's own survival status before considering any offensive actions. Create a high-priority branch (e.g., a Selector node) that checks `IF PlayerHP is Low AND Heal is READY`. If true, the `Heal` action must be executed. This branch must be checked before any attack logic.
+
+2.  **Define Concrete Health Thresholds:** "Low HP" is ambiguous. Define specific thresholds to trigger different behaviors. For example, set a "Critical" threshold at < 30% HP. The rule would then be: `IF PlayerHP < 30% AND Heal is READY THEN Heal`. This makes the decision-making process more robust and predictable than a vague "Low" state.
+
+3.  **Add a Defensive Fallback:** What if the agent is at low health but `Heal` is on cooldown? The current logic would still default to an attack. A better BT would include a defensive option. Add a condition: `IF PlayerHP < 30% AND Heal is NOT READY THEN Defend`. This ensures the agent attempts to mitigate incoming damage when it cannot heal, increasing its chances of surviving until the heal becomes available again.
