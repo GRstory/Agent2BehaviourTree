@@ -79,25 +79,23 @@ class LLMAgent:
         
         # Safety settings - disable blocking for game-related content
         # Using HarmBlockThreshold.BLOCK_NONE for all categories
-        from google.generativeai.types import HarmCategory, HarmBlockThreshold
-        
         safety_settings = [
             {
-                "category": HarmCategory.HARM_CATEGORY_HARASSMENT,
-                "threshold": HarmBlockThreshold.BLOCK_NONE,
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "block_none"
             },
             {
-                "category": HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-                "threshold": HarmBlockThreshold.BLOCK_NONE,
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "block_none"
             },
             {
-                "category": HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-                "threshold": HarmBlockThreshold.BLOCK_NONE,
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "block_none"
             },
             {
-                "category": HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-                "threshold": HarmBlockThreshold.BLOCK_NONE,
-            },
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "block_none"
+            }
         ]
         
         try:
@@ -194,33 +192,57 @@ class LLMAgent:
         current_bt: str,
         last_stage_log: str,
         final_floor: int,
-        victory: bool
+        victory: bool,
+        stage_history: Dict[int, str] = None
     ) -> Dict[str, str]:
         """
         Execute two-stage improvement: Critic → Generator
         
         Args:
             current_bt: Current BT DSL
-            last_stage_log: Log from last stage only
+            last_stage_log: Log from last stage only (fallback if history not provided)
             final_floor: Final floor reached
             victory: Whether the game was won
+            stage_history: Dictionary of logs per floor {floor_num: log_text}
             
         Returns:
             Dict with 'critic_feedback' and 'improved_bt'
         """
-        # Stage 1: Critic analyzes last stage
-        critic_feedback = self.critique_last_stage(
-            last_stage_log, 
-            final_floor, 
-            victory,
-            current_bt
-        )
+        aggregated_feedback = []
         
-        # Stage 2: Generator creates improved BT
-        improved_bt = self.generate_improved_bt(current_bt, critic_feedback)
+        # If stage history is provided, analyze each stage
+        if stage_history:
+            print(f"[CRITIC] Analyzing {len(stage_history)} stages...")
+            for floor, log in sorted(stage_history.items()):
+                print(f"  - Analyzing Floor {floor}...")
+                # Determine if this specific stage was a victory (cleared) or defeat
+                # If it's not the final floor, it was cleared. If it is the final floor, check victory flag.
+                stage_victory = True if floor < final_floor else victory
+                
+                feedback = self.critique_last_stage(
+                    log, 
+                    floor, 
+                    stage_victory,
+                    current_bt
+                )
+                aggregated_feedback.append(f"## Floor {floor} Analysis\n{feedback}")
+                
+            full_feedback = "\n\n".join(aggregated_feedback)
+        else:
+            # Fallback to single stage analysis
+            print("[CRITIC] Analyzing last stage only (no history)...")
+            full_feedback = self.critique_last_stage(
+                last_stage_log, 
+                final_floor, 
+                victory,
+                current_bt
+            )
+        
+        # Stage 2: Generator creates improved BT based on aggregated feedback
+        improved_bt = self.generate_improved_bt(current_bt, full_feedback)
         
         return {
-            'critic_feedback': critic_feedback,
+            'critic_feedback': full_feedback,
             'improved_bt': improved_bt
         }
 
@@ -287,12 +309,29 @@ The player is not utilizing combos effectively and healing too late.
         current_bt: str,
         last_stage_log: str,
         final_floor: int,
-        victory: bool
+        victory: bool,
+        stage_history: Dict[int, str] = None
     ) -> Dict[str, str]:
         """Execute mock two-stage improvement"""
-        critic_feedback = self.critique_last_stage(
-            last_stage_log, final_floor, victory, current_bt
-        )
+        aggregated_feedback = []
+        
+        if stage_history:
+            print(f"[MOCK CRITIC] Analyzing {len(stage_history)} stages...")
+            for floor, log in sorted(stage_history.items()):
+                print(f"  - Analyzing Floor {floor}...")
+                stage_victory = True if floor < final_floor else victory
+                
+                feedback = self.critique_last_stage(
+                    log, floor, stage_victory, current_bt
+                )
+                aggregated_feedback.append(f"## Floor {floor} Analysis\n{feedback}")
+            
+            critic_feedback = "\n\n".join(aggregated_feedback)
+        else:
+            critic_feedback = self.critique_last_stage(
+                last_stage_log, final_floor, victory, current_bt
+            )
+            
         improved_bt = self.generate_improved_bt(current_bt, critic_feedback)
         
         return {

@@ -26,11 +26,16 @@ class AbstractLogger:
     def __init__(self):
         self.logs: List[str] = []  # All logs (for debugging)
         self.current_stage_logs: List[str] = []  # Only current stage logs (for LLM)
+        self.stage_history: Dict[int, str] = {}  # History of logs per floor
         self.previous_state: Dict[str, Any] = {}
         self.current_floor: int = 1
     
     def start_new_stage(self, floor: int):
         """Start a new stage (floor), clearing previous stage logs"""
+        # Save previous stage log if it exists
+        if self.current_stage_logs:
+            self.stage_history[self.current_floor] = "".join(self.current_stage_logs)
+            
         self.current_floor = floor
         self.current_stage_logs = []  # Clear for new stage
     
@@ -202,6 +207,10 @@ class AbstractLogger:
             log_entry += f"[DEFEAT] on Floor {final_floor}\n"
         log_entry += f"{'='*60}\n"
         self._add_log(log_entry)
+        
+        # Save final stage log
+        if self.current_stage_logs:
+            self.stage_history[self.current_floor] = "".join(self.current_stage_logs)
     
     def update_state_snapshot(self, state: GameState):
         """Update previous state for comparison"""
@@ -218,6 +227,10 @@ class AbstractLogger:
         """Get only the last stage (floor) log for LLM analysis"""
         return "".join(self.current_stage_logs)
     
+    def get_stage_history(self) -> Dict[int, str]:
+        """Get history of logs for all stages"""
+        return self.stage_history
+    
     def get_recent_log(self, num_entries: int = 5) -> str:
         """Get recent log entries"""
         return "".join(self.logs[-num_entries:])
@@ -226,6 +239,7 @@ class AbstractLogger:
         """Clear all logs"""
         self.logs = []
         self.current_stage_logs = []
+        self.stage_history = {}
         self.previous_state = {}
     
     def generate_summary(self, state: GameState, total_turns: int) -> str:

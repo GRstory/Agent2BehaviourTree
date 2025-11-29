@@ -200,6 +200,7 @@ class GameRunner:
             'total_turns': total_turns,
             'log': self.logger.get_full_log(),
             'last_stage_log': self.logger.get_last_stage_log(),  # Only last stage for LLM
+            'stage_history': self.logger.get_stage_history(),    # History of all stages
             'summary': summary
         }
 
@@ -342,7 +343,8 @@ class ImprovementLoop:
             print("\n[LLM] Generating improved BT...")
             improvement_result = self.agent.two_stage_improvement(
                 current_bt=current_bt,
-                last_stage_log=results['last_stage_log'],  # Only last stage
+                last_stage_log=results['last_stage_log'],
+                stage_history=results['stage_history'],
                 final_floor=results['final_floor'],
                 victory=results['victory']
             )

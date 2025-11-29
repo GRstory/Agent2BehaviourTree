@@ -198,21 +198,14 @@ EXAMPLE_BT_BALANCED = """
 root :
     selector :
         sequence :
-            condition : IsPlayerHPLevel(Low)
+            condition : IsPlayerHPLow(30)
             condition : CanHeal()
             task : Heal()
         sequence :
-            condition : IsPlayerHPLevel(Low)
-            condition : IsEnemyHPLevel(High)
+            condition : IsEnemyHPLow(20)
+            task : HeavyAttack()
+        sequence :
+            condition : IsPlayerHPLow(50)
             task : Defend()
-        sequence :
-            condition : HasComboReady(TripleLight)
-            task : LightAttack()
-        sequence :
-            condition : HasComboReady(CounterStrike)
-            task : HeavyAttack()
-        sequence :
-            condition : IsEnemyHPLevel(Low)
-            task : HeavyAttack()
         task : LightAttack()
 """
