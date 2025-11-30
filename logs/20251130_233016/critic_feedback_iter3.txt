@@ -1,0 +1,5 @@
+# CRITIC FEEDBACK
+
+## Floor 1 Analysis
+## Analysis
+The current Behaviour Tree is too passive. Although it successfully executed the `TripleLight` combo to win this specific fight, its

@@ -28,6 +28,7 @@ class CombatResult(Enum):
     PLAYER_WIN = "player_win"
     PLAYER_DEATH = "player_death"
     FLOOR_CLEARED = "floor_cleared"
+    TURN_LIMIT_EXCEEDED = "turn_limit_exceeded"
 
 
 @dataclass
@@ -62,6 +63,7 @@ class GameState:
     """Complete game state"""
     current_floor: int = 1
     turn_count: int = 0
+    floor_turn_count: int = 0  # Turns on current floor only
     player: CombatStats = field(default_factory=lambda: CombatStats(
         max_hp=100,
         current_hp=100,
@@ -77,6 +79,7 @@ class GameState:
         """Reset state for new floor (keep player HP)"""
         self.current_floor = floor
         self.turn_count = 0
+        self.floor_turn_count = 0  # Reset floor turn counter
         self.enemy = self._create_enemy_for_floor(floor)
         self.action_history = []
         self.is_defending = False
@@ -134,6 +137,7 @@ class CombatEngine:
     HEAL_AMOUNT = 30
     HEAL_COOLDOWN = 3  # Turns between heals
     DEFEND_BONUS = 10  # Extra defense when defending
+    TURN_LIMIT = 30  # Maximum turns per floor
     
     def __init__(self, game_state: GameState):
         self.state = game_state
@@ -229,6 +233,11 @@ class CombatEngine:
         Returns (combat result status, combo name if triggered)
         """
         self.state.turn_count += 1
+        self.state.floor_turn_count += 1
+        
+        # Check turn limit BEFORE processing the turn
+        if self.state.floor_turn_count > self.TURN_LIMIT:
+            return CombatResult.TURN_LIMIT_EXCEEDED, None
         
         # Decrease heal cooldown
         if self.state.heal_cooldown > 0:
@@ -309,6 +318,13 @@ class DungeonGame:
             self.victory = False
             turn_info["game_over"] = True
             turn_info["victory"] = False
+        
+        elif result == CombatResult.TURN_LIMIT_EXCEEDED:
+            self.game_over = True
+            self.victory = False
+            turn_info["game_over"] = True
+            turn_info["victory"] = False
+            turn_info["defeat_reason"] = "turn_limit_exceeded"
         
         return turn_info
     

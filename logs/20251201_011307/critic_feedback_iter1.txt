@@ -1,0 +1,5 @@
+# CRITIC FEEDBACK
+
+## Floor 2 Analysis
+## Analysis
+The current Behaviour Tree (BT) successfully cleared the floor but did so inefficiently. It lacks any awareness of the combo system, a key mechanic hinted at in

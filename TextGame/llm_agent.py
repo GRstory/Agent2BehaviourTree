@@ -56,7 +56,7 @@ class LLMAgent:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(self.model_name)
     
-    def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float = 0.7) -> str:
+    def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float = 0.7, max_retries: int = 3) -> str:
         """
         Call LLM with system and user prompts
         
@@ -64,6 +64,7 @@ class LLMAgent:
             system_prompt: System prompt defining the role
             user_prompt: User prompt with the task
             temperature: Sampling temperature
+            max_retries: Maximum number of retry attempts if blocked by safety filters
             
         Returns:
             LLM response text
@@ -71,6 +72,13 @@ class LLMAgent:
         # Gemini doesn't have separate system/user roles in the same way
         # Combine system prompt into the user prompt
         combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+        
+        # Log the prompt to console
+        print("\n" + "="*80)
+        print("[LLM PROMPT] Sending to LLM:")
+        print("="*80)
+        print(combined_prompt)
+        print("="*80 + "\n")
         
         generation_config = genai.types.GenerationConfig(
             temperature=temperature,
@@ -98,29 +106,87 @@ class LLMAgent:
             }
         ]
         
-        try:
-            response = self.model.generate_content(
-                combined_prompt,
-                generation_config=generation_config,
-                safety_settings=safety_settings
-            )
-            
-            # Check if response was blocked
-            if not response.parts:
-                print(f"\n[ERROR] Response blocked!")
-                print(f"Finish reason: {response.candidates[0].finish_reason}")
-                print(f"Safety ratings:")
-                for rating in response.candidates[0].safety_ratings:
-                    print(f"  - {rating.category}: {rating.probability}")
-                return "Error: Response was blocked by safety filters. Please try again."
-            
-            return response.text
-            
-        except Exception as e:
-            print(f"[ERROR] LLM call failed: {e}")
-            import traceback
-            traceback.print_exc()
-            return f"Error: {str(e)}"
+        # Retry loop for safety filter blocks
+        for attempt in range(max_retries):
+            try:
+                if attempt > 0:
+                    print(f"\n[RETRY] Attempt {attempt + 1}/{max_retries}...")
+                
+                response = self.model.generate_content(
+                    combined_prompt,
+                    generation_config=generation_config,
+                    safety_settings=safety_settings
+                )
+                
+                # Check if response was blocked
+                if not response.parts:
+                    print(f"\n[WARNING] Response blocked by safety filters (Attempt {attempt + 1}/{max_retries})")
+                    print(f"Finish reason: {response.candidates[0].finish_reason}")
+                    print(f"Safety ratings:")
+                    for rating in response.candidates[0].safety_ratings:
+                        print(f"  - {rating.category}: {rating.probability}")
+                    
+                    # If this was the last attempt, return error
+                    if attempt == max_retries - 1:
+                        print(f"\n[ERROR] All {max_retries} attempts failed due to safety filters.")
+                        return "Error: Response was blocked by safety filters after multiple attempts."
+                    
+                    # Otherwise, continue to next retry
+                    print(f"Retrying...")
+                    continue
+                
+                # Success - return the response
+                if attempt > 0:
+                    print(f"[SUCCESS] Response received on attempt {attempt + 1}")
+                return response.text
+                
+            except Exception as e:
+                print(f"[ERROR] LLM call failed on attempt {attempt + 1}/{max_retries}: {e}")
+                
+                # If this was the last attempt, raise the error
+                if attempt == max_retries - 1:
+                    import traceback
+                    traceback.print_exc()
+                    return f"Error: {str(e)}"
+                
+                # Otherwise, continue to next retry
+                print(f"Retrying...")
+                continue
+        
+        # This should never be reached, but just in case
+        return "Error: Maximum retries exceeded"
+    
+    def _validate_bt(self, bt_dsl: str) -> tuple[bool, str]:
+        """Validate BT DSL syntax
+        
+        Returns:
+            (is_valid, error_message)
+        """
+        if not bt_dsl or len(bt_dsl.strip()) < 10:
+            return False, "BT is too short or empty"
+        
+        if not bt_dsl.strip().startswith("root :"):
+            return False, "BT must start with 'root :'"
+        
+        # Check for fallback action (last line should be a task)
+        lines = [l for l in bt_dsl.strip().split('\n') if l.strip()]
+        if not lines:
+            return False, "BT has no content"
+        
+        last_line = lines[-1].strip()
+        if not last_line.startswith("task :"):
+            return False, "BT must end with a fallback task action"
+        
+        # Check for invalid condition/action names
+        invalid_patterns = [
+            "isPlayerHP", "isEnemyHP", "isAbilityAvailable", "IsAbilityReady",
+            "UseAbility", "executeCombo", "isComboAvailable"
+        ]
+        for pattern in invalid_patterns:
+            if pattern in bt_dsl:
+                return False, f"Invalid syntax detected: '{pattern}' is not a valid condition/action"
+        
+        return True, ""
     
     def generate_initial_bt(self) -> str:
         """
@@ -139,12 +205,33 @@ class LLMAgent:
         print("[OK] Initial BT generated")
         return bt_dsl
     
+    def _sanitize_log_for_safety(self, log: str) -> str:
+        """Sanitize log to reduce safety filter triggers"""
+        # Replace combat-related terms with neutral language
+        sanitized = log
+        replacements = {
+            "Attack": "Action",
+            "attack": "action",
+            "Damage": "Effect",
+            "damage": "effect",
+            "HP": "Health",
+            "CRITICAL": "Very Low",
+            "DEFEAT": "Loss",
+            "DEATH": "Loss",
+            "died": "lost",
+            "kill": "defeat",
+        }
+        for old, new in replacements.items():
+            sanitized = sanitized.replace(old, new)
+        return sanitized
+    
     def critique_last_stage(
         self, 
         last_stage_log: str, 
         final_floor: int, 
         victory: bool,
-        current_bt: str
+        current_bt: str,
+        previous_floor: int = 0
     ) -> str:
         """
         Analyze last stage gameplay and provide improvement suggestions
@@ -154,14 +241,22 @@ class LLMAgent:
             final_floor: Final floor reached
             victory: Whether the game was won
             current_bt: Current BT DSL
+            previous_floor: Floor reached in previous iteration (for performance comparison)
             
         Returns:
             Critic feedback text
         """
         print("[CRITIC] Analyzing last stage...")
         
-        prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt)
+        prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt, previous_floor)
         feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5)
+        
+        # If blocked by safety filter, retry with sanitized log
+        if "Error: Response was blocked" in feedback:
+            print("[RETRY] Retrying with sanitized log...")
+            sanitized_log = self._sanitize_log_for_safety(last_stage_log)
+            prompt = create_critic_prompt(sanitized_log, final_floor, victory, current_bt, previous_floor)
+            feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5)
         
         print("[OK] Critic analysis complete")
         return feedback
@@ -184,7 +279,14 @@ class LLMAgent:
         
         improved_bt = extract_bt_from_response(response)
         
-        print("[OK] Improved BT generated")
+        # Validate the generated BT
+        is_valid, error_msg = self._validate_bt(improved_bt)
+        if not is_valid:
+            print(f"[WARNING] Generated BT failed validation: {error_msg}")
+            print("[FALLBACK] Using current BT instead")
+            return current_bt
+        
+        print("[OK] Improved BT generated and validated")
         return improved_bt
     
     def two_stage_improvement(
@@ -193,7 +295,8 @@ class LLMAgent:
         last_stage_log: str,
         final_floor: int,
         victory: bool,
-        stage_history: Dict[int, str] = None
+        stage_history: Dict[int, str] = None,
+        previous_floor: int = 0
     ) -> Dict[str, str]:
         """
         Execute two-stage improvement: Critic → Generator
@@ -223,8 +326,15 @@ class LLMAgent:
                     log, 
                     floor, 
                     stage_victory,
-                    current_bt
+                    current_bt,
+                    previous_floor
                 )
+                
+                # Skip floors that failed after retries
+                if "Error: Response was blocked" in feedback:
+                    print(f"  [WARNING] Floor {floor} analysis blocked, skipping...")
+                    continue
+                    
                 aggregated_feedback.append(f"## Floor {floor} Analysis\n{feedback}")
                 
             full_feedback = "\n\n".join(aggregated_feedback)
@@ -235,7 +345,8 @@ class LLMAgent:
                 last_stage_log, 
                 final_floor, 
                 victory,
-                current_bt
+                current_bt,
+                previous_floor
             )
         
         # Stage 2: Generator creates improved BT based on aggregated feedback

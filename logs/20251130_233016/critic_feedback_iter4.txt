@@ -1,0 +1,7 @@
+# CRITIC FEEDBACK
+
+## Floor 4 Analysis
+## Analysis
+The agent's defeat was caused by a passive "death loop." When its HP dropped, it repeatedly chose to `Defend` because its `Heal` was on cooldown. However, the defense was insufficient to mitigate the incoming damage, leading to a slow and inevitable death without dealing any counter-damage.
+
+The core issue lies in the Behaviour Tree's defensive logic. The `IsPlayerHPLow(50)` threshold for defending is too high and too generic.

@@ -198,13 +198,19 @@ class AbstractLogger:
         log_entry += f"{'*'*60}\n"
         self._add_log(log_entry)
     
-    def log_game_over(self, victory: bool, final_floor: int):
+    def log_game_over(self, victory: bool, final_floor: int, defeat_reason: str = None):
         """Log game end"""
         log_entry = f"\n{'='*60}\n"
         if victory:
             log_entry += "[VICTORY] All 10 floors cleared!\n"
         else:
-            log_entry += f"[DEFEAT] on Floor {final_floor}\n"
+            if defeat_reason == "turn_limit_exceeded":
+                log_entry += f"[DEFEAT] on Floor {final_floor} - TURN LIMIT EXCEEDED\n"
+                log_entry += f"\n[CRITICAL FAILURE] The battle took more than 30 turns!\n"
+                log_entry += "This indicates the strategy was too slow or inefficient.\n"
+                log_entry += "The agent failed to defeat the enemy quickly enough.\n"
+            else:
+                log_entry += f"[DEFEAT] on Floor {final_floor}\n"
         log_entry += f"{'='*60}\n"
         self._add_log(log_entry)
         

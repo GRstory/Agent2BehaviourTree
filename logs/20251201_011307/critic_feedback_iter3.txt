@@ -1,0 +1,5 @@
+# CRITIC FEEDBACK
+
+## Floor 1 Analysis
+## Analysis
+The Behaviour Tree's primary weakness is its complete lack of awareness of the combo system.

@@ -108,9 +108,10 @@ class GameRunner:
         Run complete game and return results
         
         Returns:
-            Dict with 'victory', 'final_floor', 'total_turns', 'log', 'summary'
+            Dict with 'victory', 'final_floor', 'total_turns', 'log', 'summary', 'defeat_reason'
         """
         total_turns = 0
+        defeat_reason = None
         
         if self.verbose:
             print("\n" + "="*70)
@@ -139,6 +140,10 @@ class GameRunner:
             # Execute action in game
             turn_info = self.game.take_action(action)
             total_turns += 1
+            
+            # Track defeat reason if present
+            if 'defeat_reason' in turn_info:
+                defeat_reason = turn_info['defeat_reason']
             
             # Calculate values for logging
             player_hp_change = turn_info['player_hp_change']
@@ -176,8 +181,8 @@ class GameRunner:
             # Update state snapshot
             self.logger.update_state_snapshot(self.game.state)
         
-        # Log game over
-        self.logger.log_game_over(self.game.victory, self.game.state.current_floor)
+        # Log game over with defeat reason
+        self.logger.log_game_over(self.game.victory, self.game.state.current_floor, defeat_reason)
         
         # Print final result to console
         if self.verbose:
@@ -187,7 +192,10 @@ class GameRunner:
                 print(f" "*20 + f"전체 10층 클리어!")
             else:
                 print(" "*25 + "[패배]")
-                print(f" "*20 + f"{self.game.state.current_floor}층에서 사망")
+                if defeat_reason == "turn_limit_exceeded":
+                    print(f" "*15 + f"{self.game.state.current_floor}층에서 30턴 초과로 패배")
+                else:
+                    print(f" "*20 + f"{self.game.state.current_floor}층에서 사망")
             print(f" "*20 + f"총 {total_turns}턴 소요")
             print("="*70 + "\n")
         
@@ -201,7 +209,8 @@ class GameRunner:
             'log': self.logger.get_full_log(),
             'last_stage_log': self.logger.get_last_stage_log(),  # Only last stage for LLM
             'stage_history': self.logger.get_stage_history(),    # History of all stages
-            'summary': summary
+            'summary': summary,
+            'defeat_reason': defeat_reason  # Add defeat reason to results
         }
 
 
@@ -324,6 +333,9 @@ class ImprovementLoop:
         
         self.save_bt(current_bt, 0)
         
+        # Track previous floor for performance comparison
+        previous_floor = 0
+        
         # Run iterations
         for i in range(1, self.config.max_iterations + 1):
             # Run game with current BT
@@ -346,8 +358,12 @@ class ImprovementLoop:
                 last_stage_log=results['last_stage_log'],
                 stage_history=results['stage_history'],
                 final_floor=results['final_floor'],
-                victory=results['victory']
+                victory=results['victory'],
+                previous_floor=previous_floor  # Pass previous floor for comparison
             )
+            
+            # Update previous floor for next iteration
+            previous_floor = results['final_floor']
             
             current_bt = improvement_result['improved_bt']
             self.save_bt(current_bt, i + 1)

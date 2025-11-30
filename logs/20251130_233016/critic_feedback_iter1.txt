@@ -1,0 +1,12 @@
+# CRITIC FEEDBACK
+
+## Floor 2 Analysis
+## Analysis
+The current Behaviour Tree (BT) successfully cleared the floor, but it did so inefficiently and by accident, not by design.
+
+The `Triple Light` combo was only executed because `LightAttack` is the default fallback action, and no other higher-priority conditions (like low player or enemy HP) were met for three consecutive turns. The BT has no explicit awareness of combos.
+
+This exposes a critical flaw: if the enemy's HP had dropped below 20% after the second `LightAttack`, the BT would have incorrectly prioritized `HeavyAttack`, breaking the combo and missing the opportunity for massive damage from the combo finisher. The victory was slower than it could have been.
+
+## Improvement Suggestions
+1.  **Add a Combo-Continuation Sequence:** The BT must be able to recognize when a combo is in progress and prioritize continuing it. A new high-priority sequence should be added to check if the next action in a sequence will trigger a powerful combo.

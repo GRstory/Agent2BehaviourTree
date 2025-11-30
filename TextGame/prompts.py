@@ -100,6 +100,35 @@ Generate a Behaviour Tree that:
 3. **Manages resources wisely** - Don't waste heals
 4. **Adapts to enemy strength** - Different tactics for different situations
 
+# CRITICAL REQUIREMENTS
+
+1. **ONLY use the exact condition and action names from the DSL specification above**
+2. **Use 4 spaces for indentation** (not tabs, not 2 spaces)
+3. **Include colons after node types**: `root :`, `selector :`, `sequence :`, `condition :`, `task :`
+4. **Always end with a fallback action**: Last child should be `task : LightAttack()`
+5. **Use parentheses for all conditions and actions**: `IsPlayerHPLow(30)`, `Heal()`
+
+# INVALID EXAMPLES (DO NOT USE)
+❌ `condition : isPlayerHP <= 30` - Wrong syntax
+❌ `action : UseAbility(Heal)` - Wrong action name
+❌ `condition : IsAbilityReady(Heal)` - Wrong condition name
+❌ `task : LightAttack` - Missing parentheses
+
+# VALID EXAMPLE
+✅ 
+```
+root :
+    selector :
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+        sequence :
+            condition : HasComboReady(TripleLight)
+            task : LightAttack()
+        task : LightAttack()
+```
+
 Output ONLY the BT DSL, no explanations. Start with `root :` and use proper indentation."""
 
 
@@ -107,16 +136,26 @@ Output ONLY the BT DSL, no explanations. Start with `root :` and use proper inde
 # CRITIC LLM - Analyzes last stage and suggests improvements
 # ============================================================================
 
-def create_critic_prompt(last_stage_log: str, final_floor: int, victory: bool, current_bt: str) -> str:
+def create_critic_prompt(last_stage_log: str, final_floor: int, victory: bool, current_bt: str, previous_floor: int = 0) -> str:
     """Create prompt for Critic LLM to analyze last stage gameplay"""
     
     outcome = "VICTORY (All 10 floors cleared)" if victory else f"DEFEAT (Died on Floor {final_floor})"
+    
+    # Add performance comparison if available
+    performance_context = ""
+    if previous_floor > 0:
+        if final_floor > previous_floor:
+            performance_context = f"\n# Performance Improvement\n✅ **IMPROVED**: Previous iteration reached Floor {previous_floor}, current reached Floor {final_floor} (+{final_floor - previous_floor} floors)\n"
+        elif final_floor < previous_floor:
+            performance_context = f"\n# Performance Regression\n❌ **WORSE**: Previous iteration reached Floor {previous_floor}, current only reached Floor {final_floor} (-{previous_floor - final_floor} floors)\n"
+        else:
+            performance_context = f"\n# Performance Status\n➡️ **SAME**: Both iterations reached Floor {final_floor}\n"
     
     return f"""You are a tactical analyst for turn-based combat games.
 
 # Game Outcome
 {outcome}
-
+{performance_context}
 # Current Behaviour Tree
 ```
 {current_bt}
@@ -136,14 +175,16 @@ Analyze ONLY the last stage gameplay log and identify:
 
 Provide 3-5 specific, actionable improvement suggestions.
 
+**IMPORTANT**: Be SPECIFIC in your suggestions. Instead of saying "improve healing logic", say "Change IsPlayerHPLow threshold from 30 to 40" or "Move healing sequence above combo sequences".
+
 **Output Format:**
 ## Analysis
 [Brief analysis of what went wrong or what could be better]
 
 ## Improvement Suggestions
-1. [Specific suggestion with reasoning]
-2. [Specific suggestion with reasoning]
-3. [Specific suggestion with reasoning]
+1. [SPECIFIC suggestion with exact BT changes needed]
+2. [SPECIFIC suggestion with exact BT changes needed]
+3. [SPECIFIC suggestion with exact BT changes needed]
 ...
 
 Be concise and focus on the most impactful changes."""
@@ -174,8 +215,51 @@ def create_generator_prompt(current_bt: str, critic_feedback: str) -> str:
 
 Generate an IMPROVED Behaviour Tree that addresses the feedback while maintaining valid DSL syntax.
 
+# CRITICAL REQUIREMENTS
+
+1. **ONLY use the exact condition and action names from the DSL specification**
+   - Valid conditions: IsPlayerHPLow, IsPlayerHPHigh, IsEnemyHPLow, IsEnemyHPHigh, CanHeal, IsDefending, HasComboReady, IsFloorBoss, IsTurnEarly
+   - Valid actions: LightAttack, HeavyAttack, Defend, Heal
+   
+2. **Use correct syntax**:
+   - Control nodes: `root :`, `selector :`, `sequence :`
+   - Conditions: `condition : IsPlayerHPLow(30)`
+   - Actions: `task : Heal()`
+   
+3. **Use 4 spaces for indentation** (not tabs, not 2 spaces)
+
+4. **Always include a fallback action** at the end: `task : LightAttack()`
+
+5. **Use parentheses** for all conditions and actions
+
+# COMMON MISTAKES TO AVOID
+
+❌ `isPlayerHP <= 30` - Use `IsPlayerHPLow(30)` instead
+❌ `UseAbility(Heal)` - Use `Heal()` instead
+❌ `IsAbilityReady(Heal)` - Use `CanHeal()` instead
+❌ `isAbilityAvailable` - Not a valid condition
+❌ `executeCombo` - Not a valid action
+❌ Using 2 spaces or tabs for indentation
+
+# VALID EXAMPLE
+```
+root :
+    selector :
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+        sequence :
+            condition : HasComboReady(TripleLight)
+            task : LightAttack()
+        sequence :
+            condition : IsEnemyHPLow(25)
+            task : HeavyAttack()
+        task : LightAttack()
+```
+
 **Requirements:**
-1. Fix the identified problems
+1. Fix the identified problems from the feedback
 2. Implement suggested improvements
 3. Maintain proper DSL syntax and indentation (4 spaces)
 4. Keep the tree reasonably simple
