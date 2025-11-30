@@ -71,9 +71,9 @@ class GameRunner:
         if state.enemy:
             print(f"│ 적 HP:       {state.enemy.current_hp:>3}/{state.enemy.max_hp:<3} ({enemy_hp_pct:>5.1f}%)" + " " * 24 + "│")
         
-        # Heal cooldown
-        if state.heal_cooldown > 0:
-            print(f"│ 힐 쿨다운:   {state.heal_cooldown}턴 남음" + " " * 44 + "│")
+        # Heal status
+        if state.heal_used_this_floor:
+            print(f"│ 힐 상태:     이번 층에서 사용함" + " " * 38 + "│")
         else:
             print(f"│ 힐 상태:     사용 가능" + " " * 43 + "│")
         
@@ -96,7 +96,7 @@ class GameRunner:
             if enemy_damage > 0:  # Using enemy_damage as heal amount
                 print(f"{enemy_damage} HP 회복!", end="")
             else:
-                print(f"실패 (쿨다운)", end="")
+                print(f"실패 (이미 사용함)", end="")
         
         print(" " * (70 - 45 - len(action.value)) + "│")
         

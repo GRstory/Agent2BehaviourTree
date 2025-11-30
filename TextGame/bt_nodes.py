@@ -143,10 +143,10 @@ class IsEnemyHPLevel(BTCondition):
 
 
 class CanHeal(BTCondition):
-    """Check if heal is available (not on cooldown)"""
+    """Check if heal is available (not used this floor)"""
     
     def evaluate(self, state: GameState) -> bool:
-        return state.heal_cooldown == 0
+        return not state.heal_used_this_floor
     
     def __repr__(self):
         return "CanHeal()"

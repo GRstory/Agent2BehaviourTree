@@ -72,8 +72,9 @@ class GameState:
     ))
     enemy: Optional[CombatStats] = None
     action_history: List[ActionType] = field(default_factory=list)
-    heal_cooldown: int = 0  # Turns until heal is available
+    heal_used_this_floor: bool = False  # Track if heal was used on current floor
     is_defending: bool = False  # Player is in defend stance
+    used_heavy_attack_this_turn: bool = False  # Track if heavy attack was used this turn (take 2x damage immediately)
     
     def reset_for_new_floor(self, floor: int):
         """Reset state for new floor (keep player HP)"""
@@ -83,7 +84,8 @@ class GameState:
         self.enemy = self._create_enemy_for_floor(floor)
         self.action_history = []
         self.is_defending = False
-        # Don't reset heal_cooldown - carries over between floors
+        self.heal_used_this_floor = False  # Reset heal availability for new floor
+        self.used_heavy_attack_this_turn = False  # Reset heavy attack penalty
     
     def _create_enemy_for_floor(self, floor: int) -> CombatStats:
         """Create enemy with stats scaled to floor difficulty"""
@@ -134,9 +136,8 @@ class CombatEngine:
                     2.5),  # 2.5x damage after defend
     ]
     
-    HEAL_AMOUNT = 30
-    HEAL_COOLDOWN = 3  # Turns between heals
-    DEFEND_BONUS = 10  # Extra defense when defending
+    HEAL_PERCENTAGE = 0.25  # Heal 25% of max HP
+    DEFEND_DAMAGE_REDUCTION = 0.5  # Reduce damage by 50% when defending
     TURN_LIMIT = 30  # Maximum turns per floor
     
     def __init__(self, game_state: GameState):
@@ -165,7 +166,7 @@ class CombatEngine:
             return f"Light Attack", actual_damage, combo_triggered
         
         elif action == ActionType.HEAVY_ATTACK:
-            damage = self.state.player.base_attack * 2
+            damage = int(self.state.player.base_attack * 1.5)  # 1.5x damage
             
             # Check for combo
             for combo in self.COMBOS:
@@ -176,19 +177,21 @@ class CombatEngine:
             
             actual_damage = self.state.enemy.take_damage(damage)
             self.state.is_defending = False
+            self.state.used_heavy_attack_this_turn = True  # Mark for 2x damage penalty THIS turn
             return f"Heavy Attack", actual_damage, combo_triggered
         
         elif action == ActionType.DEFEND:
-            # Defending increases defense temporarily and resets on next turn
+            # Defending reduces incoming damage by 50%
             self.state.is_defending = True
-            return "Defend", self.DEFEND_BONUS, None
+            return "Defend", 0, None
         
         elif action == ActionType.HEAL:
-            if self.state.heal_cooldown > 0:
-                return "Heal (Failed - On Cooldown)", 0, None
+            if self.state.heal_used_this_floor:
+                return "Heal (Failed - Already Used This Floor)", 0, None
             
-            actual_heal = self.state.player.heal(self.HEAL_AMOUNT)
-            self.state.heal_cooldown = self.HEAL_COOLDOWN
+            heal_amount = int(self.state.player.max_hp * self.HEAL_PERCENTAGE)
+            actual_heal = self.state.player.heal(heal_amount)
+            self.state.heal_used_this_floor = True
             self.state.is_defending = False
             return "Heal", actual_heal, None
         
@@ -214,16 +217,23 @@ class CombatEngine:
             damage = self.state.enemy.base_attack
             action = "Light Attack"
         
-        # Apply player defense (with bonus if defending)
-        defense = self.state.player.defense
-        if self.state.is_defending:
-            defense += self.DEFEND_BONUS
+        # Apply player defense
+        actual_damage = max(0, damage - self.state.player.defense)
         
-        actual_damage = max(0, damage - defense)
+        # If defending, reduce damage by 50%
+        if self.state.is_defending:
+            actual_damage = int(actual_damage * self.DEFEND_DAMAGE_REDUCTION)
+        
+        # If player used heavy attack THIS turn, take 2x damage
+        if self.state.used_heavy_attack_this_turn:
+            actual_damage = int(actual_damage * 2)
+        
         self.state.player.current_hp = max(0, self.state.player.current_hp - actual_damage)
         
         # Reset defend state after enemy turn
         self.state.is_defending = False
+        # Reset heavy attack penalty after taking the damage
+        self.state.used_heavy_attack_this_turn = False
         
         return action, actual_damage
     
@@ -238,10 +248,6 @@ class CombatEngine:
         # Check turn limit BEFORE processing the turn
         if self.state.floor_turn_count > self.TURN_LIMIT:
             return CombatResult.TURN_LIMIT_EXCEEDED, None
-        
-        # Decrease heal cooldown
-        if self.state.heal_cooldown > 0:
-            self.state.heal_cooldown -= 1
         
         # Player turn
         player_desc, player_value, combo = self.execute_player_action(player_action)
@@ -337,7 +343,7 @@ class DungeonGame:
             "player_max_hp": self.state.player.max_hp,
             "enemy_hp": self.state.enemy.current_hp if self.state.enemy else 0,
             "enemy_max_hp": self.state.enemy.max_hp if self.state.enemy else 0,
-            "heal_cooldown": self.state.heal_cooldown,
+            "heal_used_this_floor": self.state.heal_used_this_floor,
             "is_defending": self.state.is_defending,
             "game_over": self.game_over,
             "victory": self.victory

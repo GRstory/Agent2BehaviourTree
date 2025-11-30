@@ -50,42 +50,34 @@ Conditions evaluate game state and return true/false. They do NOT execute action
 #### Player HP Conditions
 
 ```
-condition : IsPlayerHPLow(threshold)
+condition : IsPlayerHPLevel(level)
 ```
-- Returns true if player HP percentage < threshold
-- Example: `condition : IsPlayerHPLow(30)` - true if HP < 30%
-- Default threshold: 30
-
-```
-condition : IsPlayerHPHigh(threshold)
-```
-- Returns true if player HP percentage > threshold
-- Example: `condition : IsPlayerHPHigh(70)` - true if HP > 70%
-- Default threshold: 70
+- Returns true if player HP matches the specified level
+- **Valid levels**:
+  - `Low` - HP is 0-33% (critical, need healing!)
+  - `Mid` - HP is 33-66% (moderate, be careful)
+  - `High` - HP is 66-100% (healthy, can be aggressive)
+- Example: `condition : IsPlayerHPLevel(Low)` - true if HP < 33%
+- **Use this for better abstraction**
 
 #### Enemy HP Conditions
 
 ```
-condition : IsEnemyHPLow(threshold)
+condition : IsEnemyHPLevel(level)
 ```
-- Returns true if enemy HP percentage < threshold
-- Example: `condition : IsEnemyHPLow(25)` - true if enemy HP < 25%
-- Default threshold: 30
-
-```
-condition : IsEnemyHPHigh(threshold)
-```
-- Returns true if enemy HP percentage > threshold
-- Example: `condition : IsEnemyHPHigh(60)` - true if enemy HP > 60%
-- Default threshold: 70
+- Returns true if enemy HP matches the specified level
+- **Valid levels**: `Low`, `Mid`, `High` (same as player)
+- Example: `condition : IsEnemyHPLevel(Low)` - true if enemy HP < 33%
+- **Tip**: Use `Low` to finish off enemies with heavy attacks
 
 #### Ability Conditions
 
 ```
 condition : CanHeal()
 ```
-- Returns true if Heal ability is off cooldown and can be used
+- Returns true if Heal has not been used on the current floor
 - No parameters
+- **Important**: Heal is LIMITED to once per floor, use wisely!
 
 ```
 condition : IsDefending()
@@ -99,11 +91,40 @@ condition : IsDefending()
 condition : HasComboReady(combo_name)
 ```
 - Returns true if the specified combo is ready to be completed
-- Valid combo names:
-  - `TripleLight` - Two Light Attacks have been performed, third will trigger combo
-  - `HeavyFinisher` - Two Light Attacks have been performed, Heavy Attack will trigger combo
-  - `CounterStrike` - Defend has been performed, Heavy Attack will trigger combo
+- **Valid combo names**:
+  - `TripleLight` - Two Light Attacks performed → next Light Attack = **4x damage**
+  - `HeavyFinisher` - Two Light Attacks performed → next Heavy Attack = **3x damage**
+  - `CounterStrike` - Defend performed → next Heavy Attack = **2.5x damage**
 - Example: `condition : HasComboReady(TripleLight)`
+
+**💡 COMBO STRATEGY - How to Build Combos:**
+
+Combos are built by **repeating the same action**. No special function needed!
+
+- **Want Triple Light (4x damage)?**
+  ```
+  Turn 1: LightAttack()  ← First hit
+  Turn 2: LightAttack()  ← Second hit (combo building...)
+  Turn 3: LightAttack()  ← BOOM! 4x damage!
+  ```
+  Just use `task : LightAttack()` as your default action!
+
+- **Want Heavy Finisher (3x damage)?**
+  ```
+  Turn 1: LightAttack()  ← First hit
+  Turn 2: LightAttack()  ← Second hit (combo ready!)
+  Turn 3: HeavyAttack()  ← BOOM! 3x damage!
+  ```
+  Use `HasComboReady(HeavyFinisher)` to detect when ready
+
+- **Want Counter Strike (2.5x damage)?**
+  ```
+  Turn 1: Defend()       ← Block incoming damage
+  Turn 2: HeavyAttack()  ← BOOM! 2.5x damage!
+  ```
+  Use `HasComboReady(CounterStrike)` to detect when ready
+
+**Key Insight**: You don't need a special "start combo" function. Just use the same attack repeatedly, and combos happen automatically!
 
 #### Floor Conditions
 
@@ -128,26 +149,27 @@ Actions execute game actions and always succeed. Use `task :` keyword.
 task : LightAttack()
 ```
 - Performs a Light Attack (base damage)
-- Part of combo chains
+- **Part of combo chains** - use repeatedly to build Triple Light!
 
 ```
 task : HeavyAttack()
 ```
-- Performs a Heavy Attack (2x base damage)
-- Can finish combos
+- Performs a Heavy Attack (1.5x base damage)
+- **Penalty**: Same turn, you take 2x damage from enemy
+- **Can finish combos** - use after 2 Light Attacks for 3x damage!
 
 ```
 task : Defend()
 ```
-- Increases defense for this turn and next enemy turn
-- Part of Counter Strike combo
+- Reduces incoming damage by 50% for this turn
+- **Part of Counter Strike combo** - follow with Heavy Attack!
 
 ```
 task : Heal()
 ```
-- Restores 30 HP
-- Has 3-turn cooldown
-- Fails if on cooldown (but BT continues)
+- Restores 25% of max HP (25 HP if max is 100)
+- **Can only be used once per floor**
+- Fails if already used on current floor (but BT continues)
 
 ## Complete Example
 
@@ -155,17 +177,17 @@ task : Heal()
 root :
     selector :
         sequence :
-            condition : IsPlayerHPLow(30)
+            condition : IsPlayerHPLevel(Low)
             condition : CanHeal()
             task : Heal()
         sequence :
             condition : HasComboReady(TripleLight)
             task : LightAttack()
         sequence :
-            condition : IsEnemyHPLow(25)
+            condition : IsEnemyHPLevel(Low)
             task : HeavyAttack()
         sequence :
-            condition : IsPlayerHPLow(50)
+            condition : IsPlayerHPLevel(Low)
             task : Defend()
         task : LightAttack()
 ```
@@ -178,7 +200,7 @@ root :
 
 3. **Valid node names**: Only use the condition and action names listed above. Custom names will cause errors.
 
-4. **Combo awareness**: Use `HasComboReady()` conditions to detect when combos can be triggered
+4. **Combo awareness**: Use `HasComboReady()` conditions to detect when combos can be triggered, OR just use the same attack repeatedly!
 
 5. **Survival first**: Consider healing/defending before aggressive actions
 
@@ -187,7 +209,7 @@ root :
 ## Common Mistakes to Avoid
 
 ❌ **Wrong**: `condition : isPlayerHP <= 30` (invalid syntax)
-✅ **Correct**: `condition : IsPlayerHPLow(30)`
+✅ **Correct**: `condition : IsPlayerHPLevel(Low)`
 
 ❌ **Wrong**: `action : UseAbility(Heal)` (invalid action name)
 ✅ **Correct**: `task : Heal()`
@@ -200,3 +222,6 @@ root :
 
 ❌ **Wrong**: `task : LightAttack` (missing parentheses)
 ✅ **Correct**: `task : LightAttack()`
+
+❌ **Wrong**: `condition : IsPlayerHPLow(30)` (old numeric style)
+✅ **Correct**: `condition : IsPlayerHPLevel(Low)` (use abstract levels)

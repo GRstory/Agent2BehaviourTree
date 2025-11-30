@@ -76,17 +76,37 @@ def create_initial_bt_prompt() -> str:
 
 **Actions:**
 - Light Attack: Base damage
-- Heavy Attack: 2x base damage
-- Defend: Increases defense for this turn and next enemy turn
-- Heal: Restores 30 HP, has 3-turn cooldown
+- Heavy Attack: 1.5x base damage, but you take 2x damage SAME turn (high risk, high reward)
+- Defend: Reduces incoming damage by 50% for this turn
+- Heal: Restores 25% of max HP (25 HP if max is 100), can only be used once per floor
 
-**Combo System (CRITICAL):**
-1. Triple Light: Light → Light → Light = 4x damage on final hit
-2. Heavy Finisher: Light → Light → Heavy = 3x damage on heavy
-3. Counter Strike: Defend → Heavy = 2.5x damage on heavy
+**Combo System (CRITICAL FOR VICTORY):**
+Combos are built by **repeating the same action**. No special setup needed!
+
+1. **Triple Light** (4x damage): Just use Light Attack 3 times in a row!
+   - Turn 1: Light Attack (normal damage)
+   - Turn 2: Light Attack (normal damage)
+   - Turn 3: Light Attack (BOOM! 4x damage)
+   - **Strategy**: Make Light Attack your default action to naturally build this combo
+
+2. **Heavy Finisher** (3x damage): Light Attack twice, then Heavy Attack
+   - Turn 1: Light Attack
+   - Turn 2: Light Attack
+   - Turn 3: Heavy Attack (BOOM! 3x damage)
+   - **Strategy**: Use `HasComboReady(HeavyFinisher)` to detect when ready
+
+3. **Counter Strike** (2.5x damage): Defend once, then Heavy Attack
+   - Turn 1: Defend (block damage)
+   - Turn 2: Heavy Attack (BOOM! 2.5x damage)
+   - **Strategy**: Great for surviving while dealing damage
+
+**HP Levels (Use these in conditions):**
+- **Low**: 0-33% (critical, need healing!)
+- **Mid**: 33-66% (moderate, be careful)
+- **High**: 66-100% (healthy, can be aggressive)
 
 **Win Condition:** Defeat all enemies on all 10 floors
-**Lose Condition:** Player HP reaches 0
+**Lose Condition:** Player HP reaches 0 OR exceed 30 turns per floor
 
 # Behaviour Tree DSL Specification
 
