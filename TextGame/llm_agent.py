@@ -11,7 +11,7 @@ Implements the PORTAL-inspired iterative improvement loop:
 """
 
 import os
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Tuple
 
 try:
     import google.generativeai as genai
@@ -34,14 +34,14 @@ from .prompts import (
 class LLMAgent:
     """LLM agent for BT generation and improvement"""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-1.5-flash"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-1.5-flash", critic_model: str = "gemini-2.0-flash-exp"):
         """
         Initialize LLM agent
         
         Args:
             api_key: Gemini API key (or None to use environment variable)
-            model: Model to use (default: gemini-1.5-flash)
-                   Options: gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash-exp
+            model: Model to use for generation (default: gemini-1.5-flash)
+            critic_model: Model to use for critique (default: gemini-2.0-flash-exp)
         """
         if not GEMINI_AVAILABLE:
             raise ImportError("google-generativeai package not installed. Install with: pip install google-generativeai")
@@ -51,12 +51,14 @@ class LLMAgent:
             raise ValueError("Gemini API key not set. Set GEMINI_API_KEY environment variable or pass api_key parameter.")
         
         self.model_name = model
+        self.critic_model_name = critic_model
         
         # Configure Gemini
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(self.model_name)
+        self.critic_model_instance = genai.GenerativeModel(self.critic_model_name)
     
-    def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float = 0.7, max_retries: int = 3) -> str:
+    def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float = 0.7, max_retries: int = 3, model_instance=None) -> str:
         """
         Call LLM with system and user prompts
         
@@ -65,6 +67,7 @@ class LLMAgent:
             user_prompt: User prompt with the task
             temperature: Sampling temperature
             max_retries: Maximum number of retry attempts if blocked by safety filters
+            model_instance: Specific model instance to use (optional)
             
         Returns:
             LLM response text
@@ -73,12 +76,8 @@ class LLMAgent:
         # Combine system prompt into the user prompt
         combined_prompt = f"{system_prompt}\n\n{user_prompt}"
         
-        # Log the prompt to console
-        print("\n" + "="*80)
-        print("[LLM PROMPT] Sending to LLM:")
-        print("="*80)
-        print(combined_prompt)
-        print("="*80 + "\n")
+        # Log the prompt to console (Simplified)
+        print(f"[LLM] Sending request... (Prompt hidden)")
         
         generation_config = genai.types.GenerationConfig(
             temperature=temperature,
@@ -87,74 +86,52 @@ class LLMAgent:
         
         # Safety settings - disable blocking for game-related content
         # Using HarmBlockThreshold.BLOCK_NONE for all categories
+        # Safety settings - disable blocking for game-related content
         safety_settings = [
             {
-                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                "threshold": "block_none"
+                "category": genai.types.HarmCategory.HARM_CATEGORY_HARASSMENT,
+                "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE,
             },
             {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "block_none"
+                "category": genai.types.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+                "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE,
             },
             {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "block_none"
+                "category": genai.types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+                "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE,
             },
             {
-                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                "threshold": "block_none"
+                "category": genai.types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                "threshold": genai.types.HarmBlockThreshold.BLOCK_NONE,
             }
         ]
         
-        # Retry loop for safety filter blocks
-        for attempt in range(max_retries):
-            try:
-                if attempt > 0:
-                    print(f"\n[RETRY] Attempt {attempt + 1}/{max_retries}...")
-                
-                response = self.model.generate_content(
-                    combined_prompt,
-                    generation_config=generation_config,
-                    safety_settings=safety_settings
-                )
-                
-                # Check if response was blocked
-                if not response.parts:
-                    print(f"\n[WARNING] Response blocked by safety filters (Attempt {attempt + 1}/{max_retries})")
-                    print(f"Finish reason: {response.candidates[0].finish_reason}")
-                    print(f"Safety ratings:")
-                    for rating in response.candidates[0].safety_ratings:
-                        print(f"  - {rating.category}: {rating.probability}")
-                    
-                    # If this was the last attempt, return error
-                    if attempt == max_retries - 1:
-                        print(f"\n[ERROR] All {max_retries} attempts failed due to safety filters.")
-                        return "Error: Response was blocked by safety filters after multiple attempts."
-                    
-                    # Otherwise, continue to next retry
-                    print(f"Retrying...")
-                    continue
-                
-                # Success - return the response
-                if attempt > 0:
-                    print(f"[SUCCESS] Response received on attempt {attempt + 1}")
-                return response.text
-                
-            except Exception as e:
-                print(f"[ERROR] LLM call failed on attempt {attempt + 1}/{max_retries}: {e}")
-                
-                # If this was the last attempt, raise the error
-                if attempt == max_retries - 1:
-                    import traceback
-                    traceback.print_exc()
-                    return f"Error: {str(e)}"
-                
-                # Otherwise, continue to next retry
-                print(f"Retrying...")
-                continue
+        target_model = model_instance or self.model
         
-        # This should never be reached, but just in case
-        return "Error: Maximum retries exceeded"
+        try:
+            response = target_model.generate_content(
+                combined_prompt,
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
+            
+            # Check if response was blocked
+            if not response.parts:
+                print(f"\n[WARNING] Response blocked by safety filters")
+                print(f"Finish reason: {response.candidates[0].finish_reason}")
+                print(f"Safety ratings:")
+                for rating in response.candidates[0].safety_ratings:
+                    print(f"  - {rating.category}: {rating.probability}")
+                
+                return "Error: Response was blocked by safety filters."
+            
+            return response.text
+            
+        except Exception as e:
+            print(f"[ERROR] LLM call failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return f"Error: {str(e)}"
     
     def _validate_bt(self, bt_dsl: str) -> tuple[bool, str]:
         """Validate BT DSL syntax
@@ -200,7 +177,7 @@ class LLMAgent:
         prompt = create_initial_bt_prompt()
         response = self._call_llm(SYSTEM_PROMPT_BT_GENERATOR, prompt, temperature=0.8)
         
-        bt_dsl = extract_bt_from_response(response)
+        bt_dsl = extract_bt_from_response(response).strip()
         
         print("[OK] Initial BT generated")
         return bt_dsl
@@ -249,19 +226,19 @@ class LLMAgent:
         print("[CRITIC] Analyzing last stage...")
         
         prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt, previous_floor)
-        feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5)
+        feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5, model_instance=self.critic_model_instance)
         
         # If blocked by safety filter, retry with sanitized log
         if "Error: Response was blocked" in feedback:
             print("[RETRY] Retrying with sanitized log...")
             sanitized_log = self._sanitize_log_for_safety(last_stage_log)
             prompt = create_critic_prompt(sanitized_log, final_floor, victory, current_bt, previous_floor)
-            feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5)
+            feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5, model_instance=self.critic_model_instance)
         
         print("[OK] Critic analysis complete")
         return feedback
     
-    def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> str:
+    def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> Tuple[str, Optional[str]]:
         """
         Generate improved BT based on critic feedback
         
@@ -270,24 +247,24 @@ class LLMAgent:
             critic_feedback: Feedback from Critic LLM
             
         Returns:
-            Improved BT DSL string
+            (Improved BT DSL string, Error message if failed)
         """
         print("[GENERATOR] Creating improved Behaviour Tree...")
         
         prompt = create_generator_prompt(current_bt, critic_feedback)
         response = self._call_llm(SYSTEM_PROMPT_BT_GENERATOR, prompt, temperature=0.7)
         
-        improved_bt = extract_bt_from_response(response)
+        improved_bt = extract_bt_from_response(response).strip()
         
         # Validate the generated BT
         is_valid, error_msg = self._validate_bt(improved_bt)
         if not is_valid:
             print(f"[WARNING] Generated BT failed validation: {error_msg}")
             print("[FALLBACK] Using current BT instead")
-            return current_bt
+            return current_bt, error_msg
         
         print("[OK] Improved BT generated and validated")
-        return improved_bt
+        return improved_bt, None
     
     def two_stage_improvement(
         self,
@@ -311,51 +288,37 @@ class LLMAgent:
         Returns:
             Dict with 'critic_feedback' and 'improved_bt'
         """
-        aggregated_feedback = []
+        # If victory achieved, no need to improve
+        if victory:
+            print("[LLM] Victory achieved! No improvement needed.")
+            return {
+                'critic_feedback': "Victory achieved. No changes needed.",
+                'improved_bt': current_bt
+            }
+            
+        # Only analyze the failed floor (last stage)
+        print(f"[CRITIC] Analyzing failed Floor {final_floor}...")
         
-        # If stage history is provided, analyze each stage
-        if stage_history:
-            print(f"[CRITIC] Analyzing {len(stage_history)} stages...")
-            for floor, log in sorted(stage_history.items()):
-                print(f"  - Analyzing Floor {floor}...")
-                # Determine if this specific stage was a victory (cleared) or defeat
-                # If it's not the final floor, it was cleared. If it is the final floor, check victory flag.
-                stage_victory = True if floor < final_floor else victory
-                
-                feedback = self.critique_last_stage(
-                    log, 
-                    floor, 
-                    stage_victory,
-                    current_bt,
-                    previous_floor
-                )
-                
-                # Skip floors that failed after retries
-                if "Error: Response was blocked" in feedback:
-                    print(f"  [WARNING] Floor {floor} analysis blocked, skipping...")
-                    continue
-                    
-                aggregated_feedback.append(f"## Floor {floor} Analysis\n{feedback}")
-                
-            full_feedback = "\n\n".join(aggregated_feedback)
-        else:
-            # Fallback to single stage analysis
-            print("[CRITIC] Analyzing last stage only (no history)...")
-            full_feedback = self.critique_last_stage(
-                last_stage_log, 
-                final_floor, 
-                victory,
-                current_bt,
-                previous_floor
-            )
+        critic_feedback = self.critique_last_stage(
+            last_stage_log, 
+            final_floor, 
+            victory,
+            current_bt,
+            previous_floor
+        )
         
-        # Stage 2: Generator creates improved BT based on aggregated feedback
-        improved_bt = self.generate_improved_bt(current_bt, full_feedback)
+        # Stage 2: Generator creates improved BT based on critic feedback
+        improved_bt, error_msg = self.generate_improved_bt(current_bt, critic_feedback)
         
-        return {
-            'critic_feedback': full_feedback,
+        result = {
+            'critic_feedback': critic_feedback,
             'improved_bt': improved_bt
         }
+        
+        if error_msg:
+            result['generation_error'] = error_msg
+            
+        return result
 
 
 class MockLLMAgent(LLMAgent):
@@ -396,7 +359,7 @@ The player is not utilizing combos effectively and healing too late.
 3. Add defensive option - Use Defend when HP is low and heal is on cooldown
 4. Prioritize combo completion - Don't interrupt combo chains with healing"""
     
-    def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> str:
+    def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> Tuple[str, Optional[str]]:
         """Return improved mock BT"""
         return """root :
     selector :
@@ -413,7 +376,7 @@ The player is not utilizing combos effectively and healing too late.
         sequence :
             condition : IsEnemyHPLow(30)
             task : HeavyAttack()
-        task : LightAttack()"""
+        task : LightAttack()""", None
     
     def two_stage_improvement(
         self,

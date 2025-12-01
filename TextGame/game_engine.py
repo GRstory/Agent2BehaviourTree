@@ -12,6 +12,30 @@ This module implements the core game logic including:
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 from enum import Enum
+import sys
+import os
+import random
+
+# Add project root to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+try:
+    from config import DEFAULT_GAME_CONFIG
+except ImportError:
+    # Fallback values if config cannot be imported
+    class DEFAULT_GAME_CONFIG:
+        player_starting_hp = 100
+        player_base_attack = 15
+        player_defense = 5
+        heal_amount = 30
+        heal_cooldown = 3
+        defend_bonus = 10
+        enemy_base_hp = 50
+        enemy_hp_per_floor = 10
+        enemy_base_attack = 10
+        enemy_attack_per_floor = 2
+        enemy_base_defense = 2
+        enemy_defense_per_floor = 1
+        boss_multiplier = 1.2
 
 
 class ActionType(Enum):
@@ -65,15 +89,16 @@ class GameState:
     turn_count: int = 0
     floor_turn_count: int = 0  # Turns on current floor only
     player: CombatStats = field(default_factory=lambda: CombatStats(
-        max_hp=100,
-        current_hp=100,
-        base_attack=15,
-        defense=5
+        max_hp=DEFAULT_GAME_CONFIG.player_starting_hp,
+        current_hp=DEFAULT_GAME_CONFIG.player_starting_hp,
+        base_attack=DEFAULT_GAME_CONFIG.player_base_attack,
+        defense=DEFAULT_GAME_CONFIG.player_defense
     ))
     enemy: Optional[CombatStats] = None
     action_history: List[ActionType] = field(default_factory=list)
     heal_cooldown: int = 0  # Turns until heal is available
     is_defending: bool = False  # Player is in defend stance
+    current_heal_amount: int = DEFAULT_GAME_CONFIG.heal_amount
     
     def reset_for_new_floor(self, floor: int):
         """Reset state for new floor (keep player HP)"""
@@ -84,16 +109,29 @@ class GameState:
         self.action_history = []
         self.is_defending = False
         # Don't reset heal_cooldown - carries over between floors
+        
+        # Player Growth: Increase stats on floor progression
+        if floor > 1:
+            # Increase Attack and Heal amount by fixed factor 1.15x
+            growth_factor = 1.15
+            
+            old_attack = self.player.base_attack
+            self.player.base_attack = int(self.player.base_attack * growth_factor)
+            
+            old_heal = self.current_heal_amount
+            self.current_heal_amount = int(self.current_heal_amount * growth_factor)
     
     def _create_enemy_for_floor(self, floor: int) -> CombatStats:
         """Create enemy with stats scaled to floor difficulty"""
+        cfg = DEFAULT_GAME_CONFIG
+        
         # Boss floors (5, 10) have stronger enemies
         is_boss = floor % 5 == 0
-        multiplier = 1.5 if is_boss else 1.0
+        multiplier = cfg.boss_multiplier if is_boss else 1.0
         
-        base_hp = 50 + (floor * 10)
-        base_attack = 10 + (floor * 2)
-        base_defense = 2 + floor
+        base_hp = cfg.enemy_base_hp + (floor * cfg.enemy_hp_per_floor)
+        base_attack = cfg.enemy_base_attack + (floor * cfg.enemy_attack_per_floor)
+        base_defense = cfg.enemy_base_defense + (floor * cfg.enemy_defense_per_floor)
         
         return CombatStats(
             max_hp=int(base_hp * multiplier),
@@ -134,9 +172,9 @@ class CombatEngine:
                     2.5),  # 2.5x damage after defend
     ]
     
-    HEAL_AMOUNT = 30
-    HEAL_COOLDOWN = 3  # Turns between heals
-    DEFEND_BONUS = 10  # Extra defense when defending
+    HEAL_AMOUNT = DEFAULT_GAME_CONFIG.heal_amount
+    HEAL_COOLDOWN = DEFAULT_GAME_CONFIG.heal_cooldown  # Turns between heals
+    DEFEND_BONUS = DEFAULT_GAME_CONFIG.defend_bonus  # Extra defense when defending
     TURN_LIMIT = 30  # Maximum turns per floor
     
     def __init__(self, game_state: GameState):
@@ -187,7 +225,7 @@ class CombatEngine:
             if self.state.heal_cooldown > 0:
                 return "Heal (Failed - On Cooldown)", 0, None
             
-            actual_heal = self.state.player.heal(self.HEAL_AMOUNT)
+            actual_heal = self.state.player.heal(self.state.current_heal_amount)
             self.state.heal_cooldown = self.HEAL_COOLDOWN
             self.state.is_defending = False
             return "Heal", actual_heal, None

@@ -37,9 +37,12 @@ def parse_bt_dsl(dsl_text: str, indent_unit: int = 4) -> BTNode:
     :param indent_unit: 들여쓰기 단위 (기본값: 공백 4칸)
     :return: 루트 BTNode 객체
     """
-    lines = dsl_text.strip().split('\n')
-    if not lines:
+    # 엔터로 시작하는 경우 등을 처리하기 위해 공백 제거
+    dsl_text = dsl_text.strip()
+    if not dsl_text:
         return None
+
+    lines = dsl_text.split('\n')
 
     # 라인을 파싱하여 (레벨, 노드) 튜플로 변환
     def parse_line(line_str: str):

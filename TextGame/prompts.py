@@ -138,6 +138,7 @@ Output ONLY the BT DSL, no explanations. Start with `root :` and use proper inde
 
 def create_critic_prompt(last_stage_log: str, final_floor: int, victory: bool, current_bt: str, previous_floor: int = 0) -> str:
     """Create prompt for Critic LLM to analyze last stage gameplay"""
+    dsl_spec = load_dsl_spec()
     
     outcome = "VICTORY (All 10 floors cleared)" if victory else f"DEFEAT (Died on Floor {final_floor})"
     
@@ -161,6 +162,9 @@ def create_critic_prompt(last_stage_log: str, final_floor: int, victory: bool, c
 {current_bt}
 ```
 
+# Available BT Functions & DSL Spec
+{dsl_spec}
+
 # Last Stage Gameplay Log
 {last_stage_log}
 
@@ -175,16 +179,20 @@ Analyze ONLY the last stage gameplay log and identify:
 
 Provide 3-5 specific, actionable improvement suggestions.
 
-**IMPORTANT**: Be SPECIFIC in your suggestions. Instead of saying "improve healing logic", say "Change IsPlayerHPLow threshold from 30 to 40" or "Move healing sequence above combo sequences".
+**IMPORTANT**: 
+- **DO NOT write full BT DSL code or code blocks.**
+- Describe the logic changes in plain text.
+- Example: "Change the healing threshold from 30% to 40%" instead of writing the code.
+- Example: "Add a condition to check for TripleLight combo before attacking" instead of writing the code.
 
 **Output Format:**
 ## Analysis
 [Brief analysis of what went wrong or what could be better]
 
 ## Improvement Suggestions
-1. [SPECIFIC suggestion with exact BT changes needed]
-2. [SPECIFIC suggestion with exact BT changes needed]
-3. [SPECIFIC suggestion with exact BT changes needed]
+1. [Description of logic change]
+2. [Description of logic change]
+3. [Description of logic change]
 ...
 
 Be concise and focus on the most impactful changes."""
@@ -265,6 +273,13 @@ root :
 4. Keep the tree reasonably simple
 5. Ensure there's always a fallback action
 
+**IMPORTANT STRATEGIC GUIDANCE:**
+- **BE BOLD**: If the previous performance was poor or stagnant, do not just tweak numbers. Change the structure!
+- **REORDER PRIORITIES**: Try moving defensive or combo logic higher up in the tree.
+- **TRY NEW STRATEGIES**: If the current strategy isn't working, try a completely different approach (e.g., aggressive vs defensive).
+- **DON'T BE AFRAID TO REWRITE**: You can completely restructure the tree if the current one is fundamentally flawed.
+- **ABSOLUTELY NO DUPLICATES**: You MUST generate a DIFFERENT Behaviour Tree. Do not output the exact same code as the "Current Behaviour Tree".
+
 Output ONLY the improved BT DSL, no explanations. Start with `root :` and use proper indentation."""
 
 
@@ -284,7 +299,7 @@ def extract_bt_from_response(response: str) -> str:
                 lines = part.strip().split('\n')
                 if lines[0].strip() and not lines[0].strip().startswith('root'):
                     lines = lines[1:]
-                return '\n'.join(lines)
+                return '\n'.join(lines).strip()
     
     # If no code blocks, look for "root :" and take everything after
     if "root :" in response:

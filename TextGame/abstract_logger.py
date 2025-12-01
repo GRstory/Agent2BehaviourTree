@@ -84,111 +84,58 @@ class AbstractLogger:
     
     def log_turn_start(self, state: GameState):
         """Log the start of a turn"""
-        floor_type = "BOSS FLOOR" if state.current_floor % 5 == 0 else f"Floor {state.current_floor}"
+        # Simplified header and status
+        log_entry = f"--- Turn {state.turn_count} (Floor Turn {state.floor_turn_count}) ---\n"
         
-        log_entry = f"\n{'='*60}\n"
-        log_entry += f"[{floor_type}] Turn {state.turn_count}\n"
-        log_entry += f"{'='*60}\n"
-        
-        # Player status
-        player_hp_level = self.abstract_hp(state.player.current_hp, state.player.max_hp)
-        log_entry += f"Player HP: {player_hp_level}"
-        
-        if self.previous_state.get('player_hp'):
-            old_hp = self.previous_state['player_hp']
-            trend = self.get_hp_trend(old_hp, state.player.current_hp)
-            if trend != "unchanged":
-                old_level = self.abstract_hp(old_hp, state.player.max_hp)
-                log_entry += f" (was {old_level}, {trend})"
-        log_entry += "\n"
-        
-        # Enemy status
+        player_hp = self.abstract_hp(state.player.current_hp, state.player.max_hp)
+        enemy_hp = "Dead"
         if state.enemy:
-            enemy_hp_level = self.abstract_hp(state.enemy.current_hp, state.enemy.max_hp)
-            log_entry += f"Enemy HP: {enemy_hp_level}"
+            enemy_hp = self.abstract_hp(state.enemy.current_hp, state.enemy.max_hp)
             
-            if self.previous_state.get('enemy_hp'):
-                old_hp = self.previous_state['enemy_hp']
-                trend = self.get_hp_trend(old_hp, state.enemy.current_hp)
-                if trend != "unchanged":
-                    old_level = self.abstract_hp(old_hp, state.enemy.max_hp)
-                    log_entry += f" (was {old_level}, {trend})"
-            log_entry += "\n"
+        log_entry += f"Status: Player HP {player_hp}, Enemy HP {enemy_hp}"
         
-        # Special status
         if state.is_defending:
-            log_entry += "Status: DEFENDING (increased defense)\n"
-        
+            log_entry += ", Defending"
         if state.heal_cooldown > 0:
-            log_entry += f"Heal Cooldown: {state.heal_cooldown} turn(s) remaining\n"
-        else:
-            log_entry += "Heal: READY\n"
-        
+            log_entry += f", Heal CD {state.heal_cooldown}"
+            
+        log_entry += "\n"
         self._add_log(log_entry)
     
     def log_player_action(self, action: ActionType, value: int, combo: str, state: GameState):
         """Log player action with abstract descriptions"""
-        log_entry = f"\n>>> Player Action: {action.value}\n"
+        log_entry = f"Player: {action.value}"
         
         if action in [ActionType.LIGHT_ATTACK, ActionType.HEAVY_ATTACK]:
             damage_level = self.abstract_damage(value, state.enemy.max_hp)
-            log_entry += f"Result: Hit! Enemy took {damage_level} damage\n"
-            
+            log_entry += f" -> Hit ({damage_level} dmg)"
             if combo:
-                log_entry += f"[COMBO] {combo} ACTIVATED!\n"
-            
-            # Tactical observations
-            enemy_hp_pct = state.enemy.hp_percentage()
-            if enemy_hp_pct < 20:
-                log_entry += "Observation: Enemy is nearly defeated!\n"
-            elif enemy_hp_pct < 40:
-                log_entry += "Observation: Enemy is vulnerable, press the advantage\n"
-            
-            # Check if close to combo
-            recent_actions = state.action_history[-2:] if len(state.action_history) >= 2 else []
-            if recent_actions == [ActionType.LIGHT_ATTACK, ActionType.LIGHT_ATTACK]:
-                log_entry += "Hint: One more Light Attack will trigger Triple Light combo (4x damage)!\n"
-            elif recent_actions == [ActionType.LIGHT_ATTACK, ActionType.LIGHT_ATTACK]:
-                log_entry += "Hint: Heavy Attack now will trigger Heavy Finisher combo (3x damage)!\n"
-            elif state.is_defending:
-                log_entry += "Hint: Heavy Attack after Defend triggers Counter Strike combo (2.5x damage)!\n"
+                log_entry += f" [COMBO: {combo}]"
         
         elif action == ActionType.DEFEND:
-            log_entry += f"Result: Defense increased by {value}\n"
-            log_entry += "Observation: Prepared to reduce incoming damage\n"
+            log_entry += f" -> Defending (Defense +{value})"
         
         elif action == ActionType.HEAL:
             if value > 0:
                 heal_level = self.abstract_damage(value, state.player.max_hp)
-                log_entry += f"Result: Restored {heal_level} amount of HP\n"
-                
-                player_hp_pct = state.player.hp_percentage()
-                if player_hp_pct > 80:
-                    log_entry += "Warning: Heal may have been wasted (HP already high)\n"
+                log_entry += f" -> Healed ({heal_level} HP)"
             else:
-                log_entry += "Result: FAILED - Heal is on cooldown!\n"
-                log_entry += f"Warning: Wasted turn! Heal available in {state.heal_cooldown} turn(s)\n"
+                log_entry += " -> FAILED (Cooldown)"
         
+        log_entry += "\n"
         self._add_log(log_entry)
     
     def log_enemy_action(self, action: str, damage: int, state: GameState):
         """Log enemy action with abstract descriptions"""
-        log_entry = f"\n<<< Enemy Action: {action}\n"
+        log_entry = f"Enemy: {action}"
         
         if damage > 0:
             damage_level = self.abstract_damage(damage, state.player.max_hp)
-            log_entry += f"Result: Player took {damage_level} damage\n"
-            
-            # Tactical observations
-            player_hp_pct = state.player.hp_percentage()
-            if player_hp_pct < 20:
-                log_entry += "[WARNING] Player HP is CRITICAL!\n"
-            elif player_hp_pct < 35:
-                log_entry += "Caution: Player HP is getting low, consider healing or defending\n"
+            log_entry += f" -> Player took {damage_level} dmg"
         else:
-            log_entry += "Result: Attack blocked! (No damage taken)\n"
-            log_entry += "Observation: Defending was effective\n"
-        
+            log_entry += " -> Blocked"
+            
+        log_entry += "\n"
         self._add_log(log_entry)
     
     def log_floor_cleared(self, floor: int):

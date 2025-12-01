@@ -29,7 +29,7 @@ class GameConfig:
     enemy_attack_per_floor: int = 2
     enemy_base_defense: int = 2
     enemy_defense_per_floor: int = 1
-    boss_multiplier: float = 1.5
+    boss_multiplier: float = 1.2
 
 
 @dataclass
@@ -37,6 +37,7 @@ class LLMConfig:
     """LLM agent configuration"""
     api_key: str = None
     model: str = "gemini-2.5-pro"
+    critic_model: str = "gemini-2.5-flash"
     temperature_generation: float = 0.7
     temperature_analysis: float = 0.5
     temperature_feedback: float = 0.6
@@ -60,7 +61,9 @@ class RunnerConfig:
     
     # Convergence criteria
     min_floor_improvement: int = 2  # Stop if no improvement in floor count
+    min_floor_improvement: int = 2  # Stop if no improvement in floor count
     victory_early_stop: bool = True  # Stop if victory achieved
+    single_run: bool = False  # Run once without improvement loop
 
 
 # Default configurations

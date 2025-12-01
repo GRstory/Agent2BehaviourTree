@@ -202,10 +202,7 @@ root :
             condition : CanHeal()
             task : Heal()
         sequence :
-            condition : IsEnemyHPLow(20)
+            condition : IsEnemyHPLow(30)
             task : HeavyAttack()
-        sequence :
-            condition : IsPlayerHPLow(50)
-            task : Defend()
         task : LightAttack()
 """

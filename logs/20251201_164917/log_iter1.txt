@@ -1,0 +1,198 @@
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP High, Enemy HP High
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP High, Enemy HP High
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP High, Enemy HP Mid
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 0 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP High, Enemy HP High
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP High, Enemy HP High
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP High, Enemy HP Mid
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 1 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP High, Enemy HP High
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP Mid, Enemy HP High
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP Mid
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 2 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP Mid, Enemy HP High
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP High, Enemy HP High, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP Mid, Enemy HP Mid, Heal CD 1
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 3 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP Mid, Enemy HP High
+Player: LightAttack -> Hit (Light dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP Low, Enemy HP High
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 3
+Player: LightAttack -> Hit (Light dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 2
+Player: LightAttack -> Hit (Light dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 4 (Floor Turn 4) ---
+Status: Player HP Low, Enemy HP Mid, Heal CD 1
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 4 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP Low, Enemy HP High
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP Low, Enemy HP Mid, Heal CD 1
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 5 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP Low, Enemy HP High
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP High, Enemy HP High, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP Mid, Enemy HP Mid, Heal CD 1
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 6 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP Mid, Enemy HP High
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP High, Enemy HP High, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP Mid, Enemy HP Mid, Heal CD 1
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 7 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP Mid, Enemy HP High
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP High, Enemy HP High, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP Low, Enemy HP Mid, Heal CD 1
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+************************************************************
+[CLEARED] FLOOR 8 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP Low, Enemy HP High
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP High, Enemy HP High, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Heavy dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP Mid, Enemy HP High, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Heavy dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP Low, Enemy HP Mid, Heal CD 1
+Player: LightAttack -> Hit (Massive dmg) [COMBO: Triple Light]
+
+============================================================
+[VICTORY] All 10 floors cleared!
+============================================================
+
+
+
+============================================================
+TACTICAL SUMMARY
+============================================================
+
+Floors Cleared: 9
+Total Turns: 38
+Final Player HP: Low
+
+Action Distribution:
+  - LightAttack: 3 times (75.0%)
+  - Heal: 1 times (25.0%)
+
+============================================================

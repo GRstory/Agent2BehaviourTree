@@ -119,9 +119,9 @@ class GameRunner:
             print("="*70)
         
         while not self.game.game_over:
-            # Print debug turn header
-            self._print_turn_header(self.game.state.current_floor, self.game.state.turn_count + 1)
-            self._print_state()
+            # Print debug turn header (Disabled for cleaner output)
+            # self._print_turn_header(self.game.state.current_floor, self.game.state.turn_count + 1)
+            # self._print_state()
             
             # Log turn start (for LLM)
             self.logger.log_turn_start(self.game.state)
@@ -152,8 +152,8 @@ class GameRunner:
             player_damage = abs(player_hp_change) if player_hp_change < 0 else 0
             combo = turn_info.get('combo')  # Extract combo from turn_info
             
-            # Print action result to console
-            self._print_action_result(action, enemy_damage, player_damage, combo)
+            # Print action result to console (Disabled for cleaner output)
+            # self._print_action_result(action, enemy_damage, player_damage, combo)
             
             # Log player action (for LLM)
             self.logger.log_player_action(
@@ -331,15 +331,38 @@ class ImprovementLoop:
             from TextGame.bt_executor import EXAMPLE_BT_BALANCED
             current_bt = EXAMPLE_BT_BALANCED
         
+        if self.config.single_run:
+            print("[MODE] Single Run Mode (No LLM Improvement)")
+            self.save_bt(current_bt, 1)
+            self.run_iteration(current_bt, 1)
+            return
+        
         self.save_bt(current_bt, 0)
+        
+        # Initialize best BT
+        self.best_bt = current_bt
         
         # Track previous floor for performance comparison
         previous_floor = 0
+        stagnation_counter = 0
         
         # Run iterations
         for i in range(1, self.config.max_iterations + 1):
             # Run game with current BT
             results = self.run_iteration(current_bt, i)
+            
+            # Check stagnation/regression
+            if results['final_floor'] <= self.best_floor:
+                stagnation_counter += 1
+            else:
+                stagnation_counter = 0
+            
+            # Rollback if stagnated for 2+ iterations
+            if stagnation_counter >= 2:
+                print(f"\n[ROLLBACK] Performance stagnated/dropped for {stagnation_counter} iterations.")
+                print(f"[ROLLBACK] Reverting to Best BT (Floor {self.best_floor}) for improvement.")
+                current_bt = self.best_bt
+                stagnation_counter = 0
             
             # Check for early stop (victory)
             if results['victory'] and self.config.victory_early_stop:
@@ -366,7 +389,7 @@ class ImprovementLoop:
             previous_floor = results['final_floor']
             
             current_bt = improvement_result['improved_bt']
-            self.save_bt(current_bt, i + 1)
+            self.save_bt(current_bt, i)
             
             # Save critic feedback
             if self.config.save_logs:
@@ -377,6 +400,13 @@ class ImprovementLoop:
                 with open(feedback_file, 'w', encoding='utf-8') as f:
                     f.write("# CRITIC FEEDBACK\n\n")
                     f.write(improvement_result['critic_feedback'])
+                    
+                    if 'generation_error' in improvement_result:
+                        f.write("\n\n" + "="*50 + "\n")
+                        f.write("GENERATION ERROR\n")
+                        f.write("="*50 + "\n")
+                        f.write(f"Failed to generate valid BT: {improvement_result['generation_error']}\n")
+                        f.write("Falling back to previous BT.\n")
         
         # Final summary
         print("\n" + "="*60)
@@ -399,6 +429,7 @@ def main():
     parser.add_argument("--bt", type=str, help="Path to initial BT file")
     parser.add_argument("--no-save", action="store_true", help="Don't save logs/BTs")
     parser.add_argument("--quiet", action="store_true", help="Minimal output")
+    parser.add_argument("--single-run", action="store_true", help="Run game once without LLM improvement")
     
     args = parser.parse_args()
     
@@ -409,9 +440,20 @@ def main():
     config.save_logs = not args.no_save
     config.save_bts = not args.no_save
     config.verbose = not args.quiet
+    config.single_run = args.single_run
     
     # Load initial BT if provided
     initial_bt = None
+    
+    # In single-run mode, default to example/manual.txt if no BT specified
+    if args.single_run and not args.bt:
+        manual_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples', 'manual.txt')
+        if os.path.exists(manual_path):
+            print(f"[MODE] Single Run: Loading BT from {manual_path}")
+            args.bt = manual_path
+        else:
+            print(f"[WARNING] Single Run Mode: '{manual_path}' not found.")
+            
     if args.bt:
         with open(args.bt, 'r', encoding='utf-8') as f:
             initial_bt = f.read()
