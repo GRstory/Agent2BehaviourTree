@@ -1,0 +1,20 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on turn 0 with 8% HP. The BT chose to Defend despite the player being critically low on health and having a heal available (Heal CD 1 implies it will be available next turn). This suggests the BT is prioritizing defense over immediate healing when HP is extremely low, which is a fatal flaw. The player was at 8% HP, which is way too low to be defending when a heal could potentially save them.
+
+## Improvement Suggestions
+1. **Prioritize Healing at Critical HP:** Move the healing sequence to the very top of the selector and lower the HP threshold. Change the `IsPlayerHPLow` condition in the healing sequence to a much lower value, such as 15% or even 10%. This ensures that healing is the absolute priority when the player is near death.
+
+2. **Consider Enemy Damage Output:** Add a condition to the healing sequence that checks if the enemy is about to perform a high-damage attack. If so, prioritize healing even if the player's HP is above the critical threshold. This requires a new condition node, such as `IsEnemyChargingHeavyAttack()`.
+
+3. **Adjust Defense Logic:** The current defense logic activates when the player is above 60% and the enemy is above 70%, or when the player is below 50%. Remove the high HP defense trigger as it's likely unnecessary and can delay more important actions like combos or healing. Focus defense on turns where a high damage attack is anticipated or when a counter-strike combo is possible.
+
+4. **Implement a "Desperation Heal"**: If the player's HP falls below a certain threshold (e.g., 5%), and healing is on cooldown, immediately prioritize defending to try and survive one more turn. This requires adding a new sequence that checks for extremely low HP and an active heal cooldown, then performs the Defend action.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

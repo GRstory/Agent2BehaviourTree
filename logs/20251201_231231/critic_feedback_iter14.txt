@@ -1,0 +1,10 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 10, indicating a lack of effective damage mitigation or healing. The log shows the player frequently defending at low health, which is good, but the timing and frequency might not be optimal. The player also attempted to heal on turn 0 but failed due to cooldown. The aggressive options in the BT are not being utilized effectively to prevent damage in the first place.
+
+## Improvement Suggestions
+1. **Prioritize healing when available and at critical health:** Move the healing sequence to the very top of the selector. This ensures that if healing is possible and the player is below the HP threshold, it happens immediately.
+2. **Increase healing threshold:** The current threshold of 50% might be too low. Increase it to 70% to allow for more proactive healing, preventing the player from dipping into dangerously low health.
+3. **Consider a preemptive defend:** Add a check for `IsTurnEarly(2)` and then `Defend()`. This will give the player a chance to mitigate the first few attacks from the enemy, which seem to be doing significant damage.
+4. **Implement CounterStrike Combo:** Add a sequence that checks for `HasComboReady(CounterStrike)` and then executes `HeavyAttack()`. This allows the player to capitalize on successful defends with a powerful counterattack, increasing damage output and potentially shortening the fight.

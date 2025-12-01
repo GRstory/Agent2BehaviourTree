@@ -1,0 +1,10 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on Floor 5, indicating a potential issue with boss fights or a general lack of survivability. The gameplay log shows the player took significant damage in the early turns, dropping to 18% HP by Turn 3 despite landing attacks. The current BT prioritizes attacking even at low HP, and the Heal ability was on cooldown when needed most. The player also took avoidable damage.
+
+## Improvement Suggestions
+1.  Prioritize defense at lower health. Insert a sequence that checks if player HP is below 40% and then executes the Defend action. This should come before the attack actions. This will help mitigate damage taken.
+2.  Add a condition to check for the `TripleLight` combo readiness before executing light attacks. This ensures that the player completes the combo when available for maximum damage output.
+3.  Increase the healing threshold. The current threshold of 30% is too low, leading to a near-death experience before attempting to heal. Increase it to 50% to allow for earlier healing.
+4.  Add a condition to check if the current floor is a boss floor. If it is, increase the defense threshold to 60% to prioritize survival. This will help the player survive boss fights, which are likely the cause of death on Floor 5.

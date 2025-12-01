@@ -1,0 +1,16 @@
+root :
+    selector :
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+        sequence :
+            condition : IsPlayerHPLow(40)
+            task : Defend()
+        sequence :
+            condition : HasComboReady(HeavyFinisher)
+            task : HeavyAttack()
+        sequence :
+            condition : IsEnemyHPLow(30)
+            task : HeavyAttack()
+        task : LightAttack()

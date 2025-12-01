@@ -87,12 +87,13 @@ class AbstractLogger:
         # Simplified header and status
         log_entry = f"--- Turn {state.turn_count} (Floor Turn {state.floor_turn_count}) ---\n"
         
-        player_hp = self.abstract_hp(state.player.current_hp, state.player.max_hp)
-        enemy_hp = "Dead"
+        player_hp_pct = int((state.player.current_hp / state.player.max_hp) * 100) if state.player.max_hp > 0 else 0
+        enemy_hp_text = "Dead"
         if state.enemy:
-            enemy_hp = self.abstract_hp(state.enemy.current_hp, state.enemy.max_hp)
+            enemy_hp_pct = int((state.enemy.current_hp / state.enemy.max_hp) * 100) if state.enemy.max_hp > 0 else 0
+            enemy_hp_text = f"{enemy_hp_pct}%"
             
-        log_entry += f"Status: Player HP {player_hp}, Enemy HP {enemy_hp}"
+        log_entry += f"Status: Player HP {player_hp_pct}%, Enemy HP {enemy_hp_text}"
         
         if state.is_defending:
             log_entry += ", Defending"
@@ -208,8 +209,8 @@ class AbstractLogger:
         
         summary += f"Total Turns: {total_turns}\n"
         
-        player_hp_level = self.abstract_hp(state.player.current_hp, state.player.max_hp)
-        summary += f"Final Player HP: {player_hp_level}\n\n"
+        player_hp_pct = int((state.player.current_hp / state.player.max_hp) * 100) if state.player.max_hp > 0 else 0
+        summary += f"Final Player HP: {player_hp_pct}%\n\n"
         
         # Analyze action history
         if state.action_history:

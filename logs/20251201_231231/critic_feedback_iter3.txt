@@ -1,0 +1,20 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 5 after being reduced to 3% HP. The BT prioritized light attacks and only defended when HP was critically low (40%), which was insufficient given the damage being taken. A key issue is the lack of healing prioritization and the failed heal attempt on turn 2 due to cooldown. The BT doesn't seem to account for incoming damage, leading to reactive rather than proactive defense.
+
+## Improvement Suggestions
+1. **Prioritize Healing Earlier:** Increase the HP threshold for healing from 60% to 80% to proactively maintain health. This will make the BT attempt to heal before the player takes significant damage.
+
+2. **Prioritize Defending Based on Enemy HP:** Add a condition to defend when the enemy HP is high (e.g., above 70%). This will help mitigate damage early in the fight, preventing the player from getting into critical HP situations. This should be placed before the "IsEnemyHPLow" condition.
+
+3. **Check Heal Cooldown Before Light Attacking:** Insert a sequence before the default LightAttack task to check if `CanHeal()` is true. If it is, and the player's HP is below a certain threshold (e.g., 70%), then heal. This ensures that healing is prioritized when available and needed, rather than defaulting to light attacks. This addresses the issue of the failed heal on turn 2.
+
+4. **Consider a Turn-Based Defense Strategy:** Implement a condition that checks if it's an "early turn" (e.g., IsTurnEarly(2)) and the player's HP is not full. If so, defend. This allows for a more strategic approach to defense, especially in the initial turns of a fight when damage mitigation is crucial.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

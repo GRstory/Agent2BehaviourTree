@@ -1,0 +1,13 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died despite reaching floor 5 in both iterations, suggesting the current BT is insufficient for survival. The gameplay log reveals a critical issue: the player's HP dropped dangerously low (25% and 18%) before any attempt to heal or defend was made. The reliance on LightAttack, even at low HP, proved fatal. The BT prioritizes damage over survival.
+
+## Improvement Suggestions
+1. **Prioritize Healing Earlier:** Increase the healing threshold. Change the `IsPlayerHPLow` condition for healing from 30% to a higher value, such as 50%, to trigger healing sooner.
+
+2. **Implement Defensive Strategy:** Add a sequence that checks if player HP is low (e.g., below 40%) and uses `Defend()` if healing is not immediately available (CanHeal() is false). This will mitigate damage when healing is on cooldown.
+
+3. **Consider Enemy HP for Aggression:** Modify the `IsEnemyHPLow` condition to be more aggressive only when the enemy is at a very low HP threshold (e.g., 15%). Otherwise, prioritize survival or combo execution.
+
+4. **Implement Combo Awareness:** Integrate a condition to check for `HasComboReady(TripleLight)` before defaulting to `LightAttack()`. This will ensure combos are executed when available, potentially leading to faster enemy defeat and reduced damage taken.

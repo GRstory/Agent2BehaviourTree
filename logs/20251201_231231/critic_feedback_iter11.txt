@@ -1,0 +1,20 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died despite reaching floor 10 again. The log shows a critical failure in resource management and prioritization. The player's HP dropped to critical levels very quickly, and the BT failed to effectively respond, leading to a quick defeat. The player attempted to heal on turn 0, but it was on cooldown. Turns 2 and 3 were spent defending while at very low HP, which didn't prevent the player from taking damage and ultimately dying.
+
+## Improvement Suggestions
+1.  **Prioritize Healing at Critical HP:** Move the healing sequence to the very top of the selector. This ensures that if healing is possible at low HP, it will always be the first action considered.
+
+2.  **Increase Healing Threshold:** Increase the HP threshold for healing from 50% to a higher value, such as 70%. This will trigger healing earlier, potentially preventing the player from reaching critically low HP in the first place.
+
+3.  **Consider Enemy Attack Patterns Before Defending:** Add a condition to check if the enemy is likely to perform a heavy attack next turn before defending. This could be implemented by tracking the enemy's previous attack type and predicting the next one. If a heavy attack is predicted, defend. Otherwise, prioritize healing or attacking.
+
+4. **Implement a more aggressive defense strategy when healing is on cooldown:** If the player is at low HP and healing is on cooldown, prioritize defending for multiple turns or until healing becomes available. This could involve adding a sequence that checks for low HP and healing cooldown, then executes the Defend action repeatedly.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

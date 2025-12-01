@@ -163,7 +163,7 @@ class CombatEngine:
     COMBOS = [
         ComboPattern("Triple Light", 
                     [ActionType.LIGHT_ATTACK, ActionType.LIGHT_ATTACK, ActionType.LIGHT_ATTACK],
-                    4.0),  # 4x damage on final hit
+                    3.0),  # 3x damage on final hit
         ComboPattern("Heavy Finisher",
                     [ActionType.LIGHT_ATTACK, ActionType.LIGHT_ATTACK, ActionType.HEAVY_ATTACK],
                     3.0),  # 3x damage on heavy
@@ -203,7 +203,7 @@ class CombatEngine:
             return f"Light Attack", actual_damage, combo_triggered
         
         elif action == ActionType.HEAVY_ATTACK:
-            damage = self.state.player.base_attack * 2
+            damage = int(self.state.player.base_attack * 1.47)  # ~22 damage with base attack 15
             
             # Check for combo
             for combo in self.COMBOS:

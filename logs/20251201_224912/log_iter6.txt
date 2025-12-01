@@ -1,0 +1,141 @@
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP 100%, Enemy HP 100%
+Player: HeavyAttack -> Hit (Heavy dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP 93%, Enemy HP 68%
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP 86%, Enemy HP 48%
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP 79%, Enemy HP 28%
+Player: HeavyAttack -> Hit (Medium dmg) [COMBO: Heavy Finisher]
+
+************************************************************
+[CLEARED] FLOOR 0 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP 79%, Enemy HP 100%
+Player: HeavyAttack -> Hit (Heavy dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP 70%, Enemy HP 71%
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP 61%, Enemy HP 52%
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP 52%, Enemy HP 34%
+Player: HeavyAttack -> Hit (Heavy dmg) [COMBO: Heavy Finisher]
+
+************************************************************
+[CLEARED] FLOOR 1 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP 52%, Enemy HP 100%
+Player: HeavyAttack -> Hit (Heavy dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP 41%, Enemy HP 72%
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP 30%, Enemy HP 55%
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP 57%, Enemy HP 55%, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 4 (Floor Turn 4) ---
+Status: Player HP 47%, Enemy HP 37%, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 5 (Floor Turn 5) ---
+Status: Player HP 36%, Enemy HP 20%, Heal CD 1
+Player: Defend -> Defending (Defense +0)
+Enemy: Attack -> Player took Minimal dmg
+--- Turn 6 (Floor Turn 6) ---
+Status: Player HP 35%, Enemy HP 20%
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 7 (Floor Turn 7) ---
+Status: Player HP 63%, Enemy HP 20%, Heal CD 3
+Player: HeavyAttack -> Hit (Medium dmg)
+
+************************************************************
+[CLEARED] FLOOR 2 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP 63%, Enemy HP 100%, Heal CD 2
+Player: HeavyAttack -> Hit (Heavy dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP 50%, Enemy HP 73%, Heal CD 1
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP 37%, Enemy HP 56%
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP 68%, Enemy HP 56%, Heal CD 3
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 4 (Floor Turn 4) ---
+Status: Player HP 55%, Enemy HP 40%, Heal CD 2
+Player: LightAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Light dmg
+--- Turn 5 (Floor Turn 5) ---
+Status: Player HP 42%, Enemy HP 23%, Heal CD 1
+Player: HeavyAttack -> Hit (Medium dmg) [COMBO: Heavy Finisher]
+
+************************************************************
+[CLEARED] FLOOR 3 CLEARED!
+************************************************************
+--- Turn 0 (Floor Turn 0) ---
+Status: Player HP 42%, Enemy HP 100%
+Player: HeavyAttack -> Hit (Medium dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 1 (Floor Turn 1) ---
+Status: Player HP 23%, Enemy HP 77%
+Player: Heal -> FAILED (Cooldown)
+Enemy: Attack -> Blocked
+--- Turn 2 (Floor Turn 2) ---
+Status: Player HP 54%, Enemy HP 77%, Heal CD 3
+Player: LightAttack -> Hit (Light dmg)
+Enemy: Attack -> Player took Medium dmg
+--- Turn 3 (Floor Turn 3) ---
+Status: Player HP 35%, Enemy HP 64%, Heal CD 2
+Player: Defend -> Defending (Defense +0)
+Enemy: Attack -> Player took Light dmg
+--- Turn 4 (Floor Turn 4) ---
+Status: Player HP 26%, Enemy HP 64%, Heal CD 1
+Player: Defend -> Defending (Defense +0)
+
+============================================================
+[DEFEAT] on Floor 5
+============================================================
+
+
+
+============================================================
+TACTICAL SUMMARY
+============================================================
+
+Floors Cleared: 4
+Total Turns: 27
+Final Player HP: 0%
+
+Action Distribution:
+  - Defend: 2 times (40.0%)
+  - HeavyAttack: 1 times (20.0%)
+  - Heal: 1 times (20.0%)
+  - LightAttack: 1 times (20.0%)
+
+============================================================

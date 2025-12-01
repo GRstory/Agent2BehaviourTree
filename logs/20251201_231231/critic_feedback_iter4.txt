@@ -1,0 +1,10 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on Floor 9, indicating a need for better survivability. The gameplay log shows a rapid HP decrease between turns 1 and 2, and again between turns 4 and 5. The player attempted to heal on turn 2 but was on cooldown. Defending on turn 5 was a last-ditch effort but ultimately insufficient as they died later. The BT's healing and defense thresholds seem too low, and there's no proactive defense strategy.
+
+## Improvement Suggestions
+1. Increase the healing threshold to 70%. This will trigger healing earlier, giving the player a better chance to survive burst damage.
+2. Add a condition to check if the enemy HP is high (e.g., above 70%) and the player HP is above a safe threshold (e.g., 60%), then defend. This will proactively mitigate damage when the player isn't in immediate danger but could benefit from increased defense.
+3. Prioritize the proactive defense sequence over the `IsEnemyHPLow` check. This ensures that the player defends when needed, even if the enemy is at low health, improving survivability.
+4. Add a sequence to check if a CounterStrike combo is available (after defending) and execute a HeavyAttack if it is. This would capitalize on the defense action and provide a damage boost.

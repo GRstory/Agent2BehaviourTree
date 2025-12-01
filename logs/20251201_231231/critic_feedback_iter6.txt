@@ -1,0 +1,13 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on Floor 7 with 8% HP. The log shows the player defended on turn 0. Given the low HP, the primary issue appears to be the BT's failure to prioritize healing or effective defense when HP was critically low. The fact that the player defended suggests the low HP defense condition triggered, but it was too late to save them. The current healing threshold (60%) and defense threshold (40%) are likely too high, leading to delayed reactions.
+
+## Improvement Suggestions
+1. **Lower the healing threshold:** Reduce the `IsPlayerHPLow` threshold for healing from 60% to a lower value, such as 20%. This will make the BT more aggressive in seeking healing when the player is on the brink of death.
+
+2. **Prioritize healing over defending when HP is extremely low:** Insert a sequence at the beginning of the selector that checks if HP is below a critical threshold (e.g., 10%) and immediately attempts to heal, even if other conditions are met. This ensures that healing is the absolute priority when survival is at stake.
+
+3. **Consider a more robust defense strategy when healing is unavailable:** If `CanHeal()` is false, and the player is at critically low health, the BT should prioritize defense more aggressively. This could involve adding a higher defense threshold or implementing a multi-turn defense strategy.
+
+4. **Add a condition to check if a lethal attack is incoming:** While not directly possible with the current DSL, if a future update includes a condition like `IsLethalAttackIncoming()`, the BT could prioritize defending or attempt to mitigate the damage.

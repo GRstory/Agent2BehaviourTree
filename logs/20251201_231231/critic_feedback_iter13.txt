@@ -1,0 +1,20 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on Floor 10 after a series of unfortunate turns. The primary issue is the player's HP dropping to critical levels very quickly, and the inability to heal due to cooldown. Defending twice in a row while at low HP proved ineffective, suggesting a need for more proactive healing or damage mitigation strategies. The current BT prioritizes low enemy HP attacks over player survival, and lacks a clear strategy for handling turns immediately after healing cooldown ends.
+
+## Improvement Suggestions
+1. **Prioritize Healing Immediately After Cooldown:** Add a sequence at the top of the BT that checks if the heal cooldown is 1 and player HP is low. If both are true, defend. This buys a turn to ensure the heal is available on the next turn.
+
+2. **Increase Healing Threshold:** Change the `IsPlayerHPLow` condition in the healing sequence to a higher value, such as 70. This will trigger healing earlier, preventing the player from dropping to dangerously low HP.
+
+3. **Prioritize Counter Strike Combo:** Add a sequence to check for `HasComboReady(CounterStrike)` before the default LightAttack. This will allow the player to capitalize on the increased defense from `Defend()` with a Heavy Attack, potentially turning the tide of battle.
+
+4. **Add a condition to check for IsFloorBoss():** On boss floors, increase the healing threshold to 80, and prioritize defense at a 60 threshold.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

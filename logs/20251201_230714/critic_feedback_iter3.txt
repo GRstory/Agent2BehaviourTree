@@ -1,0 +1,13 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on Floor 5 despite reaching it in the previous iteration. The gameplay log shows a dangerous HP situation starting from Turn 0. The BT prioritized light attacks even when the player's HP was critically low, and the heal was on cooldown. The player took significant damage on turns 1 and 2, and was defeated soon after. The BT's aggressive nature and delayed healing contributed to the defeat.
+
+## Improvement Suggestions
+1.  **Prioritize Defending at Low HP:** Add a sequence that checks if the player's HP is below a critical threshold (e.g., 25%) and if so, executes the `Defend()` action. This should be placed at the top of the selector to ensure it's checked first. This will buy time for the heal to come off cooldown.
+
+2.  **Increase Healing Threshold:** Increase the HP threshold for healing from 30% to 40% or even 50%. This ensures the player heals earlier, preventing the HP from dropping to dangerously low levels.
+
+3.  **Consider Combo Opportunities:** Add a sequence that checks for `HasComboReady(TripleLight)` before defaulting to LightAttack. This allows for increased damage output when the combo is available, potentially shortening the fight and reducing damage taken.
+
+4. **Early Turn Defense:** On Floor 5 (Boss Floor), prioritize defense in the first few turns. Add a sequence that checks if `IsFloorBoss()` and `IsTurnEarly(2)` then executes `Defend()`. This will mitigate initial burst damage from the boss.

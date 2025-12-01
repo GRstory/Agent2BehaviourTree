@@ -1,0 +1,25 @@
+root :
+    selector :
+        sequence :
+            condition : IsPlayerHPLow(70)
+            condition : CanHeal()
+            task : Heal()
+        sequence :
+            condition : HasComboReady(CounterStrike)
+            task : HeavyAttack()
+        sequence :
+            condition : IsFloorBoss()
+            condition : IsTurnEarly(1)
+            task : Defend()
+        sequence :
+            condition : IsFloorBoss()
+            condition : IsTurnEarly(2)
+            condition : IsEnemyHPHigh(80)
+            task : HeavyAttack()
+        sequence :
+            condition : IsPlayerHPLow(40)
+            task : Defend()
+        sequence :
+            condition : IsEnemyHPLow(30)
+            task : HeavyAttack()
+        task : LightAttack()

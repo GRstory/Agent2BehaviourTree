@@ -1,7 +1,11 @@
+
 root :
     selector :
         sequence :
             condition : IsPlayerHPLow(30)
             condition : CanHeal()
             task : Heal()
+        sequence :
+            condition : IsEnemyHPLow(30)
+            task : HeavyAttack()
         task : LightAttack()

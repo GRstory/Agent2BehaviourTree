@@ -1,0 +1,10 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 5, indicating a failure to adapt to the increasing difficulty. The BT prioritizes healing when HP is low, but the long cooldown on Heal and the lack of defensive options when Heal is on cooldown led to the player taking significant damage. The current BT doesn't account for combo opportunities or prioritize defense effectively when healing is unavailable. The player frequently dropped to low HP levels, indicating poor damage mitigation.
+
+## Improvement Suggestions
+1.  **Prioritize Defend when Heal is on cooldown and HP is low:** Add a sequence that checks if `IsPlayerHPLow(40)` and `CanHeal()` is false, then executes `Defend()`. This will help mitigate damage when healing is not immediately available.
+2.  **Incorporate Combo Usage:** Add a sequence that checks for `HasComboReady(TripleLight)` and executes `LightAttack()`. This will increase damage output and potentially shorten fights, reducing the overall damage taken.
+3.  **Adjust Healing Threshold:** Increase the healing threshold to `IsPlayerHPLow(40)`. This will trigger healing earlier, potentially preventing the player from dropping to critically low HP levels.
+4.  **Consider a Counter-Strike Combo:** Add a sequence that checks for `HasComboReady(CounterStrike)` and executes `HeavyAttack()`. This can provide a damage boost after a successful defense.

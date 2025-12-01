@@ -1,0 +1,20 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 6, indicating that the BT still struggles with resource management and prioritizing survival. The log shows a critical situation in the first turn where the player was at 21% HP but couldn't heal due to cooldown. Later, the player was forced to defend at 27% HP. The BT doesn't seem to be proactive enough in preventing low HP situations, leading to reactive and sometimes ineffective defensive maneuvers.
+
+## Improvement Suggestions
+1. **Increase the healing threshold**: Change the `IsPlayerHPLow` condition in the healing sequence from 50% to 65%. This will trigger healing earlier, preventing the player from dropping to critically low HP.
+
+2. **Prioritize healing over combos in low HP**: Move the healing sequence to the very top of the selector. This ensures that healing is always considered first when the player's HP is low, even if a combo is available.
+
+3. **Consider enemy attack patterns before defending**: Add a condition that checks if the enemy is likely to attack next turn before defending. This could involve tracking the number of turns since the last enemy attack and predicting the next one. This prevents wasting a defend turn when it's not needed. Since this functionality is not available, a simple change would be to remove the `IsTurnEarly` condition from the defend sequence to allow defending later in the fight when damage is more likely to be high.
+
+4. **Add a condition to check if healing is needed before attacking**: Before any attack action, add a sequence that checks `IsPlayerHPLow(70)` and `CanHeal()`. If both are true, execute `Heal()`. This acts as a safety net to prevent aggressive actions when healing is a better option.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

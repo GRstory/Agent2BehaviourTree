@@ -1,0 +1,17 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on Floor 10, and the provided log shows the last few turns. The immediate issue is that the player was at 31% HP on Turn 0 and attempted to heal, but Heal was on cooldown. The player then defended on Turn 1, which was a reasonable response to low HP, but took damage anyway. On Turn 2, they executed a Counter Strike combo, dealing massive damage, but this wasn't enough to prevent the eventual defeat. The BT likely failed to prioritize healing effectively, and the initial low HP state put the player at a disadvantage.
+
+## Improvement Suggestions
+1. **Increase the Player HP threshold for Defend:** The current BT defends at 50% HP. Given that the player dropped to 31% and couldn't heal immediately, increasing the defend threshold to, say, 60% might allow the player to mitigate damage earlier and avoid critical health levels.
+2. **Prioritize Healing Higher:** Move the healing sequence to the very top of the selector. This ensures that healing is always the first consideration when available and needed.
+3. **Consider Defending Before Comboing:** Add a condition to check if the player is at low health (e.g., below 40%) before attempting a Counter Strike combo. If low health, prioritize defending instead of comboing to ensure survival.
+4. **Add a condition to check if the enemy is about to attack before defending:** Add a condition that checks if the enemy is about to attack before defending. This would require a new condition node, but would make the decision to defend much more intelligent.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

@@ -1,0 +1,17 @@
+root :
+    selector :
+        sequence :
+            condition : IsFloorBoss()
+            condition : IsTurnEarly(3)
+            task : Defend()
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+        sequence :
+            condition : IsPlayerHPLow(40)
+            task : Defend()
+        sequence :
+            condition : IsEnemyHPLow(30)
+            task : HeavyAttack()
+        task : LightAttack()

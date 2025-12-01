@@ -1,0 +1,10 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 5 despite reaching floor 1 in the previous iteration. The log shows a pattern of taking damage and then attempting to heal, but the heal was on cooldown. The player also seems to prioritize light attacks even at low health, likely due to the current BT structure. There's no defensive strategy in place.
+
+## Improvement Suggestions
+1. **Prioritize defense at low health:** Add a sequence that checks if player HP is low (e.g., below 40%) and then Defends. This should be placed before the healing sequence to give the player a chance to mitigate incoming damage when healing is unavailable.
+2. **Add a condition for combo finishers:** Before defaulting to LightAttack, check if a combo is ready (e.g., TripleLight or HeavyFinisher). Completing combos can significantly increase damage output and potentially end fights faster.
+3. **Increase the healing threshold:** The current healing threshold of 30% might be too low. Consider increasing it to 40% or even 50% to give the player more buffer before needing to heal.
+4. **Consider early turn aggression:** Add a sequence that checks if it's an early turn (e.g., turn <= 2) and the enemy HP is high. If both are true, prioritize HeavyAttack for burst damage before the enemy can deal too much damage.

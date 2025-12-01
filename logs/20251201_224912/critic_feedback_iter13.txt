@@ -1,0 +1,18 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 8 with 28% HP on turn 0 of that floor. The BT chose to defend, but the player was already at a very low HP. Defending provides damage mitigation, but it doesn't address the immediate need for healing. The fact that Heal was on cooldown (CD 1) suggests that it was used recently, but perhaps not optimally. The BT doesn't seem to prioritize healing enough when HP is critically low, especially when a heal is coming off cooldown soon.
+
+## Improvement Suggestions
+1.  **Prioritize healing when HP is critically low, even if it means delaying other actions.** Add a check for whether the heal will be available next turn and if the player is below a very low HP threshold (e.g., 30%). If both are true, defend to survive until the heal is available next turn. This can be implemented by adding a sequence at the beginning of the BT that checks if `IsPlayerHPLow(30)` and Heal will be off cooldown next turn (this requires adding a new condition `WillHealBeReadyNextTurn()`). If both are true, then `Defend()`.
+
+2.  **Increase the HP threshold for defending.** Defending at 50% HP may be too late, especially against stronger enemies on later floors. Increase the threshold to 60% or 70% to provide a buffer.
+
+3.  **Consider a more aggressive healing strategy.** If the player is below a certain HP threshold (e.g., 40%), and `CanHeal()`, always heal, even if the enemy is at low health. This prevents the player from getting into a situation where they are one hit away from death. This means moving the heal sequence higher up in the BT.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

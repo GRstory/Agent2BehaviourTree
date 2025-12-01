@@ -1,0 +1,22 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 10, the same floor as the previous iteration, indicating the BT is still not optimized for survival. The gameplay log shows a critical issue: the player's HP dropped to 38% on turn 2 and then to 17% on turn 3. Defending twice in a row while at low health was insufficient to prevent further damage. The inability to heal due to cooldown at the start was also a major factor. The BT prioritizes light attacks and combo attempts over immediate survival when HP is critically low.
+
+## Improvement Suggestions
+1. **Prioritize healing at very low HP:** Add a higher priority sequence at the beginning of the BT that checks if HP is below a critical threshold (e.g., 20%) and immediately heals if possible, even if it means delaying other actions. This ensures that the player attempts to heal before defending or attacking when near death.
+
+2. **Adjust Defend usage:** Modify the Defend sequence to only trigger if the player's HP is below 50% AND the enemy HP is above a certain threshold (e.g., 50%). This prevents the player from defending unnecessarily when the enemy is also weak, allowing for more aggressive plays when appropriate. Also, add a condition to check if the player is already defending before attempting to defend again.
+
+3. **Consider enemy attack patterns:** Integrate knowledge of enemy attack patterns into the BT. For example, if an enemy is known to do a heavy attack every other turn, the BT should prioritize defending on those turns if the player's HP is below a certain threshold. This requires adding a new condition node like `IsEnemyAboutToHeavyAttack()`.
+
+4. **Delay Combo Attacks when HP is low:** When player HP is low (below 40%), temporarily disable or reduce the priority of combo-related actions. This will allow the player to focus on healing or defending instead of trying to execute combos when survival is more important.
+
+5. **Add a turn count condition to force healing early game:** Add a condition to the healing sequence to check if it's early in the fight (e.g., `IsTurnEarly(2)`). This will force a heal if the player is low on health in the first two turns, potentially mitigating the impact of early damage spikes.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

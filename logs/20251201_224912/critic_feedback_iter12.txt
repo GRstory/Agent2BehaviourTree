@@ -1,0 +1,13 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on Floor 4 after a series of turns where they were consistently taking damage and unable to heal. The BT prioritized light attacks early, and then defaulted to defending when HP got low, but the damage intake was too high. The inability to heal due to cooldown was a major factor. The enemy HP got very low, but the player failed to finish it off and succumbed to the damage.
+
+## Improvement Suggestions
+1. **Increase the priority of healing and lower the HP threshold.** Move the healing sequence higher in the selector and lower the HP threshold (e.g., to 60%) to ensure healing is attempted earlier and more frequently when available. This gives the player more opportunities to heal before taking too much damage.
+
+2. **Prioritize finishing off low-health enemies.** Move the sequence that checks for low enemy health (IsEnemyHPLow) higher in the tree. This ensures that the player focuses on eliminating the threat when the enemy is near death, rather than continuing with a default light attack or focusing on combos.
+
+3. **Consider preemptive defense or damage mitigation.** Add a condition to check if the enemy is likely to attack with a heavy attack (perhaps based on turn number or enemy type) and prioritize defending in those scenarios. This could help mitigate the damage taken and prevent the player from getting overwhelmed.
+
+4. **Adjust the Defend HP threshold.** The player was defending at 40% and 22% HP, but still died. Consider increasing the defend HP threshold, or adding a check for multiple consecutive enemy attacks to trigger defending.

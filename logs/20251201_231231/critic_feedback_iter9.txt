@@ -1,0 +1,20 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 10, indicating a potential issue with boss fight strategy or resource management leading up to the boss. The log shows the player at 31% HP on turn 0, but Heal was on cooldown. The player then defended on turn 1, taking damage, and followed up with a Counter Strike on turn 2. While the Counter Strike was effective, the initial low HP and inability to heal immediately put the player at a disadvantage. The BT prioritizes early-turn defense on boss floors, which might not be optimal if healing is needed. The current BT also lacks a condition to prioritize healing when off cooldown but HP is still low after the initial check.
+
+## Improvement Suggestions
+1.  **Prioritize Healing when available and needed:** Add a sequence at the beginning of the BT that checks if `CanHeal()` is true AND `IsPlayerHPLow(70)` is true. This ensures healing is used as soon as it's available when the player is significantly damaged, regardless of the turn or boss status.
+
+2.  **Adjust Boss Fight Defense Timing:** Instead of always defending early in a boss fight, consider defending only if an enemy attack is anticipated (e.g., based on enemy behavior patterns, if available, or after taking significant damage). Remove the `IsTurnEarly(1)` condition from the boss defense sequence.
+
+3.  **Increase Healing Threshold:** The current healing threshold of 70% might be too low, leading to delayed healing and unnecessary damage taken. Increase the healing threshold to 80% or 90% to proactively address low HP.
+
+4.  **Consider a Second Healing Check:** After the initial healing check, add another check lower down in the BT to see if the player is still below a critical HP threshold (e.g., 40%) and can heal. This acts as a safety net if the first healing opportunity was missed or ineffective.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

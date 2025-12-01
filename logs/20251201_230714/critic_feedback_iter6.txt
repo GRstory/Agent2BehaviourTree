@@ -1,0 +1,17 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 5 despite reaching it in the previous iteration. The gameplay log shows a few key issues: healing was attempted when on cooldown (Turn 1), and the player's HP dropped to critical levels multiple times (Turn 1, Turn 4). Defending was used on Turn 0, but the player still took damage on Turn 2 and Turn 3, suggesting more frequent or proactive defense might be needed. The BT prioritizes attacking low-HP enemies over self-preservation, and doesn't account for the Heal cooldown effectively.
+
+## Improvement Suggestions
+1.  **Prioritize healing when available and needed:** Move the healing sequence to the very top of the selector so it's checked first. This ensures healing is attempted immediately when HP is low and the ability is available.
+2.  **Increase the player HP threshold for healing:** Increase the `IsPlayerHPLow` threshold for the heal sequence from 30% to 40% or even 50%. This will trigger healing earlier, preventing the player from reaching critically low HP levels.
+3.  **Add a check for Heal cooldown before attempting to heal:** Insert a condition `CanHeal()` *before* `IsPlayerHPLow` in the healing sequence. This will prevent the BT from wasting a turn trying to heal when the ability is on cooldown, and instead fall through to another action.
+4.  **Implement more proactive defending:** Add a sequence that prioritizes defending when the player's HP is below a certain threshold (e.g., 60%), even if they are not critically low (30%). This can help mitigate incoming damage and improve survivability.
+
+
+==================================================
+GENERATION ERROR
+==================================================
+Failed to generate valid BT: BT must start with 'root :'
+Falling back to previous BT.

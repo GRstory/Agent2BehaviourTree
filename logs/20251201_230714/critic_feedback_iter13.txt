@@ -1,0 +1,10 @@
+# CRITIC FEEDBACK
+
+## Analysis
+The player died on floor 5, which is a boss floor. The gameplay log shows the player repeatedly defending in the first few turns, even though they were taking damage each turn. The BT prioritizes defending early in the boss fight, but the constant damage intake suggests this strategy isn't effective. The player's HP dropped rapidly, indicating a need for more proactive healing or damage mitigation. The BT lacks any offensive capabilities in the early turns of the boss fight, which could contribute to a prolonged fight and increased damage taken.
+
+## Improvement Suggestions
+1.  **Reduce the Defend duration on boss floors:** The current BT defends for the first 3 turns of a boss fight. This should be reduced to 1 or 2 turns to allow for more offensive actions and prevent prolonged damage intake.
+2.  **Prioritize Healing earlier:** The player's HP dropped quickly. Increase the priority of the healing sequence by moving it higher in the selector, and consider raising the HP threshold for healing from 60% to 70% to trigger healing sooner.
+3.  **Incorporate Counter-Strike Combo:** Add a sequence that checks `HasComboReady(CounterStrike)` and executes `HeavyAttack()` after a successful defend to capitalize on the defensive stance and deal damage.
+4.  **Introduce a damage dealing option during early boss turns:** Add a sequence that checks if the enemy HP is high and executes a `HeavyAttack()` during the early turns of the boss fight. This will introduce some offensive pressure and potentially shorten the fight.
