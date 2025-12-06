@@ -13,7 +13,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from bt_parser import BTNode, parse_bt_dsl
-from .game_engine import GameState, ActionType
+from .game_engine import GameState, PlayerAction
 from .bt_nodes import create_condition_node, create_action_node, BTCondition, BTAction
 
 
@@ -24,7 +24,7 @@ class BTExecutor:
         self.bt_root = bt_root
         self.execution_trace = []  # For debugging
     
-    def execute(self, state: GameState) -> Optional[ActionType]:
+    def execute(self, state: GameState) -> Optional[PlayerAction]:
         """
         Execute the behaviour tree and return the action to take
         Returns None if no valid action is determined
@@ -33,7 +33,7 @@ class BTExecutor:
         action = self._execute_node(self.bt_root, state)
         return action
     
-    def _execute_node(self, node: BTNode, state: GameState) -> Optional[ActionType]:
+    def _execute_node(self, node: BTNode, state: GameState) -> Optional[PlayerAction]:
         """Recursively execute a BT node"""
         
         node_type = node.node_type.lower()
@@ -118,7 +118,7 @@ class BTExecutor:
             self.execution_trace.append(f"Error evaluating condition {node.param}: {e}")
             return False
     
-    def _execute_action(self, node: BTNode, state: GameState) -> Optional[ActionType]:
+    def _execute_action(self, node: BTNode, state: GameState) -> Optional[PlayerAction]:
         """Execute an action node"""
         if not node.param:
             return None

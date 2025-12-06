@@ -1,7 +1,10 @@
 root :
     selector :
+        # Heal when critical
         sequence :
-            condition : IsPlayerHPLow(30)
+            condition : IsPlayerHPLow(20)
             condition : CanHeal()
             task : Heal()
-        task : LightAttack()
+        
+        # Default: Attack
+        task : Attack()

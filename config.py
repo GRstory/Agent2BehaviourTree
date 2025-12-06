@@ -13,31 +13,44 @@ load_dotenv()
 @dataclass
 class GameConfig:
     """Game engine configuration"""
-    max_floors: int = 10
+    # Single-floor combat (no floor progression)
+    max_floors: int = 1
+    turn_limit: int = 35
+    
+    # Player stats
     player_starting_hp: int = 100
     player_base_attack: int = 15
     player_defense: int = 5
     
-    heal_amount: int = 30
-    heal_cooldown: int = 3
-    defend_bonus: int = 10
+    # Player resources
+    player_starting_tp: int = 50
+    player_max_tp: int = 100
+    player_tp_regen: int = 15
+    player_starting_mp: int = 100
+    player_max_mp: int = 100
+    player_mp_regen: int = 12
     
-    # Enemy scaling
-    enemy_base_hp: int = 50
-    enemy_hp_per_floor: int = 10
-    enemy_base_attack: int = 10
-    enemy_attack_per_floor: int = 2
-    enemy_base_defense: int = 2
-    enemy_defense_per_floor: int = 1
-    boss_multiplier: float = 1.2
+    # Player abilities
+    heal_amount: int = 45
+    heal_cooldown: int = 3
+    
+    # Enemy stats (defined per enemy type in game_engine.py)
+    # Fire Golem: HP 200, Atk 22, Def 14
+    # Ice Wraith: HP 180, Atk 16, Def 8
+    # Thunder Drake: HP 220, Atk 20, Def 10
+    
+    # Combat mechanics
+    crit_chance: float = 0.20
+    elemental_weakness_multiplier: float = 1.5
+    elemental_resistance_multiplier: float = 0.5
 
 
 @dataclass
 class LLMConfig:
     """LLM agent configuration"""
     api_key: str = None
-    model: str = "gemini-2.5-pro"
-    critic_model: str = "gemini-2.5-flash"
+    model: str = "gemini-2.0-flash-exp"
+    critic_model: str = "gemini-2.0-flash-exp"
     temperature_generation: float = 0.7
     temperature_analysis: float = 0.5
     temperature_feedback: float = 0.6
@@ -51,8 +64,8 @@ class LLMConfig:
 @dataclass
 class RunnerConfig:
     """Main runner configuration"""
-    max_iterations: int = 5
-    use_mock_llm: bool = False  # Set to True for testing without API
+    max_iterations: int = 10
+    use_mock_llm: bool = False
     save_logs: bool = True
     log_directory: str = "logs"
     save_bts: bool = True
@@ -60,10 +73,8 @@ class RunnerConfig:
     verbose: bool = True
     
     # Convergence criteria
-    min_floor_improvement: int = 2  # Stop if no improvement in floor count
-    min_floor_improvement: int = 2  # Stop if no improvement in floor count
-    victory_early_stop: bool = True  # Stop if victory achieved
-    single_run: bool = False  # Run once without improvement loop
+    victory_early_stop: bool = True
+    single_run: bool = False
 
 
 # Default configurations

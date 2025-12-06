@@ -22,8 +22,7 @@ except ImportError:
 
 from .prompts import (
     SYSTEM_PROMPT_BT_GENERATOR,
-    SYSTEM_PROMPT_LOG_ANALYZER,
-    SYSTEM_PROMPT_FEEDBACK_GENERATOR,
+    SYSTEM_PROMPT_CRITIC,
     create_initial_bt_prompt,
     create_critic_prompt,
     create_generator_prompt,
@@ -226,14 +225,14 @@ class LLMAgent:
         print("[CRITIC] Analyzing last stage...")
         
         prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt, previous_floor)
-        feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+        feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
         
         # If blocked by safety filter, retry with sanitized log
         if "Error: Response was blocked" in feedback:
             print("[RETRY] Retrying with sanitized log...")
             sanitized_log = self._sanitize_log_for_safety(last_stage_log)
             prompt = create_critic_prompt(sanitized_log, final_floor, victory, current_bt, previous_floor)
-            feedback = self._call_llm(SYSTEM_PROMPT_LOG_ANALYZER, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
         
         print("[OK] Critic analysis complete")
         return feedback
@@ -319,12 +318,247 @@ class LLMAgent:
             result['generation_error'] = error_msg
             
         return result
+    
+    def improve_bt(self, current_bt: str, combat_log: str, previous_results: list = None) -> Optional[str]:
+        """
+        Improve BT based on combat log
+        
+        Args:
+            current_bt: Current BT DSL
+            combat_log: Combat summary
+            previous_results: List of previous combat results
+            
+        Returns:
+            Improved BT DSL or None if failed
+        """
+        print("[LLM] Improving BT...")
+        
+        # Get critic feedback
+        from .prompts import create_critic_prompt, SYSTEM_PROMPT_CRITIC
+        
+        prompt = create_critic_prompt(combat_log, current_bt, previous_results or [])
+        feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+        
+        # If blocked, retry with sanitized log
+        if "Error: Response was blocked" in feedback:
+            print("[RETRY] Retrying with sanitized log...")
+            sanitized_log = self._sanitize_log_for_safety(combat_log)
+            prompt = create_critic_prompt(sanitized_log, current_bt, previous_results or [])
+            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+        
+        if "Error" in feedback:
+            print(f"[ERROR] Critic failed: {feedback}")
+            return None
+        
+        # Generate improved BT
+        improved_bt, error = self.generate_improved_bt(current_bt, feedback)
+        
+        if error:
+            print(f"[ERROR] Generator failed: {error}")
+            return None
+        
+        return improved_bt
+    
+    def generate_initial_bt(self) -> str:
+        """
+        Generate initial Behaviour Tree from game rules
+        
+        Returns:
+            BT DSL string
+        """
+        print("[LLM] Generating initial Behaviour Tree...")
+        
+        prompt = create_initial_bt_prompt()
+        response = self._call_llm(SYSTEM_PROMPT_BT_GENERATOR, prompt, temperature=0.8)
+        
+        bt_dsl = extract_bt_from_response(response).strip()
+        
+        print("[OK] Initial BT generated")
+        return bt_dsl
+    
+    def _sanitize_log_for_safety(self, log: str) -> str:
+        """Sanitize log to reduce safety filter triggers"""
+        # Replace combat-related terms with neutral language
+        sanitized = log
+        replacements = {
+            "Attack": "Action",
+            "attack": "action",
+            "Damage": "Effect",
+            "damage": "effect",
+            "HP": "Health",
+            "CRITICAL": "Very Low",
+            "DEFEAT": "Loss",
+            "DEATH": "Loss",
+            "died": "lost",
+            "kill": "defeat",
+        }
+        for old, new in replacements.items():
+            sanitized = sanitized.replace(old, new)
+        return sanitized
+    
+    def critique_last_stage(
+        self, 
+        last_stage_log: str, 
+        final_floor: int, 
+        victory: bool,
+        current_bt: str,
+        previous_floor: int = 0
+    ) -> str:
+        """
+        Analyze last stage gameplay and provide improvement suggestions
+        
+        Args:
+            last_stage_log: Log from the last stage only
+            final_floor: Final floor reached
+            victory: Whether the game was won
+            current_bt: Current BT DSL
+            previous_floor: Floor reached in previous iteration (for performance comparison)
+            
+        Returns:
+            Critic feedback text
+        """
+        print("[CRITIC] Analyzing last stage...")
+        
+        prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt, previous_floor)
+        feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+        
+        # If blocked by safety filter, retry with sanitized log
+        if "Error: Response was blocked" in feedback:
+            print("[RETRY] Retrying with sanitized log...")
+            sanitized_log = self._sanitize_log_for_safety(last_stage_log)
+            prompt = create_critic_prompt(sanitized_log, final_floor, victory, current_bt, previous_floor)
+            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+        
+        print("[OK] Critic analysis complete")
+        return feedback
+    
+    def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> Tuple[str, Optional[str]]:
+        """
+        Generate improved BT based on critic feedback
+        
+        Args:
+            current_bt: Current BT DSL
+            critic_feedback: Feedback from Critic LLM
+            
+        Returns:
+            (Improved BT DSL string, Error message if failed)
+        """
+        print("[GENERATOR] Creating improved Behaviour Tree...")
+        
+        prompt = create_generator_prompt(current_bt, critic_feedback)
+        response = self._call_llm(SYSTEM_PROMPT_BT_GENERATOR, prompt, temperature=0.7)
+        
+        improved_bt = extract_bt_from_response(response).strip()
+        
+        # Validate the generated BT
+        is_valid, error_msg = self._validate_bt(improved_bt)
+        if not is_valid:
+            print(f"[WARNING] Generated BT failed validation: {error_msg}")
+            print("[FALLBACK] Using current BT instead")
+            return current_bt, error_msg
+        
+        print("[OK] Improved BT generated and validated")
+        return improved_bt, None
+    
+    def two_stage_improvement(
+        self,
+        current_bt: str,
+        last_stage_log: str,
+        final_floor: int,
+        victory: bool,
+        stage_history: Dict[int, str] = None,
+        previous_floor: int = 0
+    ) -> Dict[str, str]:
+        """
+        Execute two-stage improvement: Critic → Generator
+        
+        Args:
+            current_bt: Current BT DSL
+            last_stage_log: Log from last stage only (fallback if history not provided)
+            final_floor: Final floor reached
+            victory: Whether the game was won
+            stage_history: Dictionary of logs per floor {floor_num: log_text}
+            
+        Returns:
+            Dict with 'critic_feedback' and 'improved_bt'
+        """
+        # If victory achieved, no need to improve
+        if victory:
+            print("[LLM] Victory achieved! No improvement needed.")
+            return {
+                'critic_feedback': "Victory achieved. No changes needed.",
+                'improved_bt': current_bt
+            }
+            
+        # Only analyze the failed floor (last stage)
+        print(f"[CRITIC] Analyzing failed Floor {final_floor}...")
+        
+        critic_feedback = self.critique_last_stage(
+            last_stage_log, 
+            final_floor, 
+            victory,
+            current_bt,
+            previous_floor
+        )
+        
+        # Stage 2: Generator creates improved BT based on critic feedback
+        improved_bt, error_msg = self.generate_improved_bt(current_bt, critic_feedback)
+        
+        result = {
+            'critic_feedback': critic_feedback,
+            'improved_bt': improved_bt
+        }
+        
+        if error_msg:
+            result['generation_error'] = error_msg
+            
+        return result
+    
+    def improve_bt(self, current_bt: str, combat_log: str, previous_results: list = None) -> Optional[str]:
+        """
+        Improve BT based on combat log
+        
+        Args:
+            current_bt: Current BT DSL
+            combat_log: Combat summary
+            previous_results: List of previous combat results
+            
+        Returns:
+            Improved BT DSL or None if failed
+        """
+        print("[LLM] Improving BT...")
+        
+        # Get critic feedback
+        from .prompts import create_critic_prompt, SYSTEM_PROMPT_CRITIC
+        
+        prompt = create_critic_prompt(combat_log, current_bt, previous_results or [])
+        feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+        
+        # If blocked, retry with sanitized log
+        if "Error: Response was blocked" in feedback:
+            print("[RETRY] Retrying with sanitized log...")
+            sanitized_log = self._sanitize_log_for_safety(combat_log)
+            prompt = create_critic_prompt(sanitized_log, current_bt, previous_results or [])
+            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
+        
+        if "Error" in feedback:
+            print(f"[ERROR] Critic failed: {feedback}")
+            return None
+        
+        # Generate improved BT
+        improved_bt, error = self.generate_improved_bt(current_bt, feedback)
+        
+        if error:
+            print(f"[ERROR] Generator failed: {error}")
+            return None
+        
+        return improved_bt
 
 
 class MockLLMAgent(LLMAgent):
     """Mock LLM agent for testing without API calls"""
     
-    def __init__(self):
+    def __init__(self, config=None):
         # Don't call parent __init__ to avoid API key requirement
         self.model = "mock"
         self.client = None
@@ -338,9 +572,13 @@ class MockLLMAgent(LLMAgent):
             condition : CanHeal()
             task : Heal()
         sequence :
-            condition : IsEnemyHPLow(25)
-            task : HeavyAttack()
-        task : LightAttack()"""
+            condition : IsTurnEarly(2)
+            task : Scan()
+        sequence :
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+        task : Attack()"""
     
     def critique_last_stage(
         self, 
@@ -412,3 +650,32 @@ The player is not utilizing combos effectively and healing too late.
             'critic_feedback': critic_feedback,
             'improved_bt': improved_bt
         }
+    
+    def improve_bt(self, current_bt: str, combat_log: str, previous_results: list = None) -> Optional[str]:
+        """Return slightly improved mock BT"""
+        print("[MOCK] Generating improved BT...")
+        return """root :
+    selector :
+        sequence :
+            condition : IsPlayerHPLow(35)
+            condition : CanHeal()
+            task : Heal()
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            task : LightningSpell()
+        task : Attack()"""
