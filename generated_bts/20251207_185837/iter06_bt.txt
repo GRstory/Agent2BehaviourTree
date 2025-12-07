@@ -1,0 +1,18 @@
+root :
+    selector :
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+        sequence :
+            condition : IsPlayerHPLow(70)
+            condition : CanHeal()
+            task : Heal()
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        task : Attack()

@@ -1,0 +1,41 @@
+root :
+    selector :
+        # Proactive Defend
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : IsPlayerHPLow(60)
+            task : Defend()
+
+        # Emergency Heal
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+
+        # Prioritize Ice Spell
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit weakness
+        selector :
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Fire)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : FireSpell()
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Lightning)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : LightningSpell()
+
+        # Scan every turn
+        task : Scan()
+
+        # Default: Attack
+        task : Attack()

@@ -1,0 +1,67 @@
+=== COMBAT START ===
+Enemy: FireGolem (Fire)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%
+
+Action: Scan (MP -15)
+Enemy: FireSpell -> 21 dmg
+
+=== TURN 1 ===
+Player: HP 79%, TP 65, MP 85
+Enemy: HP 100%
+
+Action: Scan (MP -15)
+Enemy: FireSpell -> 21 dmg
+
+=== TURN 2 ===
+Player: HP 57%, TP 80, MP 82
+Enemy: HP 100%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: Slam -> 14 dmg
+
+=== TURN 3 ===
+Player: HP 44%, TP 95, MP 74
+Enemy: HP 82%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: RageBuff
+
+=== TURN 4 ===
+Player: HP 44%, TP 100, MP 66
+Enemy: HP 64%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: RageBuff
+
+=== TURN 5 ===
+Player: HP 44%, TP 100, MP 58
+Enemy: HP 46%, Buffs: RageBuff
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!] [Freeze]
+Enemy: 
+
+=== TURN 6 ===
+Player: HP 44%, TP 100, MP 50
+Enemy: HP 28%, Buffs: RageBuff
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: FireSpell -> 53 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 7
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 20/180 (11%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 42/100

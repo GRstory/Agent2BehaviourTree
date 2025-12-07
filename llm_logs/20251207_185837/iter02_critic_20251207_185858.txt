@@ -1,0 +1,125 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 2
+Timestamp: 20251207_185858
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Initial Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Emergency Heal
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Defend against telegraphing
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Exploit Fire Weakness with Ice Spell
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 3 battles: 0 victories, 3 defeats
+  LOSS vs FireGolem: 6 turns
+  LOSS vs FireGolem: 4 turns
+  LOSS vs FireGolem: 6 turns
+
+# Combat Summary
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 6
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 165/180 (91%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 94/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Elemental Strategy**: Did they scan? Did they use the right spell?
+2. **Resource Management**: TP/MP usage efficiency
+3. **Defensive Decisions**: Heal/Defend timing
+4. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT consistently fails to capitalize on the FireGolem’s weakness to Ice. Despite scanning and identifying the weakness, the IceSpell task is only executed when the player has sufficient MP (20), which is a relatively low threshold. This leads to delayed response and allows the FireGolem to inflict significant damage before the IceSpell is used. The Heal task is triggered too late, as the player’s HP drops below 50 only after the FireGolem has already dealt a considerable amount of damage. The Defend task is present, but doesn’t appear to be triggered at the correct moment. The overall strategy is reactive rather than proactive, responding to damage instead of preventing it.
+
+## Improvement Suggestions
+1.  **Prioritize IceSpell on Turn 1:** Modify the IceSpell task to always be executed when the enemy is scanned *and* the weakness to Fire is confirmed. This ensures immediate exploitation of the weakness.
+
+2.  **Increase Heal Threshold:** Adjust the IsPlayerHPLow condition to trigger the Heal task when the player’s HP is below 30%, rather than 50%. This allows for more frequent healing and prevents the player from reaching critical health.
+
+3.  **Introduce a Defensive Scan:** Add a separate task to scan the enemy for weaknesses *before* attacking. This proactive scanning could reveal new weaknesses or changes in the enemy’s state, allowing for more informed decision-making.
+
+4. **Implement a Telegraph Detection Delay:** The current Telegraph Detection is too sensitive. Introduce a small delay (e.g., 2-3 turns) after the enemy’s telegraph to ensure the player has sufficient time to react and execute the Defend task. This prevents false positives and improves the timing of defensive actions.
+
+
+================================================================================
+Prompt length: 1834 chars
+Response length: 1732 chars
+================================================================================

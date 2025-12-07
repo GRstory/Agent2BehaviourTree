@@ -123,8 +123,8 @@ class ImprovementLoop:
         print(f"ITERATION {iteration}")
         print(f"{'='*70}\n")
         
-        # Run game with current BT
-        runner = GameRunner(bt_dsl, verbose=self.config.verbose)
+        # Run game with current BT (always use FireGolem for consistent testing)
+        runner = GameRunner(bt_dsl, enemy_type=EnemyType.FIRE_GOLEM, verbose=self.config.verbose)
         result = runner.run_game()
         
         print(f"\nResult: {'VICTORY' if result['victory'] else 'DEFEAT'}")

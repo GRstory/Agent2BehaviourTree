@@ -1,0 +1,42 @@
+root :
+    selector :
+        # Prioritized Ice Spell Usage immediately after scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Prioritized Fire Spell Usage immediately after scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Prioritized Lightning Spell Usage immediately after scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            task : LightningSpell()
+
+        # Scan on Turn 1 and again if consistently telegraphing
+        sequence :
+            condition : IsTurnEarly(2)
+            condition : HasMP(15)
+            task : Scan()
+
+        # High Priority Heal
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Dynamic Defensive Response to telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Default: Attack
+        task : Attack()

@@ -1,0 +1,143 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 7
+Timestamp: 20251207_190402
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Reactive Defense
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Scan on turn 1 and 5
+        selector :
+            sequence :
+                condition : IsTurnEarly(1)
+                task : Scan()
+            sequence :
+                condition : IsTurnEarly(5)
+                task : Scan()
+
+        # Prioritize IceSpell when enemy is weak
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : IceSpell()
+
+        # Heal when player is low and enemy is strong
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : IsEnemyHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit weakness
+        selector :
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Fire)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : FireSpell()
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Lightning)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : LightningSpell()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 3 battles: 0 victories, 3 defeats
+  LOSS vs FireGolem: 7 turns
+  LOSS vs FireGolem: 4 turns
+  LOSS vs FireGolem: 5 turns
+
+# Combat Summary
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 5
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 180/180 (100%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 73/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Elemental Strategy**: Did they scan? Did they use the right spell?
+2. **Resource Management**: TP/MP usage efficiency
+3. **Defensive Decisions**: Heal/Defend timing
+4. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The combat consistently resulted in defeat against the FireGolem, primarily due to a reactive and inflexible behaviour tree. The BT relies heavily on scanning and then reacting to a single weakness (Fire) after the enemy has already established dominance. The frequent use of ‘FireSpell’ after scanning, combined with the lack of proactive defense and healing, allowed the FireGolem to relentlessly apply pressure and quickly deplete the player’s HP. The BT doesn’t adapt to the enemy’s aggressive tactics or prioritize defense when the enemy is at full health. The TP/MP usage isn't optimized, as the BT always uses 20 TP and 20 MP for spells, regardless of the situation.
+
+## Improvement Suggestions
+1.  **Implement Proactive Scanning:**  Modify the BT to scan the enemy at the *start* of each turn, not just on turns 1 and 5. This allows for immediate identification of vulnerabilities and prioritizes the correct spell from the outset.
+2.  **Prioritize Defensive Actions:** Introduce a higher priority defensive action – a ‘Defend’ task should be executed *before* spellcasting if the enemy is at a high HP percentage (e.g., >70%). This should be a higher priority than spellcasting when the enemy is healthy.
+3.  **Dynamic Spell Selection:** Replace the hardcoded TP/MP requirements for spells with a condition that checks for the *highest* damage potential based on the enemy's weaknesses and the player's available resources.  For example, if Ice is the strongest option, prioritize it regardless of TP/MP, but if Fire is the only option and the player has sufficient resources, use FireSpell.
+4.  **Implement a Low HP Healing Trigger:** Change the heal trigger from “IsPlayerHPLow(30)” to “IsPlayerHPLow(20)”. This will allow the player to heal earlier, before the enemy has a chance to inflict significant damage.
+5.  **Introduce a ‘Counter-Attack’ Task:** Add a basic ‘Attack’ task with a low priority. This provides a fallback option when no other conditions are met, preventing the BT from simply idling and waiting for the enemy to attack.
+
+================================================================================
+Prompt length: 2573 chars
+Response length: 2064 chars
+================================================================================

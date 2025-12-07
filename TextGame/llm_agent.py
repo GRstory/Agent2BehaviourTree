@@ -33,31 +33,39 @@ from .prompts import (
 class LLMAgent:
     """LLM agent for BT generation and improvement"""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "gemini-1.5-flash", critic_model: str = "gemini-2.0-flash-exp"):
+    def __init__(self, config_or_api_key=None, model: str = None, critic_model: str = None):
         """
         Initialize LLM agent
         
         Args:
-            api_key: Gemini API key (or None to use environment variable)
-            model: Model to use for generation (default: gemini-1.5-flash)
-            critic_model: Model to use for critique (default: gemini-2.0-flash-exp)
+            config_or_api_key: Either a config object with api_key and model attributes, or just an API key string
+            model: Model to use for generation (default: gemini-2.0-flash)
+            critic_model: Model to use for critique (default: gemini-2.0-flash)
         """
         if not GEMINI_AVAILABLE:
             raise ImportError("google-generativeai package not installed. Install with: pip install google-generativeai")
         
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        # Handle config object or direct API key
+        if hasattr(config_or_api_key, 'api_key'):
+            # It's a config object
+            self.api_key = config_or_api_key.api_key or os.getenv("GEMINI_API_KEY")
+            self.model_name = model or config_or_api_key.model
+            self.critic_model_name = critic_model or config_or_api_key.critic_model
+        else:
+            # It's an API key string (or None)
+            self.api_key = config_or_api_key or os.getenv("GEMINI_API_KEY")
+            self.model_name = model or "gemini-2.0-flash"
+            self.critic_model_name = critic_model or "gemini-2.0-flash"
+        
         if not self.api_key:
             raise ValueError("Gemini API key not set. Set GEMINI_API_KEY environment variable or pass api_key parameter.")
-        
-        self.model_name = model
-        self.critic_model_name = critic_model
         
         # Configure Gemini
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(self.model_name)
         self.critic_model_instance = genai.GenerativeModel(self.critic_model_name)
     
-    def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float = 0.7, max_retries: int = 3, model_instance=None) -> str:
+    def _call_llm(self, system_prompt: str, user_prompt: str, temperature: float = 0.7, model_instance=None) -> str:
         """
         Call LLM with system and user prompts
         
@@ -65,7 +73,6 @@ class LLMAgent:
             system_prompt: System prompt defining the role
             user_prompt: User prompt with the task
             temperature: Sampling temperature
-            max_retries: Maximum number of retry attempts if blocked by safety filters
             model_instance: Specific model instance to use (optional)
             
         Returns:
@@ -83,9 +90,7 @@ class LLMAgent:
             max_output_tokens=2000,
         )
         
-        # Safety settings - disable blocking for game-related content
-        # Using HarmBlockThreshold.BLOCK_NONE for all categories
-        # Safety settings - disable blocking for game-related content
+        # Safety settings - disable ALL blocking (only valid categories for current API)
         safety_settings = [
             {
                 "category": genai.types.HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -108,11 +113,23 @@ class LLMAgent:
         target_model = model_instance or self.model
         
         try:
+            import time
+            print(f"[DEBUG] Starting API call at {time.strftime('%H:%M:%S')}")
+            print(f"[DEBUG] Prompt size: {len(combined_prompt)} chars")
+            print(f"[DEBUG] Model: {target_model.model_name if hasattr(target_model, 'model_name') else 'unknown'}")
+            
+            start_time = time.time()
+            
+            # Add timeout using request_options
             response = target_model.generate_content(
                 combined_prompt,
                 generation_config=generation_config,
-                safety_settings=safety_settings
+                safety_settings=safety_settings,
+                request_options={"timeout": 60}  # 60 second timeout
             )
+            
+            elapsed = time.time() - start_time
+            print(f"[DEBUG] API call completed in {elapsed:.2f} seconds")
             
             # Check if response was blocked
             if not response.parts:
@@ -124,10 +141,15 @@ class LLMAgent:
                 
                 return "Error: Response was blocked by safety filters."
             
+            print(f"[DEBUG] Response length: {len(response.text)} chars")
             return response.text
             
+        except TimeoutError as e:
+            print(f"[ERROR] LLM call timed out after 60 seconds: {e}")
+            return f"Error: Request timed out"
         except Exception as e:
             print(f"[ERROR] LLM call failed: {e}")
+            print(f"[ERROR] Exception type: {type(e).__name__}")
             import traceback
             traceback.print_exc()
             return f"Error: {str(e)}"
@@ -181,58 +203,29 @@ class LLMAgent:
         print("[OK] Initial BT generated")
         return bt_dsl
     
-    def _sanitize_log_for_safety(self, log: str) -> str:
-        """Sanitize log to reduce safety filter triggers"""
-        # Replace combat-related terms with neutral language
-        sanitized = log
-        replacements = {
-            "Attack": "Action",
-            "attack": "action",
-            "Damage": "Effect",
-            "damage": "effect",
-            "HP": "Health",
-            "CRITICAL": "Very Low",
-            "DEFEAT": "Loss",
-            "DEATH": "Loss",
-            "died": "lost",
-            "kill": "defeat",
-        }
-        for old, new in replacements.items():
-            sanitized = sanitized.replace(old, new)
-        return sanitized
+
     
-    def critique_last_stage(
+    def critique_combat(
         self, 
-        last_stage_log: str, 
-        final_floor: int, 
+        combat_log: str, 
         victory: bool,
-        current_bt: str,
-        previous_floor: int = 0
+        current_bt: str
     ) -> str:
         """
-        Analyze last stage gameplay and provide improvement suggestions
+        Analyze combat gameplay and provide improvement suggestions
         
         Args:
-            last_stage_log: Log from the last stage only
-            final_floor: Final floor reached
+            combat_log: Combat log from the battle
             victory: Whether the game was won
             current_bt: Current BT DSL
-            previous_floor: Floor reached in previous iteration (for performance comparison)
             
         Returns:
             Critic feedback text
         """
-        print("[CRITIC] Analyzing last stage...")
+        print("[CRITIC] Analyzing combat...")
         
-        prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt, previous_floor)
+        prompt = create_critic_prompt(combat_log, current_bt, [])
         feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
-        
-        # If blocked by safety filter, retry with sanitized log
-        if "Error: Response was blocked" in feedback:
-            print("[RETRY] Retrying with sanitized log...")
-            sanitized_log = self._sanitize_log_for_safety(last_stage_log)
-            prompt = create_critic_prompt(sanitized_log, final_floor, victory, current_bt, previous_floor)
-            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
         
         print("[OK] Critic analysis complete")
         return feedback
@@ -268,21 +261,16 @@ class LLMAgent:
     def two_stage_improvement(
         self,
         current_bt: str,
-        last_stage_log: str,
-        final_floor: int,
-        victory: bool,
-        stage_history: Dict[int, str] = None,
-        previous_floor: int = 0
+        combat_log: str,
+        victory: bool
     ) -> Dict[str, str]:
         """
         Execute two-stage improvement: Critic → Generator
         
         Args:
             current_bt: Current BT DSL
-            last_stage_log: Log from last stage only (fallback if history not provided)
-            final_floor: Final floor reached
+            combat_log: Combat log from the battle
             victory: Whether the game was won
-            stage_history: Dictionary of logs per floor {floor_num: log_text}
             
         Returns:
             Dict with 'critic_feedback' and 'improved_bt'
@@ -295,15 +283,13 @@ class LLMAgent:
                 'improved_bt': current_bt
             }
             
-        # Only analyze the failed floor (last stage)
-        print(f"[CRITIC] Analyzing failed Floor {final_floor}...")
+        # Analyze the combat
+        print("[CRITIC] Analyzing combat...")
         
-        critic_feedback = self.critique_last_stage(
-            last_stage_log, 
-            final_floor, 
+        critic_feedback = self.critique_combat(
+            combat_log, 
             victory,
-            current_bt,
-            previous_floor
+            current_bt
         )
         
         # Stage 2: Generator creates improved BT based on critic feedback
@@ -338,13 +324,6 @@ class LLMAgent:
         
         prompt = create_critic_prompt(combat_log, current_bt, previous_results or [])
         feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
-        
-        # If blocked, retry with sanitized log
-        if "Error: Response was blocked" in feedback:
-            print("[RETRY] Retrying with sanitized log...")
-            sanitized_log = self._sanitize_log_for_safety(combat_log)
-            prompt = create_critic_prompt(sanitized_log, current_bt, previous_results or [])
-            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
         
         if "Error" in feedback:
             print(f"[ERROR] Critic failed: {feedback}")
@@ -376,61 +355,7 @@ class LLMAgent:
         print("[OK] Initial BT generated")
         return bt_dsl
     
-    def _sanitize_log_for_safety(self, log: str) -> str:
-        """Sanitize log to reduce safety filter triggers"""
-        # Replace combat-related terms with neutral language
-        sanitized = log
-        replacements = {
-            "Attack": "Action",
-            "attack": "action",
-            "Damage": "Effect",
-            "damage": "effect",
-            "HP": "Health",
-            "CRITICAL": "Very Low",
-            "DEFEAT": "Loss",
-            "DEATH": "Loss",
-            "died": "lost",
-            "kill": "defeat",
-        }
-        for old, new in replacements.items():
-            sanitized = sanitized.replace(old, new)
-        return sanitized
-    
-    def critique_last_stage(
-        self, 
-        last_stage_log: str, 
-        final_floor: int, 
-        victory: bool,
-        current_bt: str,
-        previous_floor: int = 0
-    ) -> str:
-        """
-        Analyze last stage gameplay and provide improvement suggestions
-        
-        Args:
-            last_stage_log: Log from the last stage only
-            final_floor: Final floor reached
-            victory: Whether the game was won
-            current_bt: Current BT DSL
-            previous_floor: Floor reached in previous iteration (for performance comparison)
-            
-        Returns:
-            Critic feedback text
-        """
-        print("[CRITIC] Analyzing last stage...")
-        
-        prompt = create_critic_prompt(last_stage_log, final_floor, victory, current_bt, previous_floor)
-        feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
-        
-        # If blocked by safety filter, retry with sanitized log
-        if "Error: Response was blocked" in feedback:
-            print("[RETRY] Retrying with sanitized log...")
-            sanitized_log = self._sanitize_log_for_safety(last_stage_log)
-            prompt = create_critic_prompt(sanitized_log, final_floor, victory, current_bt, previous_floor)
-            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
-        
-        print("[OK] Critic analysis complete")
-        return feedback
+
     
     def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> Tuple[str, Optional[str]]:
         """
@@ -460,99 +385,9 @@ class LLMAgent:
         print("[OK] Improved BT generated and validated")
         return improved_bt, None
     
-    def two_stage_improvement(
-        self,
-        current_bt: str,
-        last_stage_log: str,
-        final_floor: int,
-        victory: bool,
-        stage_history: Dict[int, str] = None,
-        previous_floor: int = 0
-    ) -> Dict[str, str]:
-        """
-        Execute two-stage improvement: Critic → Generator
-        
-        Args:
-            current_bt: Current BT DSL
-            last_stage_log: Log from last stage only (fallback if history not provided)
-            final_floor: Final floor reached
-            victory: Whether the game was won
-            stage_history: Dictionary of logs per floor {floor_num: log_text}
-            
-        Returns:
-            Dict with 'critic_feedback' and 'improved_bt'
-        """
-        # If victory achieved, no need to improve
-        if victory:
-            print("[LLM] Victory achieved! No improvement needed.")
-            return {
-                'critic_feedback': "Victory achieved. No changes needed.",
-                'improved_bt': current_bt
-            }
-            
-        # Only analyze the failed floor (last stage)
-        print(f"[CRITIC] Analyzing failed Floor {final_floor}...")
-        
-        critic_feedback = self.critique_last_stage(
-            last_stage_log, 
-            final_floor, 
-            victory,
-            current_bt,
-            previous_floor
-        )
-        
-        # Stage 2: Generator creates improved BT based on critic feedback
-        improved_bt, error_msg = self.generate_improved_bt(current_bt, critic_feedback)
-        
-        result = {
-            'critic_feedback': critic_feedback,
-            'improved_bt': improved_bt
-        }
-        
-        if error_msg:
-            result['generation_error'] = error_msg
-            
-        return result
+
     
-    def improve_bt(self, current_bt: str, combat_log: str, previous_results: list = None) -> Optional[str]:
-        """
-        Improve BT based on combat log
-        
-        Args:
-            current_bt: Current BT DSL
-            combat_log: Combat summary
-            previous_results: List of previous combat results
-            
-        Returns:
-            Improved BT DSL or None if failed
-        """
-        print("[LLM] Improving BT...")
-        
-        # Get critic feedback
-        from .prompts import create_critic_prompt, SYSTEM_PROMPT_CRITIC
-        
-        prompt = create_critic_prompt(combat_log, current_bt, previous_results or [])
-        feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
-        
-        # If blocked, retry with sanitized log
-        if "Error: Response was blocked" in feedback:
-            print("[RETRY] Retrying with sanitized log...")
-            sanitized_log = self._sanitize_log_for_safety(combat_log)
-            prompt = create_critic_prompt(sanitized_log, current_bt, previous_results or [])
-            feedback = self._call_llm(SYSTEM_PROMPT_CRITIC, prompt, temperature=0.5, model_instance=self.critic_model_instance)
-        
-        if "Error" in feedback:
-            print(f"[ERROR] Critic failed: {feedback}")
-            return None
-        
-        # Generate improved BT
-        improved_bt, error = self.generate_improved_bt(current_bt, feedback)
-        
-        if error:
-            print(f"[ERROR] Generator failed: {error}")
-            return None
-        
-        return improved_bt
+
 
 
 class MockLLMAgent(LLMAgent):
@@ -580,22 +415,21 @@ class MockLLMAgent(LLMAgent):
             task : IceSpell()
         task : Attack()"""
     
-    def critique_last_stage(
+    def critique_combat(
         self, 
-        last_stage_log: str, 
-        final_floor: int, 
+        combat_log: str, 
         victory: bool,
         current_bt: str
     ) -> str:
         """Return mock critic feedback"""
         return """## Analysis
-The player is not utilizing combos effectively and healing too late.
+The player is not utilizing elemental advantages effectively and healing too late.
 
 ## Improvement Suggestions
-1. Add combo detection - Use HasComboReady conditions to trigger combo finishers
+1. Scan earlier - Use Scan on turn 1 to identify enemy weakness
 2. Heal earlier - Change healing threshold from 30% to 40% HP
 3. Add defensive option - Use Defend when HP is low and heal is on cooldown
-4. Prioritize combo completion - Don't interrupt combo chains with healing"""
+4. Exploit weakness - Use effective elemental spells after scanning"""
     
     def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> Tuple[str, Optional[str]]:
         """Return improved mock BT"""
@@ -619,30 +453,15 @@ The player is not utilizing combos effectively and healing too late.
     def two_stage_improvement(
         self,
         current_bt: str,
-        last_stage_log: str,
-        final_floor: int,
-        victory: bool,
-        stage_history: Dict[int, str] = None
+        combat_log: str,
+        victory: bool
     ) -> Dict[str, str]:
         """Execute mock two-stage improvement"""
-        aggregated_feedback = []
+        print("[MOCK CRITIC] Analyzing combat...")
         
-        if stage_history:
-            print(f"[MOCK CRITIC] Analyzing {len(stage_history)} stages...")
-            for floor, log in sorted(stage_history.items()):
-                print(f"  - Analyzing Floor {floor}...")
-                stage_victory = True if floor < final_floor else victory
-                
-                feedback = self.critique_last_stage(
-                    log, floor, stage_victory, current_bt
-                )
-                aggregated_feedback.append(f"## Floor {floor} Analysis\n{feedback}")
-            
-            critic_feedback = "\n\n".join(aggregated_feedback)
-        else:
-            critic_feedback = self.critique_last_stage(
-                last_stage_log, final_floor, victory, current_bt
-            )
+        critic_feedback = self.critique_combat(
+            combat_log, victory, current_bt
+        )
             
         improved_bt = self.generate_improved_bt(current_bt, critic_feedback)
         

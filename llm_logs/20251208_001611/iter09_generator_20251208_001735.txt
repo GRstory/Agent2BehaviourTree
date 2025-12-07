@@ -1,0 +1,179 @@
+================================================================================
+GENERATOR LLM LOG
+Iteration: 9
+Timestamp: 20251208_001735
+Temperature: 0.8999999999999999
+No improvement count: 4
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert AI strategist specializing in turn-based RPG combat and Behaviour Tree design.
+
+CRITICAL: The Behaviour Tree executes ONLY ONE action per turn. Once an action is selected, the turn ends immediately.
+
+Your expertise includes:
+- Elemental weakness exploitation (Fire/Ice/Lightning rock-paper-scissors)
+- Resource management (TP/MP optimization)
+- Status effect timing and usage
+- Enemy pattern recognition and adaptation
+- Defensive vs aggressive strategy selection
+
+Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation.
+You must ONLY use the control nodes (root, selector, sequence), conditions, and tasks listed in the DSL specification.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Generate an IMPROVED Behaviour Tree based on feedback.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Turn 1: Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+
+        # Proactive Ice Spell on Turn 1
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when critical, with cooldown
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+
+        # Adaptive Ice Spell Usage
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Reactive Defend
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Damage Burst on telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : HasTP(30)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Improvement Feedback
+## Analysis
+The BT consistently failed to capitalize on the FireGolem's weakness to Ice, despite scanning it on turn 1. The aggressive, turn-1 IceSpell followed by repeated attacks didn’t translate to victory. The Heal task was triggered too late, and the defensive actions were reactive and didn’t prevent the predictable HeavySlam telegraphs. The BT’s reliance on the PowerStrike after a HeavySlam telegraph was a direct response to a known tactic, but didn’t account for the FireGolem’s high HP.  The MP expenditure was also inefficient, with multiple IceSpells used without considering the potential for a more decisive attack.
+
+## Improvement Suggestions
+1.  **Prioritize Ice Damage:**  Modify the 'Adaptive Ice Spell Usage' sequence to always be the *first* task executed when the enemy is scanned and weak to Ice. This ensures the most potent attack is always prioritized.
+
+2.  **Dynamic Heal Threshold:**  Increase the Heal trigger condition from "HPLow(30)" to "HPLow(20)". Waiting until 30% HP is far too late; the FireGolem quickly built up damage.
+
+3.  **Defend Proactive Trigger:** Add a condition to the 'Reactive Defend' sequence to trigger *before* the HeavySlam telegraph is detected.  This would require a shorter telegraph detection window, perhaps based on movement or a specific animation state.
+
+4.  **MP Management – Conditional Ice Spell:** Add a check within the 'Adaptive Ice Spell Usage' sequence to limit the number of IceSpells cast in a single combat.  For example, "Max IceSpells Cast = 2". This prevents MP exhaustion and allows for more strategic use of resources.
+
+
+# COMPLETE LIST OF AVAILABLE SYNTAX
+
+**Control Nodes (ONLY these 3):**
+- `root :` - Must be first line, has one child
+- `selector :` - Tries children until one succeeds
+- `sequence :` - All conditions must pass, executes final task
+
+**Conditions (ONLY these):**
+- `IsPlayerHPLow(30)` - Player HP < threshold%
+- `IsEnemyHPLow(30)` - Enemy HP < threshold%
+- `HasTP(30)` - Player has >= amount TP
+- `HasMP(20)` - Player has >= amount MP
+- `CanHeal()` - Heal is off cooldown AND MP >= 30
+- `EnemyWeakTo(Fire)` or `EnemyWeakTo(Ice)` or `EnemyWeakTo(Lightning)` - Enemy weak to element
+- `HasScannedEnemy()` - Enemy has been scanned
+- `EnemyHasBuff(Enrage)` - Enemy has specific buff
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy telegraphing attack
+- `IsTurnEarly(2)` - Turn count <= threshold
+
+**Actions/Tasks (ONLY these):**
+- `Attack()` - 0 TP, 15-18 damage, gains +15 TP
+- `PowerStrike()` - 30 TP, 40-50 damage
+- `FireSpell()` - 20 MP, 25-30 Fire damage, 1.5x vs Ice
+- `IceSpell()` - 20 MP, 25-30 Ice damage, 1.5x vs Lightning
+- `LightningSpell()` - 20 MP, 25-30 Lightning damage, 1.5x vs Fire
+- `Defend()` - 0 TP, -50% damage for 1 turn, gains +20 TP
+- `Heal()` - 30 MP, +45 HP, 3 turn cooldown
+- `Scan()` - 15 MP, reveals enemy weakness
+
+# CRITICAL RULES
+
+1. **ONE ACTION PER TURN**: The BT executes ONLY ONE action per turn. Once a task is selected, the turn ends.
+2. **USE ONLY LISTED SYNTAX ABOVE**: You must use ONLY the control nodes, conditions, and tasks listed above. No other syntax exists.
+3. **Indentation**: Use exactly 4 spaces per level
+4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
+5. **Fallback**: Always end selector with `task : Attack()`
+
+# Your Task
+
+Apply the feedback to create an improved BT using ONLY the syntax listed above. Output ONLY the BT DSL, no explanations. Start with `root :`.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+```
+root :
+    selector :
+        # Prioritized Ice Spell Usage
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Turn 1: Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+
+        # Proactive Ice Spell on Turn 1
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when critical, with shorter telegraph
+        sequence :
+            condition : IsPlayerHPLow(20)
+            condition : CanHeal()
+            task : Heal()
+
+        # Proactive Defend
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Damage Burst on telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : HasTP(30)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()
+```
+
+================================================================================
+Prompt length: 4596 chars
+Response length: 1072 chars
+================================================================================

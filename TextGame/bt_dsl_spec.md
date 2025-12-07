@@ -268,178 +268,59 @@ task : Scan()
 
 ---
 
-## Example Behaviour Trees
 
-### Example 1: Elemental Advantage Strategy
+---
 
+## Quick Reference
+
+### Common Patterns
+
+**Scan Early:**
 ```
-root :
-    selector :
-        # Emergency heal
-        sequence :
-            condition : IsPlayerHPLow(30)
-            condition : CanHeal()
-            task : Heal()
-        
-        # Scan enemy early
-        sequence :
-            condition : IsTurnEarly(2)
-            condition : HasMP(15)
-            task : Scan()
-        
-        # Defend against telegraphed attacks
-        sequence :
-            condition : EnemyIsTelegraphing(HeavySlam)
-            task : Defend()
-        
-        # Exploit elemental weakness (after scanning)
-        sequence :
-            condition : HasScannedEnemy()
-            condition : EnemyWeakTo(Ice)
-            condition : HasMP(20)
-            task : IceSpell()
-        
-        sequence :
-            condition : HasScannedEnemy()
-            condition : EnemyWeakTo(Fire)
-            condition : HasMP(20)
-            task : FireSpell()
-        
-        sequence :
-            condition : HasScannedEnemy()
-            condition : EnemyWeakTo(Lightning)
-            condition : HasMP(20)
-            task : LightningSpell()
-        
-        # Use Power Strike when TP is high
-        sequence :
-            condition : HasTP(30)
-            task : PowerStrike()
-        
-        # Default: Basic attack
-        task : Attack()
+sequence :
+    condition : IsTurnEarly(2)
+    task : Scan()
 ```
 
-### Example 2: Defensive Strategy
-
+**Exploit Weakness:**
 ```
-root :
-    selector :
-        # Heal when very low
-        sequence :
-            condition : IsPlayerHPLow(25)
-            condition : CanHeal()
-            task : Heal()
-        
-        # Scan early
-        sequence :
-            condition : IsTurnEarly(1)
-            condition : HasMP(15)
-            task : Scan()
-        
-        # Defend when low HP and no heal
-        sequence :
-            condition : IsPlayerHPLow(40)
-            task : Defend()
-        
-        # Defend against enemy buffs
-        sequence :
-            condition : EnemyHasBuff(Enrage)
-            task : Defend()
-        
-        # Use elemental advantage
-        sequence :
-            condition : HasScannedEnemy()
-            condition : EnemyWeakTo(Ice)
-            condition : HasMP(20)
-            task : IceSpell()
-        
-        # Default
-        task : Attack()
+sequence :
+    condition : HasScannedEnemy()
+    condition : EnemyWeakTo(Ice)
+    condition : HasMP(20)
+    task : IceSpell()
 ```
 
-### Example 3: Aggressive Burst Strategy
-
+**Emergency Heal:**
 ```
-root :
-    selector :
-        # Only heal when critical
-        sequence :
-            condition : IsPlayerHPLow(20)
-            condition : CanHeal()
-            task : Heal()
-        
-        # Scan turn 1
-        sequence :
-            condition : IsTurnEarly(1)
-            task : Scan()
-        
-        # Spam effective spell
-        sequence :
-            condition : HasScannedEnemy()
-            condition : EnemyWeakTo(Lightning)
-            condition : HasMP(20)
-            task : LightningSpell()
-        
-        # Power Strike when TP high
-        sequence :
-            condition : HasTP(30)
-            task : PowerStrike()
-        
-        # Attack to build TP
-        task : Attack()
+sequence :
+    condition : IsPlayerHPLow(30)
+    condition : CanHeal()
+    task : Heal()
+```
+
+**Defend on Telegraph:**
+```
+sequence :
+    condition : EnemyIsTelegraphing(HeavySlam)
+    task : Defend()
 ```
 
 ---
 
-## Strategy Tips
+## Key Strategy Points
 
-### Resource Management
-- **TP**: Builds fast (+15/turn, +15 from Attack, +20 from Defend). Use for Power Strike.
-- **MP**: Regenerates slowly (+12/turn). Save for elemental spells and Heal.
-
-### Elemental Matchups
-- **Fire Golem** 🔥: Use Ice Spell (1.5x damage)
-- **Ice Wraith** ❄️: Use Lightning Spell (1.5x damage)
-- **Thunder Drake** ⚡: Use Fire Spell (1.5x damage)
-
-### Enemy Patterns
-- **Fire Golem**: Ultra aggressive, no healing, Enrage at HP < 30%
-- **Ice Wraith**: Defensive healer, Frost Aura at HP < 40%
-- **Thunder Drake**: Balanced, Storm Charge combo at HP < 35%
-
-### Optimal Strategy
-1. **Turn 1-2**: Use Scan to identify enemy weakness
-2. **Turn 3+**: Spam effective elemental spell (1.5x damage!)
-3. **Defend**: When enemy telegraphs heavy attack
-4. **Heal**: Only when HP < 30%
-5. **Power Strike**: Against Neutral enemies or when MP low
+- **Scan on turn 1-2** to identify enemy weakness
+- **Exploit elemental advantage** (1.5x damage!)
+- **Heal when HP < 30-40%**
+- **Defend when enemy telegraphs** heavy attacks
+- **Always end with fallback**: `task : Attack()`
 
 ---
 
-## Common Mistakes to Avoid
+## Elemental Matchups
 
-❌ **Don't**: Use Fire Spell against Fire Golem (0.5x damage!)
-✅ **Do**: Use Ice Spell against Fire Golem (1.5x damage)
+- Fire Golem → Use IceSpell (1.5x)
+- Ice Wraith → Use LightningSpell (1.5x)  
+- Thunder Drake → Use FireSpell (1.5x)
 
-❌ **Don't**: Spam Attack when you have MP for elemental spells
-✅ **Do**: Use elemental advantage for 1.5x damage
-
-❌ **Don't**: Heal when HP > 40% (waste of MP)
-✅ **Do**: Heal only when HP < 30%
-
-❌ **Don't**: Forget to Scan (you won't know weakness)
-✅ **Do**: Scan on turn 1-2
-
-❌ **Don't**: Ignore telegraphed attacks
-✅ **Do**: Defend when enemy telegraphs heavy attack
-
----
-
-## Legacy Compatibility
-
-Old action names are still supported for backwards compatibility:
-- `LightAttack()` → `Attack()`
-- `HeavyAttack()` → `PowerStrike()`
-
-Old combo conditions are **removed** (no longer supported).

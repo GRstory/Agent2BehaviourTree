@@ -1,0 +1,134 @@
+================================================================================
+GENERATOR LLM LOG
+Iteration: 0
+Timestamp: 20251208_001622
+Temperature: 0.7
+No improvement count: 0
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert AI strategist specializing in turn-based RPG combat and Behaviour Tree design.
+
+CRITICAL: The Behaviour Tree executes ONLY ONE action per turn. Once an action is selected, the turn ends immediately.
+
+Your expertise includes:
+- Elemental weakness exploitation (Fire/Ice/Lightning rock-paper-scissors)
+- Resource management (TP/MP optimization)
+- Status effect timing and usage
+- Enemy pattern recognition and adaptation
+- Defensive vs aggressive strategy selection
+
+Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation.
+You must ONLY use the control nodes (root, selector, sequence), conditions, and tasks listed in the DSL specification.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Generate an IMPROVED Behaviour Tree based on feedback.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(20)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Default: Attack
+        task : Attack()
+
+```
+
+# Improvement Feedback
+## Analysis
+The player consistently failed to exploit the FireGolem’s elemental weakness to Fire. The single-action nature of the Behaviour Tree meant that even if a scan identified the weakness, the player was stuck with the default attack. The lack of a reactive strategy – specifically, using a Fire spell when the FireGolem was detected – resulted in prolonged damage and ultimately, defeat. The Heal task was triggered frequently, but without a corresponding offensive strategy, it was essentially wasted TP. The BT’s design doesn’t allow for adaptation based on enemy type or status.
+
+## Improvement Suggestions
+1.  **Implement Scanning:** Add a scan action that runs at the beginning of each turn. This scan should identify the enemy’s element and automatically select the appropriate spell (Fire spell) if it's a weakness.
+2.  **Conditional Spell Selection:** Modify the BT so that if the scan reveals a weakness to Fire, the ‘Attack’ task is replaced with the ‘Fire Spell’ task.
+3.  **Heal Threshold Adjustment:** Increase the heal threshold from 20% to 40%. This will allow for more proactive healing and prevent the player from being reduced to critical health before the BT can react.
+4.  **Introduce a Defensive Priority:** Add a defensive priority node to the BT. If the player's HP drops below 50%, the BT should prioritize ‘Defend’ over ‘Attack’ for one turn to mitigate damage. This would require a separate 'Defend' task.
+
+# COMPLETE LIST OF AVAILABLE SYNTAX
+
+**Control Nodes (ONLY these 3):**
+- `root :` - Must be first line, has one child
+- `selector :` - Tries children until one succeeds
+- `sequence :` - All conditions must pass, executes final task
+
+**Conditions (ONLY these):**
+- `IsPlayerHPLow(30)` - Player HP < threshold%
+- `IsEnemyHPLow(30)` - Enemy HP < threshold%
+- `HasTP(30)` - Player has >= amount TP
+- `HasMP(20)` - Player has >= amount MP
+- `CanHeal()` - Heal is off cooldown AND MP >= 30
+- `EnemyWeakTo(Fire)` or `EnemyWeakTo(Ice)` or `EnemyWeakTo(Lightning)` - Enemy weak to element
+- `HasScannedEnemy()` - Enemy has been scanned
+- `EnemyHasBuff(Enrage)` - Enemy has specific buff
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy telegraphing attack
+- `IsTurnEarly(2)` - Turn count <= threshold
+
+**Actions/Tasks (ONLY these):**
+- `Attack()` - 0 TP, 15-18 damage, gains +15 TP
+- `PowerStrike()` - 30 TP, 40-50 damage
+- `FireSpell()` - 20 MP, 25-30 Fire damage, 1.5x vs Ice
+- `IceSpell()` - 20 MP, 25-30 Ice damage, 1.5x vs Lightning
+- `LightningSpell()` - 20 MP, 25-30 Lightning damage, 1.5x vs Fire
+- `Defend()` - 0 TP, -50% damage for 1 turn, gains +20 TP
+- `Heal()` - 30 MP, +45 HP, 3 turn cooldown
+- `Scan()` - 15 MP, reveals enemy weakness
+
+# CRITICAL RULES
+
+1. **ONE ACTION PER TURN**: The BT executes ONLY ONE action per turn. Once a task is selected, the turn ends.
+2. **USE ONLY LISTED SYNTAX ABOVE**: You must use ONLY the control nodes, conditions, and tasks listed above. No other syntax exists.
+3. **Indentation**: Use exactly 4 spaces per level
+4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
+5. **Fallback**: Always end selector with `task : Attack()`
+
+# Your Task
+
+Apply the feedback to create an improved BT using ONLY the syntax listed above. Output ONLY the BT DSL, no explanations. Start with `root :`.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+```
+root :
+    selector :
+        # Defensive Priority
+        sequence :
+            condition : IsPlayerHPLow(50)
+            task : Defend()
+        
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Exploit Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+        
+        # Scan for Weakness
+        sequence :
+            condition : HasMP(15)
+            condition : IsTurnEarly(1)
+            task : Scan()
+        
+        # Default: Attack
+        task : Attack()
+```
+
+================================================================================
+Prompt length: 3617 chars
+Response length: 724 chars
+================================================================================

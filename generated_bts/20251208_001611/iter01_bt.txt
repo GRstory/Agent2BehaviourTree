@@ -1,0 +1,28 @@
+root :
+    selector :
+        # Defensive Priority
+        sequence :
+            condition : IsPlayerHPLow(50)
+            task : Defend()
+        
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Exploit Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+        
+        # Scan for Weakness
+        sequence :
+            condition : HasMP(15)
+            condition : IsTurnEarly(1)
+            task : Scan()
+        
+        # Default: Attack
+        task : Attack()

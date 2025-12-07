@@ -1,0 +1,152 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 13
+Timestamp: 20251207_190454
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Early Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Proactive Defend
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : IsPlayerHPLow(60)
+            task : Defend()
+
+        # Emergency Heal
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Defensive Burst
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : HasMP(10)
+            task : Defend()
+            task : Heal()
+
+        # Prioritize Ice Spell when Enemy Low HP
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : IsEnemyHPLow(75)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit weakness
+        selector :
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Fire)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : FireSpell()
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Lightning)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : LightningSpell()
+
+        # Scan every turn
+        sequence :
+            condition : HasScannedEnemy()
+            task : Scan()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 3 battles: 0 victories, 3 defeats
+  LOSS vs FireGolem: 5 turns
+  LOSS vs FireGolem: 6 turns
+  LOSS vs FireGolem: 14 turns
+
+# Combat Summary
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 14
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 180/180 (100%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 1/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Elemental Strategy**: Did they scan? Did they use the right spell?
+2. **Resource Management**: TP/MP usage efficiency
+3. **Defensive Decisions**: Heal/Defend timing
+4. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The combat consistently resulted in a drawn-out, unwinnable scenario. The primary issue was a reliance on scanning and then attempting to exploit a weakness (Fire) with Fire spells, while the FireGolem’s high HP and resistance to Fire meant the player was constantly reacting defensively. The BT lacked a proactive strategy to quickly reduce the enemy’s health, and the frequent defensive actions (Defend, Heal) drained resources without significantly impacting the fight. The delayed use of Ice, even when the enemy was scanned, was a critical missed opportunity. The BT prioritized scanning over immediate damage output.
+
+## Improvement Suggestions
+1. **Prioritize Ice Spell on Scan:** Modify the `IceSpell()` task to be triggered immediately upon scanning the enemy and confirming the Ice weakness, regardless of HP thresholds. This should override other defensive tasks during the scan phase.
+2. **Aggressive Early Response:** Introduce a new condition: `IsEnemyHPHigh(80)`. If this condition is true, immediately trigger the `Attack()` task, bypassing the defensive sequences. This will help to break the enemy’s momentum.
+3. **Adjust Heal Threshold:** Increase the HP threshold for the `Heal()` task from 40% to 60%. This allows for more proactive healing when the player is closer to critical health, rather than waiting until they are almost dead.
+4. **Reduce Scan Frequency:** Reduce the scan frequency. Scanning every turn is too slow.  Implement a scan on turn 1, then every 3 turns. This conserves MP and allows for more immediate action.
+5. **Introduce a "Counter-Attack" Task:** Add a simple attack task triggered when the enemy is telegraphing a heavy attack, but *before* the Defend task. This provides a quick, reactive damage option when the enemy is preparing a strong attack, rather than solely relying on a defensive posture.
+
+
+================================================================================
+Prompt length: 2706 chars
+Response length: 1859 chars
+================================================================================

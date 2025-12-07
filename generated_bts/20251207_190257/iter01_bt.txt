@@ -1,0 +1,42 @@
+root :
+    selector :
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit weakness
+        selector :
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Fire)
+                condition : HasMP(20)
+                task : FireSpell()
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Ice)
+                condition : HasMP(20)
+                task : IceSpell()
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Lightning)
+                condition : HasMP(20)
+                task : LightningSpell()
+
+        # Defend when enemy is low
+        sequence :
+            condition : IsEnemyHPLow(75)
+            task : Defend()
+
+        # Scan for weakness
+        sequence :
+            condition : HasMP(15)
+            condition : HasScannedEnemy()
+            task : Attack()
+        sequence :
+            condition : HasMP(15)
+            task : Scan()
+
+        # Default: Attack
+        task : Attack()

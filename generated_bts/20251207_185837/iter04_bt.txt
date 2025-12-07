@@ -1,0 +1,39 @@
+root :
+    selector :
+        # Adaptive Scan Timing
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+        sequence :
+            condition : IsTurnEarly(3)
+            task : Scan()
+        sequence :
+            condition : IsTurnEarly(5)
+            task : Scan()
+
+        # Exploit Fire Weakness with MP Limit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(30)
+            task : IceSpell()
+
+        # Emergency Heal (Adjusted Threshold)
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Defend Strategically
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            task : Attack()
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : HasScannedEnemy()
+            task : Defend()
+
+        # Default: Basic Attack
+        task : Attack()

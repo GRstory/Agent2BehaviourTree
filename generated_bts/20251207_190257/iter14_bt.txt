@@ -1,0 +1,53 @@
+root :
+    selector :
+        # Early Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Ice Spell after Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Aggressive Early Response
+        sequence :
+            condition : IsEnemyHPLow(80)
+            task : Attack()
+
+        # Proactive Defend & Counter Attack
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : IsPlayerHPLow(60)
+            task : Attack()
+
+        # Emergency Heal
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit weakness
+        selector :
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Fire)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : FireSpell()
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Lightning)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : LightningSpell()
+
+        # Scan every 3 turns
+        sequence :
+            condition : IsTurnEarly(3)
+            task : Scan()
+
+        # Default: Attack
+        task : Attack()

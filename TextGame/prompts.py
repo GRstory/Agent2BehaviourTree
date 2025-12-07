@@ -23,6 +23,8 @@ def load_dsl_spec() -> str:
 
 SYSTEM_PROMPT_BT_GENERATOR = """You are an expert AI strategist specializing in turn-based RPG combat and Behaviour Tree design.
 
+CRITICAL: The Behaviour Tree executes ONLY ONE action per turn. Once an action is selected, the turn ends immediately.
+
 Your expertise includes:
 - Elemental weakness exploitation (Fire/Ice/Lightning rock-paper-scissors)
 - Resource management (TP/MP optimization)
@@ -30,9 +32,12 @@ Your expertise includes:
 - Enemy pattern recognition and adaptation
 - Defensive vs aggressive strategy selection
 
-Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation."""
+Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation.
+You must ONLY use the control nodes (root, selector, sequence), conditions, and tasks listed in the DSL specification."""
 
 SYSTEM_PROMPT_CRITIC = """You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
 
 Your task is to analyze combat logs and identify:
 - Elemental advantage usage (did they exploit weakness?)
@@ -115,7 +120,6 @@ Output ONLY the BT DSL, no explanations. Start with `root :`."""
 
 def create_critic_prompt(combat_summary: str, current_bt: str, previous_results: list) -> str:
     """Create prompt for combat analysis and improvement suggestions"""
-    dsl_spec = load_dsl_spec()
     
     # Build performance context
     perf_context = ""
@@ -137,9 +141,6 @@ def create_critic_prompt(combat_summary: str, current_bt: str, previous_results:
 {perf_context}
 # Combat Summary
 {combat_summary}
-
-# Available DSL
-{dsl_spec}
 
 # Your Task
 
@@ -171,7 +172,6 @@ Be concise and actionable."""
 
 def create_generator_prompt(current_bt: str, critic_feedback: str) -> str:
     """Create prompt for improved BT generation"""
-    dsl_spec = load_dsl_spec()
     
     return f"""Generate an IMPROVED Behaviour Tree based on feedback.
 
@@ -183,42 +183,46 @@ def create_generator_prompt(current_bt: str, critic_feedback: str) -> str:
 # Improvement Feedback
 {critic_feedback}
 
-# DSL Specification
-{dsl_spec}
+# COMPLETE LIST OF AVAILABLE SYNTAX
+
+**Control Nodes (ONLY these 3):**
+- `root :` - Must be first line, has one child
+- `selector :` - Tries children until one succeeds
+- `sequence :` - All conditions must pass, executes final task
+
+**Conditions (ONLY these):**
+- `IsPlayerHPLow(30)` - Player HP < threshold%
+- `IsEnemyHPLow(30)` - Enemy HP < threshold%
+- `HasTP(30)` - Player has >= amount TP
+- `HasMP(20)` - Player has >= amount MP
+- `CanHeal()` - Heal is off cooldown AND MP >= 30
+- `EnemyWeakTo(Fire)` or `EnemyWeakTo(Ice)` or `EnemyWeakTo(Lightning)` - Enemy weak to element
+- `HasScannedEnemy()` - Enemy has been scanned
+- `EnemyHasBuff(Enrage)` - Enemy has specific buff
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy telegraphing attack
+- `IsTurnEarly(2)` - Turn count <= threshold
+
+**Actions/Tasks (ONLY these):**
+- `Attack()` - 0 TP, 15-18 damage, gains +15 TP
+- `PowerStrike()` - 30 TP, 40-50 damage
+- `FireSpell()` - 20 MP, 25-30 Fire damage, 1.5x vs Ice
+- `IceSpell()` - 20 MP, 25-30 Ice damage, 1.5x vs Lightning
+- `LightningSpell()` - 20 MP, 25-30 Lightning damage, 1.5x vs Fire
+- `Defend()` - 0 TP, -50% damage for 1 turn, gains +20 TP
+- `Heal()` - 30 MP, +45 HP, 3 turn cooldown
+- `Scan()` - 15 MP, reveals enemy weakness
+
+# CRITICAL RULES
+
+1. **ONE ACTION PER TURN**: The BT executes ONLY ONE action per turn. Once a task is selected, the turn ends.
+2. **USE ONLY LISTED SYNTAX ABOVE**: You must use ONLY the control nodes, conditions, and tasks listed above. No other syntax exists.
+3. **Indentation**: Use exactly 4 spaces per level
+4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
+5. **Fallback**: Always end selector with `task : Attack()`
 
 # Your Task
 
-Create an improved BT that addresses the feedback.
-
-# CRITICAL REQUIREMENTS
-
-1. Use ONLY exact names from DSL spec:
-   - Conditions: HasTP, HasMP, IsPlayerHPLow, EnemyWeakTo, HasScannedEnemy, etc.
-   - Actions: Attack, PowerStrike, FireSpell, IceSpell, LightningSpell, Defend, Heal, Scan
-
-2. Correct syntax:
-   - `root :`, `selector :`, `sequence :`
-   - `condition : IsPlayerHPLow(30)`
-   - `task : Heal()`
-
-3. Use 4 spaces for indentation
-
-4. Always include fallback: `task : Attack()`
-
-# STRATEGIC GUIDANCE
-
-- **BE BOLD**: If performance was poor, restructure the tree!
-- **REORDER PRIORITIES**: Move important logic higher
-- **TRY NEW STRATEGIES**: Aggressive vs defensive
-- **NO DUPLICATES**: Must be different from current BT
-
-# COMMON MISTAKES TO AVOID
-
-❌ `isPlayerHP <= 30` - Use `IsPlayerHPLow(30)`
-❌ `UseSpell(Fire)` - Use `FireSpell()`
-❌ Wrong indentation (2 spaces or tabs)
-
-Output ONLY the improved BT DSL, no explanations. Start with `root :`."""
+Apply the feedback to create an improved BT using ONLY the syntax listed above. Output ONLY the BT DSL, no explanations. Start with `root :`."""
 
 
 # ============================================================================

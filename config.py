@@ -49,8 +49,8 @@ class GameConfig:
 class LLMConfig:
     """LLM agent configuration"""
     api_key: str = None
-    model: str = "gemini-2.0-flash-exp"
-    critic_model: str = "gemini-2.0-flash-exp"
+    model: str = "gemini-2.0-flash"
+    critic_model: str = "gemini-2.0-flash"
     temperature_generation: float = 0.7
     temperature_analysis: float = 0.5
     temperature_feedback: float = 0.6
@@ -73,7 +73,7 @@ class RunnerConfig:
     verbose: bool = True
     
     # Convergence criteria
-    victory_early_stop: bool = True
+    victory_early_stop: bool = False  # Continue even after victory
     single_run: bool = False
 
 

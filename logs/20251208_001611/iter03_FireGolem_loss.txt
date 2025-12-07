@@ -1,0 +1,67 @@
+=== COMBAT START ===
+Enemy: FireGolem (Fire)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%
+
+Action: Defend
+Enemy: HeavySlam -> 16 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 1 ===
+Player: HP 84%, TP 85, MP 100
+Enemy: HP 100%
+
+Action: Defend
+Enemy: HeavySlam -> 16 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 2 ===
+Player: HP 68%, TP 100, MP 100
+Enemy: HP 100%
+
+Action: Defend
+Enemy: RageBuff
+
+=== TURN 3 ===
+Player: HP 68%, TP 100, MP 100
+Enemy: HP 100%, Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 25 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 4 ===
+Player: HP 43%, TP 100, MP 100
+Enemy: HP 100%, Buffs: RageBuff
+
+Action: Defend
+Enemy: RageBuff
+
+=== TURN 5 ===
+Player: HP 43%, TP 100, MP 100
+Enemy: HP 100%, Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 25 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 6 ===
+Player: HP 18%, TP 100, MP 100
+Enemy: HP 100%, Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 25 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 7
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 180/180 (100%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: TP 100/100, MP 100/100

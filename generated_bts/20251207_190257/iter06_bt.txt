@@ -1,0 +1,47 @@
+root :
+    selector :
+        # Scan the enemy at the beginning of each turn
+        sequence :
+            condition : HasScannedEnemy()
+            task : Attack()
+        sequence :
+            condition : HasMP(15)
+            task : Scan()
+
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Prioritize IceSpell when enemy is weak
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(25)
+            condition : HasTP(25)
+            task : IceSpell()
+
+        # Heal when player is low and enemy is strong
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : IsEnemyHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit weakness
+        selector :
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Fire)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : FireSpell()
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Lightning)
+                condition : HasMP(20)
+                condition : HasTP(20)
+                task : LightningSpell()
+
+        # Default: Attack
+        task : Attack()

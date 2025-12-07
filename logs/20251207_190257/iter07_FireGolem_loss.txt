@@ -1,0 +1,53 @@
+=== COMBAT START ===
+Enemy: FireGolem (Fire)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%
+
+Action: Scan (MP -15)
+Enemy: Slam -> 14 dmg
+
+=== TURN 1 ===
+Player: HP 86%, TP 65, MP 85
+Enemy: HP 100%
+
+Action: Scan (MP -15)
+Enemy: Slam -> 14 dmg
+
+=== TURN 2 ===
+Player: HP 72%, TP 80, MP 82
+Enemy: HP 100%
+
+Action: Scan (MP -15)
+Enemy: HeavySlam -> 40 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 3 ===
+Player: HP 32%, TP 95, MP 79
+Enemy: HP 100%
+
+Action: Scan (MP -15)
+Enemy: FireSpell -> 21 dmg
+
+=== TURN 4 ===
+Player: HP 11%, TP 100, MP 76
+Enemy: HP 100%
+
+Action: Scan (MP -15)
+Enemy: Slam -> 14 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 5
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 180/180 (100%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 73/100

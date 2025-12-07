@@ -46,6 +46,10 @@ def parse_bt_dsl(dsl_text: str, indent_unit: int = 4) -> BTNode:
 
     # 라인을 파싱하여 (레벨, 노드) 튜플로 변환
     def parse_line(line_str: str):
+        # Remove inline comments (everything after #)
+        if '#' in line_str:
+            line_str = line_str[:line_str.index('#')]
+        
         indent_len = len(line_str) - len(line_str.lstrip(' '))
         if indent_len % indent_unit != 0:
             raise ValueError(f"일관되지 않은 들여쓰기: '{line_str}'")
@@ -60,7 +64,19 @@ def parse_bt_dsl(dsl_text: str, indent_unit: int = 4) -> BTNode:
 
     # --- 스택 기반 파싱 로직 ---
     try:
-        root_level, root_node = parse_line(lines[0])
+        # Filter out comment lines and empty lines
+        non_comment_lines = []
+        for line in lines:
+            stripped = line.strip()
+            # Skip empty lines and lines starting with #
+            if not stripped or stripped.startswith('#'):
+                continue
+            non_comment_lines.append(line)
+        
+        if not non_comment_lines:
+            return None
+        
+        root_level, root_node = parse_line(non_comment_lines[0])
         if root_level != 0:
             raise ValueError("루트 노드는 들여쓰기가 없어야 합니다.")
 
@@ -68,7 +84,7 @@ def parse_bt_dsl(dsl_text: str, indent_unit: int = 4) -> BTNode:
         # 스택의 최상단은 항상 현재 노드의 부모 후보이다.
         stack = [(root_level, root_node)]
 
-        for line_str in lines[1:]:
+        for line_str in non_comment_lines[1:]:
             if not line_str.strip():
                 continue
             
@@ -91,3 +107,4 @@ def parse_bt_dsl(dsl_text: str, indent_unit: int = 4) -> BTNode:
     except Exception as e:
         print(f"DSL 파싱 오류: {e}")
         return None
+

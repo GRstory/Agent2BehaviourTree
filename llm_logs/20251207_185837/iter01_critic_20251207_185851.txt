@@ -1,0 +1,122 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 1
+Timestamp: 20251207_185851
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Initial Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Emergency Heal Against Fire Weakness
+        sequence :
+            condition : EnemyWeakTo(Fire)
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Defend against telegraphing
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        
+        # Exploit Fire Weakness with Water Spell
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+        
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 2 battles: 0 victories, 2 defeats
+  LOSS vs FireGolem: 6 turns
+  LOSS vs FireGolem: 4 turns
+
+# Combat Summary
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 4
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 170/180 (94%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 100/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Elemental Strategy**: Did they scan? Did they use the right spell?
+2. **Resource Management**: TP/MP usage efficiency
+3. **Defensive Decisions**: Heal/Defend timing
+4. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The combat suffered from a critical lack of proactive scanning and an over-reliance on the emergency heal. The FireGolem’s high HP and consistent attacks overwhelmed the player’s defenses. The immediate heal was triggered too late, and the IceSpell was only used after the enemy was already heavily damaged, missing the opportunity to capitalize on the initial Fire weakness. The BT’s structure doesn't prioritize scanning, leading to a reactive rather than proactive approach. The ‘Emergency Heal’ condition is too narrow, triggering on low HP without considering the broader strategic context.
+
+## Improvement Suggestions
+1.  **Mandatory Scan on Turn 1:** Implement a scan task that *always* executes on turn 1. This ensures the player immediately identifies the enemy’s weaknesses.
+2.  **Heal Threshold Adjustment:** Modify the ‘Emergency Heal’ condition to trigger at 50% HP or lower. This allows for a more timely response to critical damage.
+3.  **Prioritize Scan Before IceSpell:**  Reorder the ‘IceSpell’ task to execute *after* the ‘Scan’ task. This ensures the IceSpell is used when the enemy’s Fire weakness is confirmed.
+4.  **Introduce a “Threat Assessment” Task:** Add a task that evaluates the enemy’s current attack pattern and damage dealt. If the enemy is consistently using HeavySlam, prioritize ‘Defend’. This will allow for more intelligent defensive decisions.
+5.  **MP Cost Consideration:** Add a condition to the ‘IceSpell’ task to check if the player has sufficient MP (at least 20) *before* attempting the spell. This prevents wasted MP and potential frustration.
+
+================================================================================
+Prompt length: 1888 chars
+Response length: 1601 chars
+================================================================================

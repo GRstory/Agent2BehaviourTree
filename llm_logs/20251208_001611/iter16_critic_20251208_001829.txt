@@ -1,0 +1,139 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 16
+Timestamp: 20251208_001829
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Prioritized Defense against Telegraphing
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Prioritized Heal at lower HP threshold
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Prioritized Ice Spell Usage
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            task : IceSpell()
+
+        # Prioritized Fire Spell Usage
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Prioritized Lightning Spell Usage
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            task : LightningSpell()
+
+        # Conditional Scan Trigger with Telegraph Delay
+        sequence :
+            condition : IsTurnEarly(2)
+            condition : HasMP(15)
+            task : Scan()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 3 battles: 0 victories, 3 defeats
+  LOSS vs FireGolem: 5 turns
+  LOSS vs FireGolem: 7 turns
+  LOSS vs FireGolem: 6 turns
+
+# Combat Summary
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 6
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 52/180 (28%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 35/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Elemental Strategy**: Did they scan? Did they use the right spell?
+2. **Resource Management**: TP/MP usage efficiency
+3. **Defensive Decisions**: Heal/Defend timing
+4. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT consistently failed to capitalize on the FireGolem's weakness to Ice. Despite scanning the enemy, the BT prioritized Fire spells due to the ‘HasScannedEnemy’ condition, which is too broad. The MP usage was also inefficient, with the FireSpell and LightningSpell being prioritized over IceSpell when the enemy was identified as weak to Ice. The Heal action was triggered too late, only when the player’s HP was already low, and the Defend action was triggered prematurely when the enemy was telegraphing a HeavySlam, which wasn’t actually executed. The lack of proactive Ice spell usage directly contributed to the defeat.
+
+## Improvement Suggestions
+1.  **Prioritize Ice Spell on Scan:** Modify the ‘HasScannedEnemy’ condition to *always* trigger the IceSpell if the enemy is identified as weak to Ice. This ensures the BT immediately utilizes the most effective spell.
+
+2.  **Adjust Heal Trigger:** Increase the HP threshold for the Heal action from 60% to 70%. This will allow the BT to heal earlier, potentially preventing the player from reaching critically low HP.
+
+3.  **Conditional Scan Trigger Delay:** Delay the ‘IsTurnEarly’ scan trigger from turn 2 to turn 3. This provides a slightly longer window for the scan to complete and reduces the risk of scanning too early and missing the enemy's telegraph.
+
+4. **Introduce MP Cost Consideration for Ice Spell:** Add a condition to the IceSpell task to check if MP is sufficient *before* executing the spell. If MP is insufficient, the IceSpell should be skipped, preventing wasted MP. This forces the BT to make a resource-conscious decision.
+
+
+================================================================================
+Prompt length: 2324 chars
+Response length: 1618 chars
+================================================================================

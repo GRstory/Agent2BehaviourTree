@@ -1,0 +1,88 @@
+=== COMBAT START ===
+Enemy: FireGolem (Fire)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: Slam -> 14 dmg
+
+=== TURN 1 ===
+Player: HP 86%, TP 65, MP 80
+Enemy: HP 82%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: RageBuff
+
+=== TURN 2 ===
+Player: HP 86%, TP 80, MP 72
+Enemy: HP 64%, Buffs: RageBuff
+
+Action: Attack -> 5 dmg
+Enemy: Slam -> 22 dmg
+
+=== TURN 3 ===
+Player: HP 64%, TP 100, MP 84
+Enemy: HP 61%, Buffs: RageBuff
+
+Action: Attack -> 5 dmg
+Enemy: HeavySlam -> 58 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 4 ===
+Player: HP 6%, TP 100, MP 96
+Enemy: HP 58%, Buffs: RageBuff
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: Slam -> 14 dmg
+
+=== TURN 5 ===
+Player: HP 37%, TP 100, MP 70
+Enemy: HP 58%
+
+Action: Defend
+Enemy: HeavySlam -> 16 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 6 ===
+Player: HP 21%, TP 100, MP 82
+Enemy: HP 58%
+
+Action: Defend
+Enemy: RageBuff
+
+=== TURN 7 ===
+Player: HP 21%, TP 100, MP 94
+Enemy: HP 58%, Buffs: RageBuff
+
+Action: Defend
+Enemy: RageBuff
+
+=== TURN 8 ===
+Player: HP 21%, TP 100, MP 100
+Enemy: HP 58%, Buffs: RageBuff
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: HeavySlam -> 58 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 9 ===
+Player: HP 8%, TP 100, MP 70
+Enemy: HP 58%, Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 16 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 10
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 106/180 (58%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: TP 100/100, MP 82/100

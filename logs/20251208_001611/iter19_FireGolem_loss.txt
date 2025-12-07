@@ -1,0 +1,46 @@
+=== COMBAT START ===
+Enemy: FireGolem (Fire)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam -> 40 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+=== TURN 1 ===
+Player: HP 60%, TP 65, MP 80
+Enemy: HP 82%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: Slam -> 14 dmg
+
+=== TURN 2 ===
+Player: HP 46%, TP 80, MP 72
+Enemy: HP 64%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!] [Freeze]
+Enemy: 
+
+=== TURN 3 ===
+Player: HP 46%, TP 95, MP 64
+Enemy: HP 46%
+
+Action: IceSpell (MP -20) -> 32 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam -> 64 dmg [TELEGRAPH: Fire Golem raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 4
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 52/180 (28%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: TP 100/100, MP 56/100

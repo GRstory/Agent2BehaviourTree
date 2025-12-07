@@ -1,0 +1,28 @@
+root :
+    selector :
+        # Initial Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Emergency Heal Against Fire Weakness
+        sequence :
+            condition : EnemyWeakTo(Fire)
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Defend against telegraphing
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        
+        # Exploit Fire Weakness with Water Spell
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+        
+        # Default: Attack
+        task : Attack()

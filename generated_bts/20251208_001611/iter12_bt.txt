@@ -1,0 +1,34 @@
+root :
+    selector :
+        # Scan on Turn 1 and again if consistently telegraphing
+        sequence :
+            condition : IsTurnEarly(2)
+            condition : HasMP(15)
+            task : Scan()
+
+        # Prioritized Ice Spell Usage immediately after scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Proactive Defend
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+
+        # Damage Burst on telegraph (consider removing if still an issue)
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : HasTP(30)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()

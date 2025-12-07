@@ -1,0 +1,41 @@
+root :
+    selector :
+        # Aggressive Scanning
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+        sequence :
+            condition : IsTurnEarly(3)
+            task : Scan()
+
+        # Exploit weakness - Highest Priority
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            task : LightningSpell()
+
+        # Proactive Heal
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Defend Telegraph - Refined Trigger
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : IsPlayerHPLow(80)
+            task : Defend()
+
+        # Default: Attack
+        task : Attack()
