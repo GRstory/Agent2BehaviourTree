@@ -1,0 +1,33 @@
+root :
+    selector :
+        # Turn 1: Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+
+        # Exploit Ice Weakness after Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # React to HeavySlam telegraph, then IceSpell
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when not critical
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Default: Attack
+        task : Attack()

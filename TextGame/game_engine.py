@@ -165,6 +165,13 @@ class GameState:
     scanned: bool = False
     telegraphed_action: Optional[str] = None
     
+    # Action history tracking
+    last_enemy_action: Optional[str] = None
+    action_history: List[str] = field(default_factory=list)  # Recent 5 actions
+    
+    # Dynamic element system
+    enemy_element_duration: int = 0  # Turns remaining for current element
+    
     def has_status(self, target: str, ailment: StatusAilment) -> bool:
         """Check if target has status ailment"""
         status_list = self.player_status if target == "player" else self.enemy_status
@@ -390,8 +397,34 @@ class CombatEngine:
         weakness = ELEMENTAL_WEAKNESS.get(self.state.enemy.element)
         return weakness.value if weakness else "None"
     
+    def telegraph_enemy_action(self) -> str:
+        """Telegraph enemy's next action (decision phase) - only heavy/special attacks"""
+        if not self.state.enemy or not self.state.enemy.is_alive():
+            return ""
+        
+        # Check if frozen - will skip turn
+        if self.state.has_status("enemy", StatusAilment.FREEZE):
+            self.state.telegraphed_action = "Frozen"
+            return "Frozen"
+        
+        # Select action based on enemy type and HP
+        action = self._select_enemy_action()
+        
+        # Only telegraph heavy attacks and special abilities
+        TELEGRAPHED_ACTIONS = [
+            'HeavySlam', 'ThunderStrike', 'StormCharge',  # Heavy attacks
+            'RageBuff', 'Heal', 'Debuff', 'FrostAura'      # Special abilities
+        ]
+        
+        if action in TELEGRAPHED_ACTIONS:
+            self.state.telegraphed_action = action
+        else:
+            self.state.telegraphed_action = None  # Normal attacks are hidden
+        
+        return action
+    
     def execute_enemy_turn(self) -> Dict:
-        """Execute enemy AI turn"""
+        """Execute enemy's previously telegraphed action"""
         result = {
             'action': '',
             'damage': 0,
@@ -408,10 +441,11 @@ class CombatEngine:
         if self.state.has_status("enemy", StatusAilment.FREEZE):
             result['message'] = "Enemy is frozen! Turn skipped."
             self.state.remove_status("enemy", StatusAilment.FREEZE)
+            self.state.telegraphed_action = None
             return result
         
-        # Select action based on enemy type and HP
-        action = self._select_enemy_action()
+        # Use previously telegraphed action
+        action = self.state.telegraphed_action if self.state.telegraphed_action else self._select_enemy_action()
         result['action'] = action
         
         # Execute action based on enemy type
@@ -438,6 +472,17 @@ class CombatEngine:
                 if random.random() < 0.3:
                     self.state.add_status("player", StatusEffect(StatusAilment.FREEZE, 1))
                     result['status_applied'] = "Freeze (Frost Aura)"
+        
+        # Record action in history
+        if action:
+            self.state.last_enemy_action = action
+            self.state.action_history.append(action)
+            # Keep only recent 5 actions
+            if len(self.state.action_history) > 5:
+                self.state.action_history.pop(0)
+        
+        # Clear telegraphed action after execution
+        self.state.telegraphed_action = None
         
         return result
     
@@ -511,24 +556,34 @@ class CombatEngine:
         if action == "Slam":
             if self.state.enemy_resources.spend_tp(10):
                 result['damage'] = self._calculate_damage(21, Element.NEUTRAL, "enemy")
-                result['message'] = f"Fire Golem slams for {result['damage']} damage"
+                result['message'] = f"Enemy slams for {result['damage']} damage"
         
         elif action == "HeavySlam":
             if self.state.enemy_resources.spend_tp(30):
                 result['damage'] = self._calculate_damage(45, Element.NEUTRAL, "enemy")
-                result['message'] = f"Fire Golem heavy slams for {result['damage']} damage"
-                result['telegraphed'] = "Fire Golem raises its fists!"
+                result['message'] = f"Enemy heavy slams for {result['damage']} damage"
+                result['telegraphed'] = "Enemy raises its fists!"
+                # HeavySlam grants Fire element (3 turns) - RISKY!
+                if self.state.enemy:
+                    self.state.enemy.element = Element.FIRE
+                    self.state.enemy_element_duration = 3
+                    result['message'] += " [Gained FIRE element!]"
         
         elif action == "FireSpell":
             if self.state.enemy_resources.spend_mp(20):
                 result['damage'] = self._calculate_damage(28, Element.FIRE, "enemy")
-                result['message'] = f"Fire Golem casts Fire Spell for {result['damage']} damage"
+                result['message'] = f"Enemy casts Fire Spell for {result['damage']} damage"
+                # FireSpell grants Fire element (3 turns)
+                if self.state.enemy:
+                    self.state.enemy.element = Element.FIRE
+                    self.state.enemy_element_duration = 3
+                    result['message'] += " [Gained FIRE element!]"
         
         elif action == "RageBuff":
             if self.state.enemy_resources.spend_mp(25):
                 self.state.add_status("enemy", StatusEffect(StatusAilment.RAGE_BUFF, 3))
                 result['status_applied'] = "Rage Buff"
-                result['message'] = "Fire Golem enrages! Attack +40% for 3 turns"
+                result['message'] = "Enemy enrages! Attack +40% for 3 turns"
         
         return result
     
@@ -539,12 +594,17 @@ class CombatEngine:
         if action == "FrostTouch":
             if self.state.enemy_resources.spend_tp(10):
                 result['damage'] = self._calculate_damage(18, Element.NEUTRAL, "enemy")
-                result['message'] = f"Ice Wraith touches for {result['damage']} damage"
+                result['message'] = f"Enemy touches for {result['damage']} damage"
         
         elif action == "IceSpell":
             if self.state.enemy_resources.spend_mp(20):
                 result['damage'] = self._calculate_damage(28, Element.ICE, "enemy")
-                result['message'] = f"Ice Wraith casts Ice Spell for {result['damage']} damage"
+                result['message'] = f"Enemy casts Ice Spell for {result['damage']} damage"
+                # IceSpell grants Ice element (3 turns)
+                if self.state.enemy:
+                    self.state.enemy.element = Element.ICE
+                    self.state.enemy_element_duration = 3
+                    result['message'] += " [Gained ICE element!]"
                 # 25% freeze chance
                 if random.random() < 0.25:
                     self.state.add_status("player", StatusEffect(StatusAilment.FREEZE, 1))
@@ -553,13 +613,13 @@ class CombatEngine:
         elif action == "Heal":
             if self.state.enemy_resources.spend_mp(30):
                 result['heal'] = self.state.enemy.heal(40)
-                result['message'] = f"Ice Wraith heals {result['heal']} HP"
+                result['message'] = f"Enemy heals {result['heal']} HP"
         
         elif action == "Debuff":
             if self.state.enemy_resources.spend_mp(20):
                 self.state.add_status("player", StatusEffect(StatusAilment.ATTACK_DOWN, 3))
                 result['status_applied'] = "Attack Down"
-                result['message'] = "Ice Wraith curses you! Attack -30% for 3 turns"
+                result['message'] = "Enemy curses you! Attack -30% for 3 turns"
         
         return result
     
@@ -570,12 +630,17 @@ class CombatEngine:
         if action == "ClawSwipe":
             if self.state.enemy_resources.spend_tp(10):
                 result['damage'] = self._calculate_damage(23, Element.NEUTRAL, "enemy")
-                result['message'] = f"Thunder Drake swipes for {result['damage']} damage"
+                result['message'] = f"Enemy swipes for {result['damage']} damage"
         
         elif action == "LightningSpell":
             if self.state.enemy_resources.spend_mp(20):
                 result['damage'] = self._calculate_damage(28, Element.LIGHTNING, "enemy")
-                result['message'] = f"Thunder Drake casts Lightning Spell for {result['damage']} damage"
+                result['message'] = f"Enemy casts Lightning Spell for {result['damage']} damage"
+                # LightningSpell grants Lightning element (3 turns)
+                if self.state.enemy:
+                    self.state.enemy.element = Element.LIGHTNING
+                    self.state.enemy_element_duration = 3
+                    result['message'] += " [Gained LIGHTNING element!]"
                 # 25% paralyze chance
                 if random.random() < 0.25:
                     self.state.add_status("player", StatusEffect(StatusAilment.PARALYZE, 2))
@@ -584,25 +649,30 @@ class CombatEngine:
         elif action == "TailSweep":
             if self.state.enemy_resources.spend_tp(15):
                 result['damage'] = self._calculate_damage(25, Element.NEUTRAL, "enemy")
-                result['message'] = f"Thunder Drake tail sweeps for {result['damage']} damage"
+                result['message'] = f"Enemy tail sweeps for {result['damage']} damage"
         
         elif action == "ThunderStrike":
             if self.state.enemy_resources.spend_tp(35):
                 result['damage'] = self._calculate_damage(50, Element.NEUTRAL, "enemy")
-                result['message'] = f"Thunder Drake thunder strikes for {result['damage']} damage"
-                result['telegraphed'] = "Thunder Drake crackles with energy!"
+                result['message'] = f"Enemy thunder strikes for {result['damage']} damage"
+                result['telegraphed'] = "Enemy crackles with energy!"
+                # ThunderStrike grants Lightning element (3 turns) - RISKY!
+                if self.state.enemy:
+                    self.state.enemy.element = Element.LIGHTNING
+                    self.state.enemy_element_duration = 3
+                    result['message'] += " [Gained LIGHTNING element!]"
         
         elif action == "StormCharge":
             if self.state.enemy_resources.spend_mp(25):
                 self.state.add_status("enemy", StatusEffect(StatusAilment.STORM_CHARGE, 1))
                 result['status_applied'] = "Storm Charge"
-                result['message'] = "Thunder Drake charges storm power! Next Lightning Spell 2x damage"
-                result['telegraphed'] = "Thunder Drake channels storm power!"
+                result['message'] = "Enemy charges storm power! Next Lightning Spell 2x damage"
+                result['telegraphed'] = "Enemy channels storm power!"
         
         return result
     
     def process_turn(self, player_action: PlayerAction) -> Tuple[CombatResult, Dict, Dict]:
-        """Process complete turn (player then enemy)"""
+        """Process complete turn with telegraph-first order"""
         self.state.turn_count += 1
         
         # Check turn limit
@@ -621,20 +691,28 @@ class CombatEngine:
         player_dots = self.state.tick_status_effects("player")
         enemy_dots = self.state.tick_status_effects("enemy")
         
+        # Tick down enemy element duration
+        if self.state.enemy_element_duration > 0:
+            self.state.enemy_element_duration -= 1
+            if self.state.enemy_element_duration == 0:
+                # Element expired, return to Neutral
+                if self.state.enemy:
+                    self.state.enemy.element = Element.NEUTRAL
+        
         # Apply DoT damage
         for ailment, damage in player_dots:
             self.state.player.take_damage(damage)
         for ailment, damage in enemy_dots:
             self.state.enemy.take_damage(damage)
         
-        # Player turn
+        # Player turn (reacts to telegraphed action from previous turn)
         player_result = self.execute_player_action(player_action)
         
         # Check if enemy defeated
         if not self.state.enemy.is_alive():
             return CombatResult.PLAYER_WIN, player_result, {}
         
-        # Enemy turn
+        # Enemy turn (executes previously telegraphed action)
         enemy_result = self.execute_enemy_turn()
         
         # Check if player defeated
@@ -644,35 +722,24 @@ class CombatEngine:
         # Remove defending status after enemy turn
         self.state.remove_status("player", StatusAilment.DEFENDING)
         
+        # Telegraph enemy's NEXT action (for next turn)
+        if self.state.enemy and self.state.enemy.is_alive():
+            self.telegraph_enemy_action()
+        
         return CombatResult.CONTINUE, player_result, enemy_result
 
 
 def create_enemy(enemy_type: EnemyType) -> CombatStats:
-    """Create enemy with specific type"""
-    if enemy_type == EnemyType.FIRE_GOLEM:
-        return CombatStats(
-            max_hp=180,
-            current_hp=180,
-            base_attack=16,  # Reduced from 22
-            defense=10,      # Reduced from 14
-            element=Element.FIRE
-        )
-    elif enemy_type == EnemyType.ICE_WRAITH:
-        return CombatStats(
-            max_hp=160,      # Reduced from 180
-            current_hp=160,
-            base_attack=12,  # Reduced from 16
-            defense=6,       # Reduced from 8
-            element=Element.ICE
-        )
-    elif enemy_type == EnemyType.THUNDER_DRAKE:
-        return CombatStats(
-            max_hp=200,      # Reduced from 220
-            current_hp=200,
-            base_attack=14,  # Reduced from 20
-            defense=8,       # Reduced from 10
-            element=Element.LIGHTNING
-        )
+    """Create enemy - now always starts as Neutral (Elemental Shifter)"""
+    # Single enemy type: Elemental Shifter
+    # Starts Neutral, gains element when using elemental skills
+    return CombatStats(
+        max_hp=180,
+        current_hp=180,
+        base_attack=15,
+        defense=8,
+        element=Element.NEUTRAL  # Always starts Neutral!
+    )
 
 
 class DungeonGame:

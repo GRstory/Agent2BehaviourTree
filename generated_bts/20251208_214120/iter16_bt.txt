@@ -1,0 +1,69 @@
+root :
+    selector :
+        # Emergency Defend Against Any Aggressive Telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Preemptive Defend Against Telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Scan on Turns 1-3
+        sequence :
+            condition : IsTurnEarly(3)
+            task : Scan()
+
+        # Ice Exploit Immediately After Scan, If Not Telegraphing
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Scan()
+
+        # Ice Exploit Immediately After Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : IceSpell()
+
+        # Fire Exploit Immediately After Scan, If Not Telegraphing
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Scan()
+
+        # Fire Exploit Immediately After Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : FireSpell()
+
+        # Aggressive Heal
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Power Strike if TP and High Enemy HP
+        sequence :
+            condition : HasTP(30)
+            condition : IsEnemyHPLow(70)
+            task : PowerStrike()
+
+        # Lightning Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : LightningSpell()
+
+        # Default: Attack
+        task : Attack()

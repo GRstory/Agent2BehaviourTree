@@ -1,0 +1,49 @@
+root :
+    selector :
+        # Emergency Defend Against Any Aggressive Telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Ice Exploit Immediately After Scan, If Not Telegraphing
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : IceSpell()
+
+        # Aggressive Heal
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Power Strike if TP and High Enemy HP
+        sequence :
+            condition : HasTP(30)
+            condition : IsEnemyHPLow(70)
+            task : PowerStrike()
+
+        # Fire Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Lightning Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : LightningSpell()
+
+        # Scan on Turn 1, if not telegraphing
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Scan()
+
+        # Default: Attack
+        task : Attack()

@@ -1,0 +1,42 @@
+root :
+    selector :
+        # Scan on Turn 1
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+
+        # High Priority Defend
+        sequence :
+            condition : EnemyIsTelegraphing(Any)
+            task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(75)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit Ice Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit Fire Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Exploit Lightning Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            task : LightningSpell()
+
+        # Default: Attack
+        task : Attack()

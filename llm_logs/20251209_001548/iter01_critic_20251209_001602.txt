@@ -1,0 +1,200 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 1
+Timestamp: 20251209_001602
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Turn 1: Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+
+        # React to HeavySlam telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Exploit Fire Weakness
+        selector :
+            sequence :
+                condition : HasScannedEnemy()
+                condition : EnemyWeakTo(Fire)
+                condition : HasMP(20)
+                task : FireSpell()
+            
+            # Default: Attack
+            task : Attack()
+```
+
+# Recent Performance
+Last 2 battles: 0 victories, 2 defeats
+  LOSS vs FireGolem: 5 turns
+  LOSS vs FireGolem: 8 turns
+
+# Combat Summary
+=== COMBAT LOG FOR ANALYSIS ===
+
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: Slam -> 13 dmg
+
+=== TURN 1 ===
+Player: HP 87%, TP 65, MP 85
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: RageBuff
+
+=== TURN 2 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 87%, TP 80, MP 82
+Enemy: HP 100%, Element: Neutral, Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 23 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 3 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 64%, TP 100, MP 94
+Enemy: HP 100%, Element: Fire (3 turns), Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 23 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 4 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 41%, TP 100, MP 100
+Enemy: HP 100%, Element: Fire (3 turns), Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 14 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 5 ===
+Player: HP 27%, TP 100, MP 100
+Enemy: HP 100%, Element: Fire (3 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: HeavySlam -> 37 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 6 ===
+Player: HP 35%, TP 100, MP 70
+Enemy: HP 100%, Element: Fire (3 turns)
+
+Action: Attack -> 7 dmg
+Enemy: Slam -> 13 dmg
+
+=== TURN 7 ===
+Player: HP 22%, TP 100, MP 82
+Enemy: HP 96%, Element: Fire (2 turns)
+
+Action: Attack -> 7 dmg
+Enemy: HeavySlam -> 37 dmg [TELEGRAPH: Enemy raises its fists!]
+
+
+=== PATTERN ANALYSIS HINTS ===
+
+Enemy Action History (last 5): HeavySlam, HeavySlam, HeavySlam, Slam, HeavySlam
+Enemy Last Action: HeavySlam
+
+Final Enemy Element: Fire
+Element Duration Remaining: 3 turns
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 8
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 166/180 (92%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 94/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Telegraph Reactions**: Did they defend against telegraphed heavy attacks?
+2. **Elemental Strategy**: Did they scan? Did they use the right spell?
+3. **Resource Management**: TP/MP usage efficiency
+4. **Defensive Decisions**: Heal/Defend timing
+5. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Add Defend() when enemy telegraphs HeavySlam"
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT consistently defended against the HeavySlam telegraph, which is good, but it’s a reactive strategy and doesn’t capitalize on the enemy’s predictable attack pattern. The BT also consistently scans, but doesn't utilize the scanned weakness (Ice) effectively. The MP usage is reasonable, but the constant defending drains MP quickly. The Heal action is triggered too late, as the player's HP is already critically low. The final turns are dominated by the enemy’s HeavySlam telegraph, highlighting a need for a more proactive strategy.
+
+## Improvement Suggestions
+1. **Prioritize Ice Spell on Scan:** Modify the BT to immediately cast the Ice spell when the enemy is scanned and the weakness to Ice is confirmed. This should be the highest priority task after the initial scan.
+2. **Defend on HeavySlam Telegraph, THEN Scan:**  Add a conditional task to Scan *after* the HeavySlam telegraph is detected. This allows the player to react defensively *and* gather information simultaneously.
+3. **Adjust Heal Threshold:** Increase the HP threshold for the Heal action from 30% to 40%.  Waiting until 30% HP is too late to meaningfully impact the fight.
+4. **Introduce a "Counter-Attack" Option:** Add a default task that allows the player to attack when the enemy isn’t telegraphing a heavy attack. This prevents the player from being entirely passive and provides some offensive pressure.
+
+
+================================================================================
+Prompt length: 3728 chars
+Response length: 1403 chars
+================================================================================

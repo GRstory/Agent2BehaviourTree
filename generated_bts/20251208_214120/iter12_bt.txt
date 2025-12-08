@@ -1,0 +1,53 @@
+root :
+    selector :
+        # Turn 1: Mandatory Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Emergency Defend
+        sequence :
+            condition : IsPlayerHPLow(40)
+            task : Defend()
+
+        # Aggressive Heal
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+
+        # Fire Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(15)
+            task : FireSpell()
+
+        # Ice Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Lightning Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : LightningSpell()
+
+        # Scan after Attack
+        sequence :
+            condition : HasMP(15)
+            condition : HasScannedEnemy()
+            task : Scan()
+
+        # Power Strike if TP
+        sequence :
+            condition : HasTP(30)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()

@@ -63,7 +63,7 @@ def create_initial_bt_prompt() -> str:
 
 **Combat System:**
 - Single-floor combat against 1 of 3 enemy types
-- Turn-based: Player acts, then enemy acts
+- Turn-based with TELEGRAPH system: Enemy telegraphs next action → Player sees it and reacts → Both execute
 - Win: Reduce enemy HP to 0
 - Lose: Player HP reaches 0 OR turn limit (35 turns)
 
@@ -85,9 +85,9 @@ def create_initial_bt_prompt() -> str:
 - MP: Starts 100, regenerates +12/turn, max 100
 
 **Key Strategy:**
-1. Scan enemy early (turn 1-2) to identify weakness
-2. Spam effective elemental spell (1.5x damage!)
-3. Defend when enemy telegraphs heavy attack
+1. REACT TO TELEGRAPHS - Enemy shows next action, defend against heavy attacks!
+2. Scan enemy early (turn 1-2) to identify weakness
+3. Spam effective elemental spell (1.5x damage!)
 4. Heal only when HP < 30%
 
 # Behaviour Tree DSL Specification
@@ -97,10 +97,10 @@ def create_initial_bt_prompt() -> str:
 # Your Task
 
 Generate a Behaviour Tree that:
-1. **Scans early** to identify enemy weakness
-2. **Exploits elemental advantage** (1.5x damage is huge!)
-3. **Manages resources** (don't waste MP on wrong spells)
-4. **Defends strategically** (when enemy telegraphs)
+1. **Reacts to telegraphs** (defend against HeavySlam, ThunderStrike, etc.)
+2. **Scans early** to identify enemy weakness
+3. **Exploits elemental advantage** (1.5x damage is huge!)
+4. **Manages resources** (don't waste MP on wrong spells)
 5. **Heals wisely** (only when HP < 30%)
 
 # CRITICAL REQUIREMENTS
@@ -146,15 +146,17 @@ def create_critic_prompt(combat_summary: str, current_bt: str, previous_results:
 
 Analyze the combat and identify:
 
-1. **Elemental Strategy**: Did they scan? Did they use the right spell?
-2. **Resource Management**: TP/MP usage efficiency
-3. **Defensive Decisions**: Heal/Defend timing
-4. **BT Issues**: What parts of the tree caused problems?
+1. **Telegraph Reactions**: Did they defend against telegraphed heavy attacks?
+2. **Elemental Strategy**: Did they scan? Did they use the right spell?
+3. **Resource Management**: TP/MP usage efficiency
+4. **Defensive Decisions**: Heal/Defend timing
+5. **BT Issues**: What parts of the tree caused problems?
 
 Provide 3-5 specific improvement suggestions.
 
 **IMPORTANT**: 
 - Describe logic changes in plain text, NOT code
+- Example: "Add Defend() when enemy telegraphs HeavySlam"
 - Example: "Scan on turn 1 instead of turn 2"
 - Example: "Increase heal threshold from 30% to 40%"
 
@@ -199,7 +201,7 @@ def create_generator_prompt(current_bt: str, critic_feedback: str) -> str:
 - `EnemyWeakTo(Fire)` or `EnemyWeakTo(Ice)` or `EnemyWeakTo(Lightning)` - Enemy weak to element
 - `HasScannedEnemy()` - Enemy has been scanned
 - `EnemyHasBuff(Enrage)` - Enemy has specific buff
-- `EnemyIsTelegraphing(HeavySlam)` - Enemy telegraphing attack
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy will execute this action THIS turn (telegraphed at end of last turn)
 - `IsTurnEarly(2)` - Turn count <= threshold
 
 **Actions/Tasks (ONLY these):**

@@ -1,0 +1,49 @@
+root :
+    selector :
+        # Emergency Defend
+        sequence :
+            condition : IsPlayerHPLow(60)
+            task : Defend()
+
+        # Highest Priority: Fire Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(15)
+            task : FireSpell()
+
+        # Ice Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Lightning Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : LightningSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Scan if haven't scanned and it's early
+        sequence :
+            condition : IsTurnEarly(3)
+            condition : HasMP(15)
+            condition : HasScannedEnemy()
+            task : Scan()
+
+        # Power Strike if TP
+        sequence :
+            condition : HasTP(30)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()

@@ -376,6 +376,36 @@ class IsTurnEarly(BTCondition):
         return f"IsTurnEarly({self.threshold})"
 
 
+class EnemyLastAction(BTCondition):
+    """Check if enemy's last action matches specific action"""
+    
+    def __init__(self, action: str):
+        self.action = action.strip()
+    
+    def evaluate(self, state: GameState) -> bool:
+        if not state.last_enemy_action:
+            return False
+        return self.action in state.last_enemy_action
+    
+    def __repr__(self):
+        return f"EnemyLastAction({self.action})"
+
+
+class EnemyUsedRecently(BTCondition):
+    """Check if enemy used specific action in recent history (last 5 turns)"""
+    
+    def __init__(self, action: str):
+        self.action = action.strip()
+    
+    def evaluate(self, state: GameState) -> bool:
+        if not state.action_history:
+            return False
+        return self.action in state.action_history
+    
+    def __repr__(self):
+        return f"EnemyUsedRecently({self.action})"
+
+
 # ============================================================================
 # ACTION NODES
 # ============================================================================
@@ -576,6 +606,10 @@ def create_condition_node(node_type: str, param: Optional[str] = None) -> BTCond
         return EnemyIsTelegraphing(param if param else "HeavySlam")
     elif node_type == "IsTurnEarly":
         return IsTurnEarly(int(param) if param else 3)
+    elif node_type == "EnemyLastAction":
+        return EnemyLastAction(param if param else "Slam")
+    elif node_type == "EnemyUsedRecently":
+        return EnemyUsedRecently(param if param else "RageBuff")
     
     else:
         raise ValueError(f"Unknown condition node type: {node_type}")

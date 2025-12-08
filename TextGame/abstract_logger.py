@@ -32,6 +32,10 @@ class AbstractLogger:
         """Log turn start - compact format"""
         log = f"=== TURN {state.turn_count} ===\n"
         
+        # Show enemy's telegraphed action (if any)
+        if state.telegraphed_action:
+            log += f"[!] ENEMY TELEGRAPHS: {state.telegraphed_action}\n"
+        
         # Compact player status
         hp_pct = int(state.player.hp_percentage())
         log += f"Player: HP {hp_pct}%, TP {state.player_resources.tp}, MP {state.player_resources.mp}"
@@ -44,7 +48,11 @@ class AbstractLogger:
         # Compact enemy status
         if state.enemy:
             enemy_hp_pct = int(state.enemy.hp_percentage())
-            log += f"Enemy: HP {enemy_hp_pct}%"
+            element_str = state.enemy.element.value
+            if state.enemy_element_duration > 0:
+                log += f"Enemy: HP {enemy_hp_pct}%, Element: {element_str} ({state.enemy_element_duration} turns)"
+            else:
+                log += f"Enemy: HP {enemy_hp_pct}%, Element: {element_str}"
             
             if state.enemy_status:
                 buffs = [s.ailment.value for s in state.enemy_status]
@@ -145,6 +153,35 @@ class AbstractLogger:
     def get_turn_log(self) -> str:
         """Get current turn log"""
         return "".join(self.turn_logs)
+    
+    def generate_critic_log(self, state: GameState, victory: bool, total_turns: int) -> str:
+        """Generate log for Critic LLM - hints without answers"""
+        log = "=== COMBAT LOG FOR ANALYSIS ===\n\n"
+        
+        # Add turn-by-turn hints
+        log += self.get_full_log()
+        
+        # Add pattern analysis hints (not in regular log)
+        log += "\n=== PATTERN ANALYSIS HINTS ===\n\n"
+        
+        # Enemy action history
+        if state.action_history:
+            log += f"Enemy Action History (last 5): {', '.join(state.action_history)}\n"
+        
+        if state.last_enemy_action:
+            log += f"Enemy Last Action: {state.last_enemy_action}\n"
+        
+        # Element changes (without telling when to exploit)
+        log += f"\nFinal Enemy Element: {state.enemy.element.value if state.enemy else 'None'}\n"
+        if state.enemy_element_duration > 0:
+            log += f"Element Duration Remaining: {state.enemy_element_duration} turns\n"
+        
+        log += "\n"
+        
+        # Add summary
+        log += self.generate_summary(state, victory, total_turns)
+        
+        return log
     
     # Helper methods
     

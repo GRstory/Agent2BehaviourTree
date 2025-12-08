@@ -1,0 +1,210 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 3
+Timestamp: 20251209_001619
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Turn 1: Scan
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+
+        # Exploit Ice Weakness after Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # React to HeavySlam telegraph, then IceSpell
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when not critical
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 3 battles: 0 victories, 3 defeats
+  LOSS vs FireGolem: 8 turns
+  LOSS vs FireGolem: 5 turns
+  LOSS vs FireGolem: 8 turns
+
+# Combat Summary
+=== COMBAT LOG FOR ANALYSIS ===
+
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam -> 37 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 63%, TP 65, MP 85
+Enemy: HP 100%, Element: Fire (3 turns)
+
+Action: Scan (MP -15)
+Enemy: HeavySlam -> 37 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 2 ===
+Player: HP 26%, TP 80, MP 82
+Enemy: HP 100%, Element: Fire (3 turns)
+
+Action: IceSpell (MP -20) -> 34 dmg [SUPER EFFECTIVE!]
+Enemy: Slam -> 13 dmg
+
+=== TURN 3 ===
+[!] ENEMY TELEGRAPHS: RageBuff
+Player: HP 13%, TP 95, MP 74
+Enemy: HP 81%, Element: Fire (2 turns)
+
+Action: IceSpell (MP -20) -> 34 dmg [SUPER EFFECTIVE!]
+Enemy: RageBuff
+
+=== TURN 4 ===
+Player: HP 13%, TP 100, MP 66
+Enemy: HP 62%, Element: Fire (1 turns), Buffs: RageBuff
+
+Action: IceSpell (MP -20) -> 20 dmg [Freeze]
+Enemy: 
+
+=== TURN 5 ===
+Player: HP 13%, TP 100, MP 58
+Enemy: HP 51%, Element: Neutral, Buffs: RageBuff
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FireSpell -> 31 dmg
+
+=== TURN 6 ===
+Player: HP 27%, TP 100, MP 40
+Enemy: HP 51%, Element: Fire (3 turns), Buffs: RageBuff
+
+Action: IceSpell (MP -20) -> 34 dmg [SUPER EFFECTIVE!]
+Enemy: RageBuff
+
+=== TURN 7 ===
+Player: HP 27%, TP 100, MP 32
+Enemy: HP 32%, Element: Fire (2 turns)
+
+Action: IceSpell (MP -20) -> 34 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam -> 58 dmg [TELEGRAPH: Enemy raises its fists!]
+
+
+=== PATTERN ANALYSIS HINTS ===
+
+Enemy Action History (last 5): Slam, RageBuff, FireSpell, RageBuff, HeavySlam
+Enemy Last Action: HeavySlam
+
+Final Enemy Element: Fire
+Element Duration Remaining: 3 turns
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 8
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 24/180 (13%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 24/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Telegraph Reactions**: Did they defend against telegraphed heavy attacks?
+2. **Elemental Strategy**: Did they scan? Did they use the right spell?
+3. **Resource Management**: TP/MP usage efficiency
+4. **Defensive Decisions**: Heal/Defend timing
+5. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Add Defend() when enemy telegraphs HeavySlam"
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT consistently fails to adapt to the FireGolem's aggressive telegraphing and reliance on Fire damage. The primary issue is the rigid adherence to the “IceSpell” after a scan, regardless of the enemy's current state. The BT doesn't prioritize defensive actions against the frequent HeavySlam telegraphs, leading to significant damage.  The MP expenditure is inefficient, with multiple IceSpells used before attempting to mitigate damage. The Heal action is triggered too late, after the player has taken substantial damage.
+
+## Improvement Suggestions
+1. **Prioritize Defense against Telegraphs:** Add a conditional task to “Defend” immediately when the enemy telegraphs “HeavySlam.” This should be placed *before* the IceSpell task in the sequence.
+
+2. **Dynamic Spell Selection:** Modify the IceSpell task to check the enemy's current element. If the enemy is Fire, prioritize IceSpell. If the enemy is not Fire, consider a different spell (e.g., a stun or slow) to disrupt their attack pattern. This could be a new conditional task: "If EnemyElement == Fire, Execute IceSpell; Else, Execute StunSpell".
+
+3. **Adjust Heal Threshold:** Increase the HP threshold for the Heal action from 60% to 40%. This will trigger the Heal earlier, allowing the player to recover more quickly from damage, particularly after HeavySlam telegraphs.
+
+4. **Introduce a "Scan on Turn 1"**: Change the initial turn sequence to initiate a Scan on turn 1. This allows the BT to immediately identify the enemy’s weakness and begin exploiting it from the start of the battle.
+
+5. **Add a "Damage Mitigation" Task:**  Add a general "Damage Mitigation" task that can be triggered when the player is below a certain HP threshold (e.g., 30%). This task could include actions like "Defend" or "Heal" depending on the situation.
+
+
+================================================================================
+Prompt length: 3960 chars
+Response length: 1816 chars
+================================================================================

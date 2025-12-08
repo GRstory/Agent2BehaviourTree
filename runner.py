@@ -46,13 +46,17 @@ class GameRunner:
         turn = 0
         max_turns = 35
         
+        # Pre-telegraph first enemy action
+        if self.game.state.enemy:
+            self.game.engine.telegraph_enemy_action()
+        
         while not self.game.game_over and turn < max_turns:
             turn += 1
             
-            # Log turn start
+            # Log turn start (shows telegraph from previous turn end)
             self.logger.log_turn_start(self.game.state)
             
-            # Execute BT to get action
+            # Execute BT to get action (can now see telegraphed action)
             action = self.executor.execute(self.game.state)
             if not action:
                 if self.verbose:
@@ -68,13 +72,15 @@ class GameRunner:
             self.logger.log_turn_end(self.game.state)
             
             if self.verbose:
-                print(f"Turn {turn}: {action.value} -> Player HP: {result['player_hp']}, Enemy HP: {result['enemy_hp']}")
+                telegraph_msg = f" [Enemy telegraphs: {self.game.state.telegraphed_action}]" if self.game.state.telegraphed_action else ""
+                print(f"Turn {turn}: {action.value} -> Player HP: {result['player_hp']}, Enemy HP: {result['enemy_hp']}{telegraph_msg}")
             
             if self.game.game_over:
                 break
         
         # Generate summary
         summary = self.logger.generate_summary(self.game.state, self.game.victory, turn)
+        critic_log = self.logger.generate_critic_log(self.game.state, self.game.victory, turn)
         
         return {
             'victory': self.game.victory,
@@ -84,7 +90,8 @@ class GameRunner:
             'enemy_type': self.enemy_type.value,
             'scanned': self.game.state.scanned,
             'combat_log': self.logger.get_full_log(),
-            'summary': summary
+            'summary': summary,
+            'critic_log': critic_log  # For LLM analysis
         }
 
 
@@ -191,7 +198,7 @@ class ImprovementLoop:
                 
                 improved_bt = self.llm.improve_bt(
                     current_bt=current_bt,
-                    combat_log=result['summary'],
+                    combat_log=result['critic_log'],  # Use critic_log with hints
                     previous_results=previous_results
                 )
                 

@@ -181,9 +181,10 @@ condition : EnemyInPhase(phase_name)
 ```
 condition : EnemyIsTelegraphing(action_name)
 ```
-- Returns true if enemy is telegraphing a specific heavy attack
-- Values: `HeavySlam`, `ThunderStrike`, `DesperationAttack`
-- Example: `condition : EnemyIsTelegraphing(HeavySlam)`
+- Returns true if enemy has telegraphed a specific action for THIS turn
+- Enemy telegraphs at end of previous turn, visible at start of current turn
+- Values: `HeavySlam`, `ThunderStrike`, `Slam`, `FireSpell`, etc.
+- Example: `condition : EnemyIsTelegraphing(HeavySlam)` - Defend against heavy attack
 
 ```
 condition : IsTurnEarly(threshold)
@@ -299,8 +300,10 @@ sequence :
     task : Heal()
 ```
 
-**Defend on Telegraph:**
+**Defend on Telegraph (Reactive Defense):**
 ```
+# Enemy telegraphed HeavySlam at end of last turn
+# Now we can react defensively
 sequence :
     condition : EnemyIsTelegraphing(HeavySlam)
     task : Defend()
@@ -310,10 +313,10 @@ sequence :
 
 ## Key Strategy Points
 
+- **React to telegraphs** - Enemy shows next action, defend against heavy attacks!
 - **Scan on turn 1-2** to identify enemy weakness
 - **Exploit elemental advantage** (1.5x damage!)
 - **Heal when HP < 30-40%**
-- **Defend when enemy telegraphs** heavy attacks
 - **Always end with fallback**: `task : Attack()`
 
 ---

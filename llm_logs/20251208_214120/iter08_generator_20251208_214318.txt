@@ -1,0 +1,198 @@
+================================================================================
+GENERATOR LLM LOG
+Iteration: 8
+Timestamp: 20251208_214318
+Temperature: 1.2
+No improvement count: 9
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert AI strategist specializing in turn-based RPG combat and Behaviour Tree design.
+
+CRITICAL: The Behaviour Tree executes ONLY ONE action per turn. Once an action is selected, the turn ends immediately.
+
+Your expertise includes:
+- Elemental weakness exploitation (Fire/Ice/Lightning rock-paper-scissors)
+- Resource management (TP/MP optimization)
+- Status effect timing and usage
+- Enemy pattern recognition and adaptation
+- Defensive vs aggressive strategy selection
+
+Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation.
+You must ONLY use the control nodes (root, selector, sequence), conditions, and tasks listed in the DSL specification.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Generate an IMPROVED Behaviour Tree based on feedback.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Scan on Turn 1 and every 10 turns
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+        sequence :
+            condition : IsTurnEarly(10)
+            condition : HasMP(15)
+            task : Scan()
+
+        # High Priority Ice Exploit After Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : IceSpell()
+
+       #High Priority Fire if Ice Fails and Fire Weak
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : FireSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(70)
+            condition : CanHeal()
+            task : Heal()
+
+        # High Priority Defend
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Exploit Lightning Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : LightningSpell()
+
+        # Power Strike if TP
+        sequence :
+            condition : HasTP(30)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Improvement Feedback
+## Analysis
+The combat consistently failed to exploit the FireGolem’s weakness to Ice, despite scanning it on multiple turns. The BT prioritized IceSpell only after scanning, but didn't consistently execute it.  The reliance on TP for PowerStrike was inefficient, and the Heal task was triggered too late, offering no impact. The Defend task was triggered by a telegraph that never actually occurred, leading to wasted actions. The overall strategy felt reactive rather than proactive, failing to capitalize on the scanned weakness.
+
+## Improvement Suggestions
+1.  **Prioritize IceSpell Immediately After Scan:** Modify the IceSpell task to execute immediately after a successful scan, regardless of MP cost. This ensures the BT always attempts the most effective attack.
+2.  **Dynamic MP Cost Adjustment:** Introduce a mechanic where the MP cost of IceSpell is reduced when the FireGolem is scanned. This would allow for more frequent use of the IceSpell, especially if MP is plentiful.
+3.  **Heal Trigger Adjustment:** Increase the heal trigger from 70% HP to 50% HP. This would allow the heal to be executed earlier in the fight, potentially mitigating damage before it becomes critical.
+4. **Defend Task Optimization:** Remove the Defend task entirely. The enemy never telegraphs HeavySlam, making this task a guaranteed waste of a turn.
+5. **Introduce a "Scan Priority" Task:** Add a task that always executes on turn 1 and every 10 turns, regardless of other conditions. This ensures the BT always has the most up-to-date information about the enemy's weaknesses.
+
+# COMPLETE LIST OF AVAILABLE SYNTAX
+
+**Control Nodes (ONLY these 3):**
+- `root :` - Must be first line, has one child
+- `selector :` - Tries children until one succeeds
+- `sequence :` - All conditions must pass, executes final task
+
+**Conditions (ONLY these):**
+- `IsPlayerHPLow(30)` - Player HP < threshold%
+- `IsEnemyHPLow(30)` - Enemy HP < threshold%
+- `HasTP(30)` - Player has >= amount TP
+- `HasMP(20)` - Player has >= amount MP
+- `CanHeal()` - Heal is off cooldown AND MP >= 30
+- `EnemyWeakTo(Fire)` or `EnemyWeakTo(Ice)` or `EnemyWeakTo(Lightning)` - Enemy weak to element
+- `HasScannedEnemy()` - Enemy has been scanned
+- `EnemyHasBuff(Enrage)` - Enemy has specific buff
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy telegraphing attack
+- `IsTurnEarly(2)` - Turn count <= threshold
+
+**Actions/Tasks (ONLY these):**
+- `Attack()` - 0 TP, 15-18 damage, gains +15 TP
+- `PowerStrike()` - 30 TP, 40-50 damage
+- `FireSpell()` - 20 MP, 25-30 Fire damage, 1.5x vs Ice
+- `IceSpell()` - 20 MP, 25-30 Ice damage, 1.5x vs Lightning
+- `LightningSpell()` - 20 MP, 25-30 Lightning damage, 1.5x vs Fire
+- `Defend()` - 0 TP, -50% damage for 1 turn, gains +20 TP
+- `Heal()` - 30 MP, +45 HP, 3 turn cooldown
+- `Scan()` - 15 MP, reveals enemy weakness
+
+# CRITICAL RULES
+
+1. **ONE ACTION PER TURN**: The BT executes ONLY ONE action per turn. Once a task is selected, the turn ends.
+2. **USE ONLY LISTED SYNTAX ABOVE**: You must use ONLY the control nodes, conditions, and tasks listed above. No other syntax exists.
+3. **Indentation**: Use exactly 4 spaces per level
+4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
+5. **Fallback**: Always end selector with `task : Attack()`
+
+# Your Task
+
+Apply the feedback to create an improved BT using ONLY the syntax listed above. Output ONLY the BT DSL, no explanations. Start with `root :`.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+```
+root :
+    selector :
+        # Scan on Turn 1 and every 10 turns
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+        sequence :
+            condition : IsTurnEarly(10)
+            condition : HasMP(15)
+            task : Scan()
+
+        # High Priority Ice Exploit After Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+
+       #High Priority Fire if Ice Fails and Fire Weak
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : FireSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit Lightning Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(20)
+            task : LightningSpell()
+
+        # Power Strike if TP
+        sequence :
+            condition : HasTP(30)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()
+```
+
+================================================================================
+Prompt length: 5025 chars
+Response length: 1349 chars
+================================================================================

@@ -1,0 +1,149 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 14
+Timestamp: 20251208_214410
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Emergency Defend Against Any Aggressive Telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Ice Exploit Immediately After Scan, If Not Telegraphing
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : IceSpell()
+
+        # Aggressive Heal
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Power Strike if TP and High Enemy HP
+        sequence :
+            condition : HasTP(30)
+            condition : IsEnemyHPLow(70)
+            task : PowerStrike()
+
+        # Fire Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Lightning Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : LightningSpell()
+
+        # Scan on Turn 1, if not telegraphing
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Scan()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 3 battles: 0 victories, 3 defeats
+  LOSS vs FireGolem: 5 turns
+  LOSS vs FireGolem: 4 turns
+  LOSS vs FireGolem: 5 turns
+
+# Combat Summary
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 5
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 160/180 (88%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: TP 100/100, MP 94/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Elemental Strategy**: Did they scan? Did they use the right spell?
+2. **Resource Management**: TP/MP usage efficiency
+3. **Defensive Decisions**: Heal/Defend timing
+4. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT consistently failed to capitalize on the FireGolem's vulnerability to Ice and Fire, despite scanning and having available resources. The aggressive “Aggressive Heal” and “Power Strike” sequences were triggered too frequently, depleting TP unnecessarily and leaving the player vulnerable. The reliance on immediate “IceSpell” and “FireSpell” after scanning, without considering the enemy’s telegraph, resulted in wasted turns. The BT’s rigid structure didn't allow for adaptation based on the enemy’s actions. The frequent, immediate use of spells without considering telegraphs is a major contributor to the losses.
+
+## Improvement Suggestions
+1.  **Prioritize Scanning:** Implement a higher priority for scanning the enemy on turns 1-3.  Specifically, the “Scan” task should run on turns 1-3, regardless of telegraphing, to immediately identify weaknesses. This should be a higher priority than the “IceSpell” and “FireSpell” tasks after scanning.
+
+2.  **Telegraph-Based Spell Prioritization:** Modify the “IceSpell” and “FireSpell” tasks.  If the enemy is telegraphing “HeavySlam,” *immediately* cancel the spell execution and instead, execute the “Scan” task. This prevents the wasted turns and ensures the correct spell is used.
+
+3.  **Heal Threshold Adjustment:** Increase the heal threshold from 40% to 60%.  Waiting until HP is at 40% is too late; proactive healing is crucial.
+
+4.  **TP Management:** Introduce a TP cost consideration for the “IceSpell” and “FireSpell” tasks.  If TP is low, these spells should be cancelled. This will reduce unnecessary TP consumption.
+
+5.  **Introduce a Defensive Buffer:** Add a buffer to the "Defend" task that triggers if the enemy is telegraphing "HeavySlam" *before* the initial "Emergency Defend" sequence. This would provide a more immediate defensive response.
+
+
+================================================================================
+Prompt length: 2590 chars
+Response length: 1832 chars
+================================================================================

@@ -1,0 +1,217 @@
+================================================================================
+GENERATOR LLM LOG
+Iteration: 16
+Timestamp: 20251208_214434
+Temperature: 1.1
+No improvement count: 6
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert AI strategist specializing in turn-based RPG combat and Behaviour Tree design.
+
+CRITICAL: The Behaviour Tree executes ONLY ONE action per turn. Once an action is selected, the turn ends immediately.
+
+Your expertise includes:
+- Elemental weakness exploitation (Fire/Ice/Lightning rock-paper-scissors)
+- Resource management (TP/MP optimization)
+- Status effect timing and usage
+- Enemy pattern recognition and adaptation
+- Defensive vs aggressive strategy selection
+
+Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation.
+You must ONLY use the control nodes (root, selector, sequence), conditions, and tasks listed in the DSL specification.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Generate an IMPROVED Behaviour Tree based on feedback.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Emergency Defend Against Telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Scan on Turn 1
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Wait After Scan
+        sequence :
+            condition : HasScannedEnemy()
+            task : Attack()
+
+        # Ice Exploit After Scan Delay, Avoiding Telegraph
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : IceSpell()
+
+        # Fire Exploit After Scan Delay, Avoiding Telegraph
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : FireSpell()
+
+        # Aggressive Heal
+        sequence :
+            condition : IsPlayerHPLow(70)
+            condition : CanHeal()
+            task : Heal()
+
+        # Power Strike if TP and Enemy HP Not Low
+        sequence :
+            condition : HasTP(30)
+            condition : IsEnemyHPLow(70)
+            task : PowerStrike()
+
+        # Lightning Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : LightningSpell()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Improvement Feedback
+## Analysis
+The combat repeatedly failed to capitalize on the FireGolem’s weakness to Ice. The BT consistently defaulted to a ‘wait and attack’ strategy, even after scanning revealed the weakness. The ‘Defend’ task was triggered unnecessarily frequently due to the ‘Telegraph’ condition, disrupting the planned Ice spell execution. Resource management was inefficient, with TP and MP remaining unused during critical moments. The aggressive heal was triggered too late, and the ‘Power Strike’ was triggered when the enemy was already at full health. The BT lacked a robust mechanism to prioritize actions based on the scan results and enemy weaknesses.
+
+## Improvement Suggestions
+1. **Prioritize Scan Results:** Modify the root node to always execute the scan task on turn 1.  This ensures the enemy's weaknesses are identified immediately.
+2. **Conditional Defend:**  Remove the 'Telegraph' condition from the 'Defend' task in the Ice exploit sequence. Only trigger 'Defend' if the scan reveals the weakness *and* the enemy is not telegraphing. This prevents unnecessary defense.
+3. **Adaptive Spell Selection:** Implement a mechanism to automatically select the appropriate spell based on the scan result.  If the scan identifies a weakness, the 'IceSpell' should be prioritized over 'FireSpell' and 'LightningSpell'.  This could be a simple ‘if’ statement within the root node or a more complex selector.
+4. **Heal Threshold Adjustment:** Increase the heal threshold from 70% to 60%. This allows the player to heal earlier, potentially mitigating damage and allowing for more strategic spellcasting.
+5. **Introduce a "Delay" Task:** Add a "Delay" task after the scan. This gives the BT a brief pause (1-2 turns) to fully process the scan results before executing any other action, allowing for more informed decision-making.
+
+# COMPLETE LIST OF AVAILABLE SYNTAX
+
+**Control Nodes (ONLY these 3):**
+- `root :` - Must be first line, has one child
+- `selector :` - Tries children until one succeeds
+- `sequence :` - All conditions must pass, executes final task
+
+**Conditions (ONLY these):**
+- `IsPlayerHPLow(30)` - Player HP < threshold%
+- `IsEnemyHPLow(30)` - Enemy HP < threshold%
+- `HasTP(30)` - Player has >= amount TP
+- `HasMP(20)` - Player has >= amount MP
+- `CanHeal()` - Heal is off cooldown AND MP >= 30
+- `EnemyWeakTo(Fire)` or `EnemyWeakTo(Ice)` or `EnemyWeakTo(Lightning)` - Enemy weak to element
+- `HasScannedEnemy()` - Enemy has been scanned
+- `EnemyHasBuff(Enrage)` - Enemy has specific buff
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy telegraphing attack
+- `IsTurnEarly(2)` - Turn count <= threshold
+
+**Actions/Tasks (ONLY these):**
+- `Attack()` - 0 TP, 15-18 damage, gains +15 TP
+- `PowerStrike()` - 30 TP, 40-50 damage
+- `FireSpell()` - 20 MP, 25-30 Fire damage, 1.5x vs Ice
+- `IceSpell()` - 20 MP, 25-30 Ice damage, 1.5x vs Lightning
+- `LightningSpell()` - 20 MP, 25-30 Lightning damage, 1.5x vs Fire
+- `Defend()` - 0 TP, -50% damage for 1 turn, gains +20 TP
+- `Heal()` - 30 MP, +45 HP, 3 turn cooldown
+- `Scan()` - 15 MP, reveals enemy weakness
+
+# CRITICAL RULES
+
+1. **ONE ACTION PER TURN**: The BT executes ONLY ONE action per turn. Once a task is selected, the turn ends.
+2. **USE ONLY LISTED SYNTAX ABOVE**: You must use ONLY the control nodes, conditions, and tasks listed above. No other syntax exists.
+3. **Indentation**: Use exactly 4 spaces per level
+4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
+5. **Fallback**: Always end selector with `task : Attack()`
+
+# Your Task
+
+Apply the feedback to create an improved BT using ONLY the syntax listed above. Output ONLY the BT DSL, no explanations. Start with `root :`.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+```
+root :
+    selector :
+        # Emergency Defend Against Telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Scan on Turn 1
+        sequence :
+            condition : IsTurnEarly(1)
+            task : Scan()
+
+        # Delay After Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : IsTurnEarly(2)
+            task : Attack()
+
+        # Ice Exploit After Scan Delay
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : IceSpell()
+
+        # Fire Exploit After Scan Delay
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : FireSpell()
+
+        # Lightning Exploit
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            condition : HasTP(10)
+            task : LightningSpell()
+
+        # Aggressive Heal
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Power Strike if TP and Enemy HP Not Low
+        sequence :
+            condition : HasTP(30)
+            condition : IsEnemyHPLow(70)
+            task : PowerStrike()
+
+        # Default: Attack
+        task : Attack()
+```
+
+================================================================================
+Prompt length: 5681 chars
+Response length: 1543 chars
+================================================================================

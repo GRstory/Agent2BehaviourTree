@@ -1,0 +1,141 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 5
+Timestamp: 20251208_214247
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: Remember that the Behaviour Tree executes ONLY ONE action per turn. The BT cannot perform multiple actions in a single turn.
+
+Your task is to analyze combat logs and identify:
+- Elemental advantage usage (did they exploit weakness?)
+- Resource efficiency (TP/MP management)
+- Status effect timing
+- Defensive decisions (Defend, Heal timing)
+- Enemy pattern adaptation
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Scan on Turn 1
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+
+        # High Priority Ice Exploit After Scan
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(15)
+            task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # High Priority Defend
+        sequence :
+            condition : EnemyIsTelegraphing(Any)
+            task : Defend()
+
+        # Exploit Fire Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Exploit Lightning Weakness
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Lightning)
+            condition : HasMP(20)
+            task : LightningSpell()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Recent Performance
+Last 3 battles: 0 victories, 3 defeats
+  LOSS vs FireGolem: 4 turns
+  LOSS vs FireGolem: 6 turns
+  LOSS vs FireGolem: 4 turns
+
+# Combat Summary
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 4
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 116/180 (64%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 66/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Elemental Strategy**: Did they scan? Did they use the right spell?
+2. **Resource Management**: TP/MP usage efficiency
+3. **Defensive Decisions**: Heal/Defend timing
+4. **BT Issues**: What parts of the tree caused problems?
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT consistently prioritized exploiting the FireGolem's weakness to Ice, despite the FireGolem being the enemy. This happened every turn. The BT never adapted to the enemy's high HP and resistance to Ice damage. The Heal action was never triggered, despite the player reaching critical health. The Defend action was triggered sporadically, but without a clear pattern or trigger that aligns with the enemy's actions. The MP usage was relatively high, focused on Ice and Fire spells, but not optimized for maximum damage output. The lack of a default attack when no other high-priority actions were available is a significant issue, leading to wasted turns.
+
+## Improvement Suggestions
+1.  **Adaptive Scanning:** Modify the scan behavior. Instead of scanning on turn 1, implement a scan on turn 1 *and* a scan every 3 turns. This ensures the player is continuously assessing enemy weaknesses, rather than relying on a single initial scan.
+
+2.  **Prioritize Damage:** Re-evaluate the priority of the IceSpell and FireSpell. If the FireGolem is consistently resistant to Ice, reduce the priority of the IceSpell.  Introduce a condition to check the enemy's resistance to Ice *before* executing the IceSpell. If resistance is high, immediately move to the default attack.
+
+3.  **Dynamic Heal Threshold:** Adjust the heal trigger. Instead of a fixed HP threshold of 50, implement a dynamic heal trigger based on the *percentage* of maximum HP lost. For example, trigger Heal when PlayerHP is below 60%. This will allow for more responsive healing.
+
+4.  **Defend on Telegraphed Attacks:**  Increase the trigger for Defend.  Instead of "EnemyIsTelegraphing(Any)", implement a condition that requires the enemy to perform a specific attack action (e.g., a charged attack) *before* triggering Defend. This makes the Defend action more strategic.
+
+5.  **Introduce a Default Attack:** Add a fallback task to the root node.  If none of the high-priority conditions are met, the player should automatically perform an Attack. This ensures the player always engages in combat and prevents wasted turns.
+
+================================================================================
+Prompt length: 2277 chars
+Response length: 2103 chars
+================================================================================

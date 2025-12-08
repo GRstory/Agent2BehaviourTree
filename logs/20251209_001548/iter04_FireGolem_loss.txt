@@ -1,0 +1,56 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, TP 50, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: FireSpell -> 20 dmg
+
+=== TURN 1 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 80%, TP 65, MP 85
+Enemy: HP 100%, Element: Fire (3 turns)
+
+Action: Scan (MP -15)
+Enemy: HeavySlam -> 37 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 2 ===
+[!] ENEMY TELEGRAPHS: RageBuff
+Player: HP 43%, TP 80, MP 82
+Enemy: HP 100%, Element: Fire (3 turns)
+
+Action: IceSpell (MP -20) -> 34 dmg [SUPER EFFECTIVE!]
+Enemy: RageBuff
+
+=== TURN 3 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 43%, TP 95, MP 74
+Enemy: HP 81%, Element: Fire (2 turns), Buffs: RageBuff
+
+Action: Defend
+Enemy: HeavySlam -> 23 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 4 ===
+Player: HP 20%, TP 100, MP 86
+Enemy: HP 81%, Element: Fire (3 turns), Buffs: RageBuff
+
+Action: IceSpell (MP -20) -> 34 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam -> 54 dmg [TELEGRAPH: Enemy raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 5
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 112/180 (62%)
+
+Enemy: FireGolem (Fire)
+Weakness: Ice (scanned)
+
+Resources Remaining: TP 100/100, MP 78/100
