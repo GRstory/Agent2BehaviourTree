@@ -1,0 +1,42 @@
+root :
+    selector :
+        # Defend against HeavySlam (Highest Priority)
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Scan on Turn 1
+        sequence :
+            NOT condition : HasScannedEnemy()
+            condition : HasMP(15)
+            task : Scan()
+
+        # Heal when critical and enemy is low
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : IsEnemyHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # FireSpell if enemy weak, scanned, affordable, and in phase 2
+        sequence :
+            condition : EnemyWeakTo(Ice)
+            condition : HasScannedEnemy()
+            condition : HasMP(20)
+            condition : IsEnemyHPLow(50)
+            task : FireSpell()
+
+        # IceSpell if enemy weak and affordable
+        sequence :
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+
+        # Default: Attack
+        task : Attack()

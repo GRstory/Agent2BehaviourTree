@@ -1,0 +1,144 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 16 dmg
+Enemy: Slam -> 15 dmg -> Healed 3 HP
+
+=== TURN 1 ===
+Player: HP 85%, MP 100
+Enemy: HP 92%, Element: Neutral
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam -> 39 dmg -> Healed 7 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 2 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 46%, MP 100
+Enemy: HP 87%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: HeavySlam
+
+=== TURN 3 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 91%, MP 70
+Enemy: HP 87%, Element: Neutral
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam
+
+=== TURN 4 ===
+Player: HP 91%, MP 75
+Enemy: HP 78%, Element: Neutral
+
+Action: Attack -> 16 dmg
+Enemy: Slam -> 15 dmg -> Healed 3 HP
+
+=== TURN 5 ===
+Player: HP 76%, MP 80
+Enemy: HP 71%, Element: Neutral
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam -> 39 dmg -> Healed 7 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 6 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 37%, MP 85
+Enemy: HP 66%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: HeavySlam
+
+=== TURN 7 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 82%, MP 60
+Enemy: HP 66%, Element: Neutral
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam
+
+=== TURN 8 ===
+Player: HP 82%, MP 65
+Enemy: HP 57%, Element: Neutral
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam
+
+=== TURN 9 ===
+Player: HP 82%, MP 70
+Enemy: HP 48%, Element: Fire (999 turns)
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam -> 39 dmg -> Healed 3 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 10 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 43%, MP 75
+Enemy: HP 41%, Element: Fire (998 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: HeavySlam
+
+=== TURN 11 ===
+Player: HP 88%, MP 50
+Enemy: HP 41%, Element: Fire (997 turns)
+
+Action: Attack -> 16 dmg
+Enemy: FireSpell
+
+=== TURN 12 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 88%, MP 55
+Enemy: HP 32%, Element: Fire (996 turns)
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam
+
+=== TURN 13 ===
+Player: HP 88%, MP 60
+Enemy: HP 23%, Element: Fire (995 turns)
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam -> 39 dmg -> Healed 3 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 14 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 49%, MP 65
+Enemy: HP 16%, Element: Fire (994 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: HeavySlam
+
+=== TURN 15 ===
+Player: HP 94%, MP 40
+Enemy: HP 16%, Element: Fire (993 turns)
+
+Action: Attack -> 16 dmg
+Enemy: HeavySlam
+
+=== TURN 16 ===
+Player: HP 94%, MP 45
+Enemy: HP 7%, Element: Fire (992 turns)
+
+Action: Attack -> 16 dmg
+Enemy: None
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: VICTORY
+Turns: 17
+Final Player HP: 94/100 (94%)
+Final Enemy HP: 0/180 (0%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 50/100

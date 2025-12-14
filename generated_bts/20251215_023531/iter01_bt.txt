@@ -1,0 +1,33 @@
+root :
+    selector :
+        # Scan on Turn 1
+        sequence :
+            NOT HasScannedEnemy()
+            condition : HasMP(15)
+            task : Scan()
+
+        # Defend against IceSpell
+        sequence :
+            condition : EnemyIsTelegraphing(IceSpell)
+            task : Defend()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            condition : HasMP(25)
+            # Implied condition: Burn or AttackDown is active
+            task : Cleanse()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(20)
+            condition : CanHeal()
+            task : Heal()
+
+        # FireSpell if weak
+        sequence :
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+        
+        # Default: Attack
+        task : Attack()

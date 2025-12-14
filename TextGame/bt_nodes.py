@@ -167,8 +167,7 @@ class IsEnemy(BTCondition):
         # Map string to EnemyType
         enemy_map = {
             "FireGolem": EnemyType.FIRE_GOLEM,
-            "IceWraith": EnemyType.ICE_WRAITH,
-            "ThunderDrake": EnemyType.THUNDER_DRAKE
+            "IceWraith": EnemyType.ICE_WRAITH
         }
         self.enemy_type = enemy_map.get(self.enemy_name)
     
@@ -189,8 +188,7 @@ class EnemyWeakTo(BTCondition):
         # Map string to Element
         element_map = {
             "Fire": Element.FIRE,
-            "Ice": Element.ICE,
-            "Lightning": Element.LIGHTNING
+            "Ice": Element.ICE
         }
         self.element = element_map.get(self.element_str)
     
@@ -214,8 +212,7 @@ class EnemyResistantTo(BTCondition):
         self.element_str = element.strip()
         element_map = {
             "Fire": Element.FIRE,
-            "Ice": Element.ICE,
-            "Lightning": Element.LIGHTNING
+            "Ice": Element.ICE
         }
         self.element = element_map.get(self.element_str)
     
@@ -254,7 +251,9 @@ class HasAilment(BTCondition):
             "Freeze": StatusAilment.FREEZE,
             "Paralyze": StatusAilment.PARALYZE,
             "AttackDown": StatusAilment.ATTACK_DOWN,
-            "Defending": StatusAilment.DEFENDING
+            "Defending": StatusAilment.DEFENDING,
+            "CHARGED": StatusAilment.CHARGED,
+            "Charged": StatusAilment.CHARGED
         }
         self.ailment = ailment_map.get(self.ailment_str)
     
@@ -363,18 +362,6 @@ class EnemyIsTelegraphing(BTCondition):
         return f"EnemyIsTelegraphing({self.action})"
 
 
-class IsTurnEarly(BTCondition):
-    """Check if turn count is early (within threshold)"""
-    
-    def __init__(self, threshold: int = 3):
-        self.threshold = threshold
-    
-    def evaluate(self, state: GameState) -> bool:
-        return state.turn_count <= self.threshold
-    
-    def __repr__(self):
-        return f"IsTurnEarly({self.threshold})"
-
 
 class EnemyLastAction(BTCondition):
     """Check if enemy's last action matches specific action"""
@@ -420,14 +407,14 @@ class Attack(BTAction):
         return "Attack()"
 
 
-class PowerStrike(BTAction):
-    """Execute power strike (30 TP, high damage)"""
+class Charge(BTAction):
+    """Execute charge (15 MP, 7 damage + 2x next turn)"""
     
     def execute(self, state: GameState) -> Optional[PlayerAction]:
-        return PlayerAction.POWER_STRIKE
+        return PlayerAction.CHARGE
     
     def __repr__(self):
-        return "PowerStrike()"
+        return "Charge()"
 
 
 class FireSpell(BTAction):
@@ -448,16 +435,6 @@ class IceSpell(BTAction):
     
     def __repr__(self):
         return "IceSpell()"
-
-
-class LightningSpell(BTAction):
-    """Execute lightning spell (20 MP, lightning element)"""
-    
-    def execute(self, state: GameState) -> Optional[PlayerAction]:
-        return PlayerAction.LIGHTNING_SPELL
-    
-    def __repr__(self):
-        return "LightningSpell()"
 
 
 class Defend(BTAction):
@@ -490,13 +467,24 @@ class Scan(BTAction):
         return "Scan()"
 
 
+class Cleanse(BTAction):
+    """Execute cleanse (25 MP, removes Burn/AttackDown, +10% damage)"""
+    
+    def execute(self, state: GameState) -> Optional[PlayerAction]:
+        return PlayerAction.CLEANSE
+    
+    def __repr__(self):
+        return "Cleanse()"
+
+
 # ============================================================================
 # Legacy Compatibility (for old BT files)
 # ============================================================================
 
 # Map old action names to new ones
 LightAttack = Attack
-HeavyAttack = PowerStrike
+HeavyAttack = Charge
+PowerStrike = Charge  # Old name support
 
 # Old condition nodes (still supported)
 class IsPlayerHPLevel(BTCondition):
@@ -588,7 +576,7 @@ def create_condition_node(node_type: str, param: Optional[str] = None) -> BTCond
         return HasScannedEnemy()
     
     # Status ailment conditions
-    elif node_type == "HasAilment":
+    elif node_type == "HasAilment" or node_type == "HasStatus":
         return HasAilment(param if param else "Burn")
     elif node_type == "EnemyHasBuff":
         return EnemyHasBuff(param if param else "RageBuff")
@@ -604,8 +592,6 @@ def create_condition_node(node_type: str, param: Optional[str] = None) -> BTCond
         return EnemyInPhase(param if param else "Healthy")
     elif node_type == "EnemyIsTelegraphing":
         return EnemyIsTelegraphing(param if param else "HeavySlam")
-    elif node_type == "IsTurnEarly":
-        return IsTurnEarly(int(param) if param else 3)
     elif node_type == "EnemyLastAction":
         return EnemyLastAction(param if param else "Slam")
     elif node_type == "EnemyUsedRecently":
@@ -621,26 +607,26 @@ def create_action_node(action_type: str) -> BTAction:
     # New action names
     if action_type == "Attack":
         return Attack()
-    elif action_type == "PowerStrike":
-        return PowerStrike()
+    elif action_type == "Charge":
+        return Charge()
     elif action_type == "FireSpell":
         return FireSpell()
     elif action_type == "IceSpell":
         return IceSpell()
-    elif action_type == "LightningSpell":
-        return LightningSpell()
     elif action_type == "Defend":
         return Defend()
     elif action_type == "Heal":
         return Heal()
     elif action_type == "Scan":
         return Scan()
+    elif action_type == "Cleanse":
+        return Cleanse()
     
     # Legacy action names (backwards compatibility)
     elif action_type == "LightAttack":
         return Attack()
     elif action_type == "HeavyAttack":
-        return PowerStrike()
+        return Charge()
     
     else:
         raise ValueError(f"Unknown action node type: {action_type}")

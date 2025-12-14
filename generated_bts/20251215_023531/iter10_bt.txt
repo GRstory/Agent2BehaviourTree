@@ -1,0 +1,43 @@
+root :
+    selector :
+        # Mandatory Scan on Turn 1
+        sequence :
+            NOT HasScannedEnemy()
+            condition : HasMP(15)
+            task : Scan()
+
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Prioritize IceSpell if weak and scanned
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # FireSpell if weak and scanned
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Heal if low HP
+        sequence :
+            condition : IsPlayerHPLow(70)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            condition : HasMP(25)
+            selector:
+                condition : EnemyHasBuff(Burn)
+                condition : EnemyHasBuff(AttackDown)
+            task : Cleanse()
+
+        # Default: Attack
+        task : Attack()

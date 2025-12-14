@@ -1,0 +1,9 @@
+=== MASTERY ACHIEVED: FireGolem ===
+
+Validation: 5/5 wins (100%)
+
+Battle 1: WIN - 20 turns
+Battle 2: WIN - 20 turns
+Battle 3: WIN - 20 turns
+Battle 4: WIN - 18 turns
+Battle 5: WIN - 20 turns

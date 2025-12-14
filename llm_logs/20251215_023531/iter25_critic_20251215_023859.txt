@@ -1,0 +1,430 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 25
+Timestamp: 20251215_023859
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: The Behaviour Tree executes ONE action per turn.
+
+AVAILABLE ACTIONS:
+- Attack: Free, 9 damage
+- Charge: 15 MP, 7 damage + NEXT TURN all damage x2
+- FireSpell: 20 MP, 7 dmg (11 vs IceWraith), Burn 25%
+- IceSpell: 20 MP, 10 dmg (15 vs FireGolem), Freeze 25%
+- Defend: Free, 50% damage reduction
+- Heal: 30 MP, +45 HP, 3 turn cooldown
+- Scan: 15 MP, reveals enemy weakness
+- Cleanse: 25 MP, removes Burn/AttackDown, +10% damage for 1 turn
+
+CRITICAL MECHANICS:
+- Elemental weakness: Fire ↔ Ice (1.5x damage)
+- **DYNAMIC ELEMENTS**: Enemy elements can CHANGE during combat!
+  - Enemies start as Neutral (no weakness)
+  - FireGolem: Phase 2 (HP < 50%) permanently becomes Fire element
+  - IceWraith: Using IceSpell grants Ice element for 3 turns, then returns to Neutral
+  - Elements can expire and return to Neutral
+- FireGolem: FireSpell adds Burn (10 dmg/turn × 3 turns = 30 total, bypasses defense!)
+- IceWraith: Debuff gives AttackDown -20% for 3 turns
+- DoT bypasses defense (Burn is guaranteed 10 dmg/turn)
+- MP regenerates 5 per turn, starts at 100
+
+OPTIMAL STRATEGIES:
+- vs FireGolem: Use IceSpell (15 dmg) ONLY when enemy has Fire element (Phase 2)
+- vs IceWraith: Use FireSpell (11 dmg) ONLY when enemy has Ice element (after IceSpell)
+- Cleanse value: Removes Burn (30 dmg saved) OR AttackDown (damage restored) + 10% boost
+- Wrong spell = damage loss (7 vs 11-15)
+- **CRITICAL**: Check enemy element BEFORE using elemental spells!
+
+Your task is to analyze combat logs and identify:
+- **Dynamic element awareness** (did they wait for enemy to gain element before using weakness spell?)
+- Elemental advantage (did they use correct spell when enemy had element?)
+- Cleanse timing (did they remove Burn/AttackDown when active?)
+- MP efficiency (Cleanse 25, Spells 20, Heal 30, Scan 15)
+- Defensive timing (Defend against telegraphed HeavySlam/Debuff)
+- Heal timing (considering 3 turn cooldown)
+- DoT awareness (Burn does 30 total damage, Cleanse saves it all!)
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Mandatory Scan on Turn 1
+        sequence :
+            NOT HasScannedEnemy()
+            condition : HasMP(15)
+            task : Scan()
+
+        # Defend against Debuff
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            task : Defend()
+            
+        # FireSpell if enemy is Ice and Scanned
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Cleanse Burn
+        sequence :
+            HasScannedEnemy()
+            condition : EnemyHasBuff(Burn)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # IceSpell if enemy is Fire
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Cleanse AttackDown
+        sequence :
+            condition : EnemyHasBuff(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal if low HP
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# This Combat Result
+VICTORY vs IceWraith: 33 turns
+
+# Combat Summary
+=== COMBAT LOG FOR ANALYSIS ===
+
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 1 ===
+Player: HP 78%, MP 100
+Enemy: HP 94%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 2 ===
+Player: HP 56%, MP 100
+Enemy: HP 88%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 44 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 3 ===
+Player: HP 88%, MP 70
+Enemy: HP 88%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 4 ===
+Player: HP 66%, MP 75
+Enemy: HP 82%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 5 ===
+Player: HP 44%, MP 80
+Enemy: HP 76%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 6 ===
+Player: HP 22%, MP 85
+Enemy: HP 70%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 7 ===
+Player: HP 55%, MP 60
+Enemy: HP 70%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 8 ===
+Player: HP 33%, MP 65
+Enemy: HP 64%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 9 ===
+Player: HP 21%, MP 70
+Enemy: HP 57%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 10 ===
+Player: HP 9%, MP 75
+Enemy: HP 52%, Element: Ice (1 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 11 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 42%, MP 50
+Enemy: HP 52%, Element: Neutral
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 12 ===
+Player: HP 42%, MP 55, Ailments: AttackDown
+Enemy: HP 52%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 13 ===
+Player: HP 30%, MP 60, Ailments: AttackDown
+Enemy: HP 48%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: Debuff
+
+=== TURN 14 ===
+Player: HP 30%, MP 65, Ailments: AttackDown
+Enemy: HP 44%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 15 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 63%, MP 40, Ailments: AttackDown
+Enemy: HP 44%, Element: Neutral
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 16 ===
+Player: HP 63%, MP 45, Ailments: AttackDown
+Enemy: HP 44%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 17 ===
+Player: HP 51%, MP 50, Ailments: AttackDown
+Enemy: HP 40%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: Debuff
+
+=== TURN 18 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 51%, MP 55, Ailments: AttackDown
+Enemy: HP 36%, Element: Neutral
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 19 ===
+Player: HP 51%, MP 60, Ailments: AttackDown
+Enemy: HP 36%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: Debuff
+
+=== TURN 20 ===
+Player: HP 96%, MP 35, Ailments: AttackDown
+Enemy: HP 36%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: Debuff
+
+=== TURN 21 ===
+Player: HP 96%, MP 40, Ailments: AttackDown
+Enemy: HP 32%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 22 ===
+Player: HP 74%, MP 45, Ailments: AttackDown
+Enemy: HP 28%, Element: Ice (3 turns)
+
+Action: Attack -> 8 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 23 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 52%, MP 50, Ailments: AttackDown
+Enemy: HP 24%, Element: Ice (3 turns)
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 24 ===
+Player: HP 52%, MP 55, Ailments: AttackDown
+Enemy: HP 24%, Element: Ice (2 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 25 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 85%, MP 30, Ailments: AttackDown
+Enemy: HP 24%, Element: Ice (1 turns)
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 26 ===
+Player: HP 85%, MP 35, Ailments: AttackDown
+Enemy: HP 24%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 27 ===
+Player: HP 63%, MP 40, Ailments: AttackDown
+Enemy: HP 20%, Element: Ice (3 turns)
+
+Action: Attack -> 8 dmg
+Enemy: Debuff
+
+=== TURN 28 ===
+Player: HP 63%, MP 45, Ailments: AttackDown
+Enemy: HP 16%, Element: Ice (2 turns)
+
+Action: Attack -> 8 dmg
+Enemy: Debuff
+
+=== TURN 29 ===
+Player: HP 63%, MP 50, Ailments: AttackDown
+Enemy: HP 12%, Element: Ice (1 turns)
+
+Action: Attack -> 8 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 30 ===
+Player: HP 41%, MP 55, Ailments: AttackDown
+Enemy: HP 8%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 31 ===
+Player: HP 64%, MP 30, Ailments: AttackDown
+Enemy: HP 8%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 32 ===
+Player: HP 42%, MP 35
+Enemy: HP 2%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: None
+
+
+=== PATTERN ANALYSIS HINTS ===
+
+Enemy Action History (last 5): Debuff, Debuff, IceSpell, IceSpell, IceSpell
+Enemy Last Action: IceSpell
+
+Final Enemy Element: Ice
+Element Duration Remaining: 2 turns
+
+=== COMBAT SUMMARY ===
+
+Result: VICTORY
+Turns: 33
+Final Player HP: 42/100 (42%)
+Final Enemy HP: 0/200 (0%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 40/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Telegraph Reactions**: Did they defend against telegraphed heavy attacks?
+2. **Elemental Strategy**: Did they scan? Did they use the right spell?
+3. **Resource Management**: MP usage efficiency
+4. **Defensive Decisions**: Heal/Defend timing
+5. **BT Issues**: What parts of the tree caused problems?
+
+**CRITICAL CONSTRAINT**: 
+- Focus ONLY on improving strategy against **IceWraith**
+- Do NOT add or modify logic for other enemy types you haven't fought
+- Only suggest changes based on what happened in THIS combat
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Add Defend() when enemy telegraphs HeavySlam"
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT failed to consistently utilize the scan action, leading to missed opportunities to identify IceWraith's weakness. The BT also didn’t react effectively to the telegraphed Debuff, resulting in significant damage. MP was used inefficiently, with multiple heals used when a more strategic approach (like defense) could have been employed. Finally, the BT didn’t prioritize using the IceSpell when IceWraith had the Ice element.
+
+## Improvement Suggestions
+1. **Mandatory Scan on Turn 1:** Implement a rule that the BT *always* executes the Scan action on turn 1. This ensures the weakness is identified immediately.
+2. **Defend Against Debuff:** Add a conditional task to the selector that executes `Defend()` when the enemy telegraphs a Debuff. This should be prioritized over other actions when a debuff is telegraphed.
+3. **Prioritize IceSpell with Ice Element:** Modify the `IceSpell()` task to *only* execute when the enemy is currently of the Ice element. This prevents wasting the spell when the enemy is neutral or has another element.
+4. **Adjust Heal Threshold:** Increase the HP threshold for the Heal action from 60% to 70%. This allows for more proactive healing when HP drops to a more critical level, rather than waiting until it's dangerously low.
+
+
+================================================================================
+Prompt length: 7593 chars
+Response length: 1279 chars
+================================================================================

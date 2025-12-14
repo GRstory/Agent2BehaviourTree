@@ -1,0 +1,47 @@
+root :
+    selector :
+        # 최우선: HP 낮을 때 회복
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Charge + IceSpell 콤보 (vs FireGolem)
+        sequence :
+            condition : HasMP(35)
+            condition : NOT HasStatus(CHARGED)
+            condition : IsEnemy(FireGolem)
+            task : Charge()
+        
+        sequence :
+            condition : HasStatus(CHARGED)
+            condition : IsEnemy(FireGolem)
+            condition : HasMP(20)
+            task : IceSpell()
+        
+        # Charge + FireSpell 콤보 (vs IceWraith)
+        sequence :
+            condition : HasMP(35)
+            condition : NOT HasStatus(CHARGED)
+            condition : IsEnemy(IceWraith)
+            task : Charge()
+        
+        sequence :
+            condition : HasStatus(CHARGED)
+            condition : IsEnemy(IceWraith)
+            condition : HasMP(20)
+            task : FireSpell()
+        
+        # 약점 스펠 (Charge 없이)
+        sequence :
+            condition : HasMP(20)
+            condition : IsEnemy(FireGolem)
+            task : IceSpell()
+        
+        sequence :
+            condition : HasMP(20)
+            condition : IsEnemy(IceWraith)
+            task : FireSpell()
+        
+        # 기본 공격
+        task : Attack()

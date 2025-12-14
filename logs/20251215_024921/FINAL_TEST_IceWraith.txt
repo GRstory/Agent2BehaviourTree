@@ -1,0 +1,9 @@
+=== FINAL COMPREHENSIVE TEST: IceWraith ===
+
+Win Rate: 5/5 (100%)
+
+Battle 1: WIN - 23 turns, Player HP: 7, Enemy HP: 0
+Battle 2: WIN - 35 turns, Player HP: 86, Enemy HP: 0
+Battle 3: WIN - 32 turns, Player HP: 83, Enemy HP: 0
+Battle 4: WIN - 27 turns, Player HP: 36, Enemy HP: 0
+Battle 5: WIN - 31 turns, Player HP: 49, Enemy HP: 0

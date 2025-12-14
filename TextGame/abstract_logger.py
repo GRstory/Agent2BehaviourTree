@@ -38,7 +38,7 @@ class AbstractLogger:
         
         # Compact player status
         hp_pct = int(state.player.hp_percentage())
-        log += f"Player: HP {hp_pct}%, TP {state.player_resources.tp}, MP {state.player_resources.mp}"
+        log += f"Player: HP {hp_pct}%, MP {state.player_resources.mp}"
         
         if state.player_status:
             ailments = [s.ailment.value for s in state.player_status]
@@ -78,7 +78,7 @@ class AbstractLogger:
             log += f" -> {damage} dmg"
             
             # Elemental effectiveness
-            if action in [PlayerAction.FIRE_SPELL, PlayerAction.ICE_SPELL, PlayerAction.LIGHTNING_SPELL]:
+            if action in [PlayerAction.FIRE_SPELL, PlayerAction.ICE_SPELL]:
                 element = self._get_action_element(action)
                 if state.enemy:
                     multiplier = self._get_elemental_multiplier(element, state.enemy.element)
@@ -142,7 +142,7 @@ class AbstractLogger:
             summary += "\n"
         
         # Resource usage
-        summary += f"Resources Remaining: TP {state.player_resources.tp}/{state.player_resources.max_tp}, MP {state.player_resources.mp}/{state.player_resources.max_mp}\n"
+        summary += f"Resources Remaining: MP {state.player_resources.mp}/{state.player_resources.max_mp}\n"
         
         return summary
     
@@ -199,8 +199,6 @@ class AbstractLogger:
             return Element.FIRE
         elif action == PlayerAction.ICE_SPELL:
             return Element.ICE
-        elif action == PlayerAction.LIGHTNING_SPELL:
-            return Element.LIGHTNING
         else:
             return Element.NEUTRAL
     

@@ -1,0 +1,53 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 1 ===
+Player: HP 78%, MP 75, Ailments: PowerBoost, Freeze
+Enemy: HP 100%, Element: Ice (3 turns)
+
+Action: Cleanse (MP -25)
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 2 ===
+Player: HP 56%, MP 55, Ailments: PowerBoost, Freeze
+Enemy: HP 100%, Element: Ice (3 turns)
+
+Action: Cleanse (MP -25)
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 3 ===
+Player: HP 34%, MP 35, Ailments: PowerBoost, Freeze
+Enemy: HP 100%, Element: Ice (3 turns)
+
+Action: Cleanse (MP -25)
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 4 ===
+Player: HP 12%, MP 15, Ailments: PowerBoost, Freeze
+Enemy: HP 100%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 5
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 188/200 (94%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 20/100

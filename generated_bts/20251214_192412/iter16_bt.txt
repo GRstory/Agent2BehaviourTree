@@ -1,0 +1,40 @@
+root :
+    selector :
+        # Defend against telegraphed HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Scan on turn 1
+        sequence :
+            condition : HasMP(15)
+            task : Scan()
+
+        # IceSpell if enemy is weak to Fire after scanning
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # FireSpell if enemy is weak to Ice after scanning
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Cleanse debuffs immediately
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Default: Attack
+        task : Attack()

@@ -1,0 +1,64 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam -> 39 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 61%, MP 85
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam
+
+=== TURN 2 ===
+Player: HP 61%, MP 75
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: Slam -> 15 dmg
+
+=== TURN 3 ===
+Player: HP 46%, MP 65
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: Slam -> 15 dmg
+
+=== TURN 4 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 31%, MP 55
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam
+
+=== TURN 5 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 31%, MP 45
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam -> 39 dmg [TELEGRAPH: Enemy raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 6
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 180/180 (100%)
+
+Enemy: FireGolem (Neutral)
+Weakness: None (scanned)
+
+Resources Remaining: MP 35/100

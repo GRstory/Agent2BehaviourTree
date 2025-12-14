@@ -88,10 +88,10 @@ class GameRunner:
             'player_hp': self.game.state.player.current_hp,
             'enemy_hp': self.game.state.enemy.current_hp if self.game.state.enemy else 0,
             'enemy_type': self.enemy_type.value,
-            'scanned': self.game.state.scanned,
             'combat_log': self.logger.get_full_log(),
             'summary': summary,
-            'critic_log': critic_log  # For LLM analysis
+            'critic_log': critic_log,  # For LLM analysis
+            'scanned': self.game.state.scanned  # Whether enemy was scanned
         }
 
 
@@ -130,14 +130,17 @@ class ImprovementLoop:
         print(f"ITERATION {iteration}")
         print(f"{'='*70}\n")
         
-        # Run game with current BT (always use FireGolem for consistent testing)
-        runner = GameRunner(bt_dsl, enemy_type=EnemyType.FIRE_GOLEM, verbose=self.config.verbose)
+        # Run game with current BT (randomly select enemy type)
+        import random
+        enemy_type = random.choice([EnemyType.FIRE_GOLEM, EnemyType.ICE_WRAITH])
+        runner = GameRunner(bt_dsl, enemy_type=enemy_type, verbose=self.config.verbose)
         result = runner.run_game()
         
         print(f"\nResult: {'VICTORY' if result['victory'] else 'DEFEAT'}")
         print(f"Enemy: {result['enemy_type']}")
         print(f"Turns: {result['turns']}")
         print(f"Final Player HP: {result['player_hp']}/100")
+        print(f"Final Enemy HP: {result['enemy_hp']}")
         print(f"Scanned: {result['scanned']}")
         
         # Save logs
@@ -228,7 +231,7 @@ class ImprovementLoop:
         print(f"\nIteration Details:")
         for i, r in enumerate(self.iteration_results):
             status = "WIN " if r['victory'] else "LOSS"
-            print(f"  {i}: {status} vs {r['enemy_type']:<15} - {r['turns']:2d} turns, {r['player_hp']:3d} HP")
+            print(f"  {i}: {status} vs {r['enemy_type']:<15} - {r['turns']:2d} turns, Player HP: {r['player_hp']:3d}, Enemy HP: {r['enemy_hp']:3d}")
 
 
 def main():

@@ -1,0 +1,6 @@
+=== FINAL COMPREHENSIVE TEST SUMMARY ===
+
+Overall Win Rate: 6/10 (60.0%)
+
+FireGolem: 1/5 (20%)
+IceWraith: 5/5 (100%)

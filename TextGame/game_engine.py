@@ -19,7 +19,6 @@ class Element(Enum):
     """Elemental types"""
     FIRE = "Fire"
     ICE = "Ice"
-    LIGHTNING = "Lightning"
     NEUTRAL = "Neutral"
 
 
@@ -28,39 +27,39 @@ class PlayerAction(Enum):
     """Player action types"""
     # Neutral Attacks
     ATTACK = "Attack"
-    POWER_STRIKE = "PowerStrike"
+    CHARGE = "Charge"
     
     # Elemental Magic
     FIRE_SPELL = "FireSpell"
     ICE_SPELL = "IceSpell"
-    LIGHTNING_SPELL = "LightningSpell"
     
     # Support
     DEFEND = "Defend"
     HEAL = "Heal"
     SCAN = "Scan"
+    CLEANSE = "Cleanse"
 
 
 # Status Ailments
 class StatusAilment(Enum):
     """Status ailment types"""
-    BURN = "Burn"              # 5 dmg/turn, 3 turns
+    BURN = "Burn"              # 10 dmg/turn, 3 turns
     FREEZE = "Freeze"          # Skip 1 turn
     PARALYZE = "Paralyze"      # 50% miss chance, 2 turns
-    ATTACK_DOWN = "AttackDown" # -30% attack, 3 turns
+    ATTACK_DOWN = "AttackDown" # -20% attack, 3 turns
     DEFENDING = "Defending"    # -50% damage taken, 1 turn
     RAGE_BUFF = "RageBuff"     # +40% attack, 3 turns
     ENRAGE = "Enrage"          # +50% attack, permanent
     FROST_AURA = "FrostAura"   # 30% freeze on attack, passive
-    STORM_CHARGE = "StormCharge" # Next spell 2x, 1 use
+    CHARGED = "Charged"        # Next attack 2x damage, 1 turn
+    POWER_BOOST = "PowerBoost" # +10% damage, 1 turn
 
 
 # Enemy Types
 class EnemyType(Enum):
-    """3 Distinct enemy types"""
+    """2 Distinct enemy types"""
     FIRE_GOLEM = "FireGolem"
     ICE_WRAITH = "IceWraith"
-    THUNDER_DRAKE = "ThunderDrake"
 
 
 # Combat Result
@@ -82,25 +81,14 @@ class StatusEffect:
 
 @dataclass
 class Resources:
-    """TP/MP resource pool"""
-    tp: int = 50
+    """MP resource pool"""
     mp: int = 100
-    max_tp: int = 100
     max_mp: int = 100
-    tp_regen: int = 15
-    mp_regen: int = 12
+    mp_regen: int = 5
     
     def regenerate(self):
-        """Regenerate resources per turn"""
-        self.tp = min(self.max_tp, self.tp + self.tp_regen)
+        """Regenerate MP per turn"""
         self.mp = min(self.max_mp, self.mp + self.mp_regen)
-    
-    def spend_tp(self, amount: int) -> bool:
-        """Try to spend TP, return success"""
-        if self.tp >= amount:
-            self.tp -= amount
-            return True
-        return False
     
     def spend_mp(self, amount: int) -> bool:
         """Try to spend MP, return success"""
@@ -108,10 +96,6 @@ class Resources:
             self.mp -= amount
             return True
         return False
-    
-    def gain_tp(self, amount: int):
-        """Gain TP"""
-        self.tp = min(self.max_tp, self.tp + amount)
 
 
 @dataclass
@@ -150,7 +134,7 @@ class GameState:
         max_hp=100,
         current_hp=100,
         base_attack=15,
-        defense=8,  # Increased from 5
+        defense=6,
         element=Element.NEUTRAL
     ))
     player_resources: Resources = field(default_factory=Resources)
@@ -195,9 +179,10 @@ class GameState:
         damage_events = []
         
         for effect in status_list[:]:
-            # Apply DoT
+            # Apply DoT (use effect.value for damage amount)
             if effect.ailment == StatusAilment.BURN:
-                damage_events.append((StatusAilment.BURN, 5))
+                damage_amount = effect.value if effect.value > 0 else 5
+                damage_events.append((StatusAilment.BURN, damage_amount))
             
             # Decrease duration
             effect.duration -= 1
@@ -210,8 +195,7 @@ class GameState:
 # Elemental weakness system
 ELEMENTAL_WEAKNESS = {
     Element.FIRE: Element.ICE,      # Fire weak to Ice
-    Element.ICE: Element.LIGHTNING,  # Ice weak to Lightning
-    Element.LIGHTNING: Element.FIRE, # Lightning weak to Fire
+    Element.ICE: Element.FIRE,      # Ice weak to Fire
     Element.NEUTRAL: None
 }
 
@@ -247,7 +231,7 @@ class CombatEngine:
             'success': False,
             'damage': 0,
             'heal': 0,
-            'cost_tp': 0,
+            
             'cost_mp': 0,
             'status_applied': None,
             'message': ''
@@ -262,24 +246,25 @@ class CombatEngine:
         # Execute action
         if action == PlayerAction.ATTACK:
             result['success'] = True
-            result['damage'] = self._calculate_damage(15, Element.NEUTRAL, "player")
-            self.state.player_resources.gain_tp(15)
-            result['message'] = f"Attack dealt {result['damage']} damage, gained 15 TP"
+            result['damage'] = self._calculate_damage(20, Element.NEUTRAL, "player")
+            result['message'] = f"Attack dealt {result['damage']} damage"
         
-        elif action == PlayerAction.POWER_STRIKE:
-            if self.state.player_resources.spend_tp(30):
+        elif action == PlayerAction.CHARGE:
+            if self.state.player_resources.spend_mp(15):
                 result['success'] = True
-                result['cost_tp'] = 30
-                result['damage'] = self._calculate_damage(45, Element.NEUTRAL, "player")
-                result['message'] = f"Power Strike dealt {result['damage']} damage"
+                result['cost_mp'] = 15
+                result['damage'] = self._calculate_damage(7, Element.NEUTRAL, "player")
+                # Apply CHARGED buff for next turn
+                self.state.add_status("player", StatusEffect(StatusAilment.CHARGED, 1))
+                result['message'] = f"Charging! Dealt {result['damage']} damage, next attack will be doubled!"
             else:
-                result['message'] = "Not enough TP!"
+                result['message'] = "Not enough MP!"
         
         elif action == PlayerAction.FIRE_SPELL:
             if self.state.player_resources.spend_mp(20):
                 result['success'] = True
                 result['cost_mp'] = 20
-                result['damage'] = self._calculate_damage(28, Element.FIRE, "player")
+                result['damage'] = self._calculate_damage(10, Element.FIRE, "player")
                 # 25% chance to burn
                 if random.random() < 0.25:
                     self.state.add_status("enemy", StatusEffect(StatusAilment.BURN, 3, 5))
@@ -292,7 +277,7 @@ class CombatEngine:
             if self.state.player_resources.spend_mp(20):
                 result['success'] = True
                 result['cost_mp'] = 20
-                result['damage'] = self._calculate_damage(28, Element.ICE, "player")
+                result['damage'] = self._calculate_damage(14, Element.ICE, "player")
                 # 25% chance to freeze
                 if random.random() < 0.25:
                     self.state.add_status("enemy", StatusEffect(StatusAilment.FREEZE, 1))
@@ -301,23 +286,11 @@ class CombatEngine:
             else:
                 result['message'] = "Not enough MP!"
         
-        elif action == PlayerAction.LIGHTNING_SPELL:
-            if self.state.player_resources.spend_mp(20):
-                result['success'] = True
-                result['cost_mp'] = 20
-                result['damage'] = self._calculate_damage(28, Element.LIGHTNING, "player")
-                # 25% chance to paralyze
-                if random.random() < 0.25:
-                    self.state.add_status("enemy", StatusEffect(StatusAilment.PARALYZE, 2))
-                    result['status_applied'] = "Paralyze"
-                result['message'] = f"Lightning Spell dealt {result['damage']} damage"
-            else:
-                result['message'] = "Not enough MP!"
+
         
         elif action == PlayerAction.DEFEND:
             result['success'] = True
             self.state.add_status("player", StatusEffect(StatusAilment.DEFENDING, 1))
-            self.state.player_resources.gain_tp(20)
             result['message'] = "Defending! Damage reduced by 50%, gained 20 TP"
         
         elif action == PlayerAction.HEAL:
@@ -341,6 +314,25 @@ class CombatEngine:
             else:
                 result['message'] = "Not enough MP!"
         
+        elif action == PlayerAction.CLEANSE:
+            if self.state.player_resources.spend_mp(25):
+                result['success'] = True
+                result['cost_mp'] = 25
+                # Remove Burn and AttackDown
+                removed = []
+                if self.state.has_status("player", StatusAilment.BURN):
+                    self.state.remove_status("player", StatusAilment.BURN)
+                    removed.append("Burn")
+                if self.state.has_status("player", StatusAilment.ATTACK_DOWN):
+                    self.state.remove_status("player", StatusAilment.ATTACK_DOWN)
+                    removed.append("AttackDown")
+                # Grant Power Boost (+10% damage for 1 turn)
+                self.state.add_status("player", StatusEffect(StatusAilment.POWER_BOOST, 1))
+                removed_str = ", ".join(removed) if removed else "none"
+                result['message'] = f"Cleansed! Removed: {removed_str}. Gained Power Boost (+10% damage)!"
+            else:
+                result['message'] = "Not enough MP!"
+        
         # Apply damage to enemy
         if result['damage'] > 0 and self.state.enemy:
             actual_damage = self.state.enemy.take_damage(result['damage'])
@@ -357,7 +349,10 @@ class CombatEngine:
             attack_stat = self.state.player.base_attack
             # Apply attack down debuff
             if self.state.has_status("player", StatusAilment.ATTACK_DOWN):
-                attack_stat = int(attack_stat * 0.7)
+                attack_stat = int(attack_stat * 0.8)
+            # Apply power boost
+            if self.state.has_status("player", StatusAilment.POWER_BOOST):
+                attack_stat = int(attack_stat * 1.1)
         else:
             attack_stat = self.state.enemy.base_attack
             # Apply enemy buffs
@@ -381,12 +376,6 @@ class CombatEngine:
         if attacker == "player" and self.state.has_status("player", StatusAilment.PARALYZE):
             if random.random() < 0.5:
                 return 0  # Miss!
-        
-        # Apply Storm Charge for enemy
-        if attacker == "enemy" and self.state.has_status("enemy", StatusAilment.STORM_CHARGE):
-            if element == Element.LIGHTNING:
-                damage = int(damage * 2)
-                self.state.remove_status("enemy", StatusAilment.STORM_CHARGE)
         
         return max(0, damage)
     
@@ -453,9 +442,7 @@ class CombatEngine:
             result = self._execute_fire_golem_action(action)
         elif self.state.enemy_type == EnemyType.ICE_WRAITH:
             result = self._execute_ice_wraith_action(action)
-        elif self.state.enemy_type == EnemyType.THUNDER_DRAKE:
-            result = self._execute_thunder_drake_action(action)
-        
+
         # Apply damage to player
         if result['damage'] > 0:
             # Apply defending reduction
@@ -465,6 +452,15 @@ class CombatEngine:
             
             actual_damage = self.state.player.take_damage(result['damage'])
             result['damage'] = actual_damage
+            
+            # FireGolem lifesteal: heal based on actual damage dealt (after defense)
+            if self.state.enemy_type == EnemyType.FIRE_GOLEM and actual_damage > 0:
+                hp_pct = self.state.enemy.hp_percentage()
+                lifesteal_rate = 0.20 if hp_pct >= 50 else 0.10
+                heal_amount = int(actual_damage * lifesteal_rate)
+                if heal_amount > 0:
+                    result['heal'] = self.state.enemy.heal(heal_amount)
+                    result['message'] += f" [Lifesteal: {result['heal']} HP!]"
         
         # Apply Frost Aura freeze chance
         if self.state.enemy_type == EnemyType.ICE_WRAITH:
@@ -491,60 +487,42 @@ class CombatEngine:
         hp_pct = self.state.enemy.hp_percentage()
         
         if self.state.enemy_type == EnemyType.FIRE_GOLEM:
-            if hp_pct > 60:
+            if hp_pct >= 50:
+                # Phase 1 (HP >= 50%): Neutral attacks only
                 return random.choices(
-                    ["Slam", "HeavySlam", "FireSpell", "RageBuff"],
-                    weights=[40, 30, 20, 10]
-                )[0]
-            elif hp_pct > 30:
-                return random.choices(
-                    ["HeavySlam", "RageBuff", "Slam", "FireSpell"],
-                    weights=[45, 30, 15, 10]
+                    ["Slam", "HeavySlam"],
+                    weights=[60, 40]
                 )[0]
             else:
-                # Activate Enrage if not already
-                if not self.state.has_status("enemy", StatusAilment.ENRAGE):
-                    self.state.add_status("enemy", StatusEffect(StatusAilment.ENRAGE, 999))
+                # Phase 2 (HP < 50%): Fire element + FireSpell
+                # Activate permanent Fire element if not already
+                if self.state.enemy and self.state.enemy.element != Element.FIRE:
+                    self.state.enemy.element = Element.FIRE
+                    self.state.enemy_element_duration = 999  # Permanent
+                
                 return random.choices(
-                    ["HeavySlam", "FireSpell", "Slam"],
-                    weights=[60, 25, 15]
+                    ["FireSpell", "HeavySlam"],
+                    weights=[70, 30]
                 )[0]
         
         elif self.state.enemy_type == EnemyType.ICE_WRAITH:
+            # Phase 1 (HP > 60%): Only IceSpell and FrostTouch, no Debuff
             if hp_pct > 60:
                 return random.choices(
-                    ["IceSpell", "FrostTouch", "Debuff", "Heal"],
-                    weights=[35, 30, 25, 10]
+                    ["IceSpell", "FrostTouch"],
+                    weights=[60, 40]
                 )[0]
+            # Phase 2 (30% < HP <= 60%): FrostTouch + 20% Debuff
             elif hp_pct > 30:
                 return random.choices(
-                    ["Heal", "IceSpell", "Debuff", "FrostTouch"],
-                    weights=[45, 25, 20, 10]
+                    ["FrostTouch", "Debuff"],
+                    weights=[80, 20]
                 )[0]
-            else:
-                # Activate Frost Aura if not already
-                if not self.state.has_status("enemy", StatusAilment.FROST_AURA):
-                    self.state.add_status("enemy", StatusEffect(StatusAilment.FROST_AURA, 999))
-                return random.choices(
-                    ["Heal", "IceSpell", "FrostTouch"],
-                    weights=[50, 35, 15]
-                )[0]
-        
-        elif self.state.enemy_type == EnemyType.THUNDER_DRAKE:
-            if hp_pct > 60:
-                return random.choices(
-                    ["ClawSwipe", "LightningSpell", "TailSweep", "ThunderStrike"],
-                    weights=[30, 30, 25, 15]
-                )[0]
-            elif hp_pct > 35:
-                return random.choices(
-                    ["LightningSpell", "ThunderStrike", "ClawSwipe", "TailSweep"],
-                    weights=[35, 30, 20, 15]
-                )[0]
+            # Phase 3 (HP <= 30%): IceSpell, FrostTouch, Debuff
             else:
                 return random.choices(
-                    ["StormCharge", "LightningSpell", "ThunderStrike"],
-                    weights=[40, 35, 25]
+                    ["IceSpell", "FrostTouch", "Debuff"],
+                    weights=[45, 35, 20]
                 )[0]
         
         return "Slam"
@@ -554,36 +532,24 @@ class CombatEngine:
         result = {'action': action, 'damage': 0, 'heal': 0, 'status_applied': None, 'message': '', 'telegraphed': None}
         
         if action == "Slam":
-            if self.state.enemy_resources.spend_tp(10):
+            if self.state.enemy_resources.spend_mp(10):
                 result['damage'] = self._calculate_damage(21, Element.NEUTRAL, "enemy")
                 result['message'] = f"Enemy slams for {result['damage']} damage"
         
         elif action == "HeavySlam":
-            if self.state.enemy_resources.spend_tp(30):
+            if self.state.enemy_resources.spend_mp(30):
                 result['damage'] = self._calculate_damage(45, Element.NEUTRAL, "enemy")
                 result['message'] = f"Enemy heavy slams for {result['damage']} damage"
                 result['telegraphed'] = "Enemy raises its fists!"
-                # HeavySlam grants Fire element (3 turns) - RISKY!
-                if self.state.enemy:
-                    self.state.enemy.element = Element.FIRE
-                    self.state.enemy_element_duration = 3
-                    result['message'] += " [Gained FIRE element!]"
         
         elif action == "FireSpell":
             if self.state.enemy_resources.spend_mp(20):
-                result['damage'] = self._calculate_damage(28, Element.FIRE, "enemy")
+                result['damage'] = self._calculate_damage(15, Element.FIRE, "enemy")
                 result['message'] = f"Enemy casts Fire Spell for {result['damage']} damage"
-                # FireSpell grants Fire element (3 turns)
-                if self.state.enemy:
-                    self.state.enemy.element = Element.FIRE
-                    self.state.enemy_element_duration = 3
-                    result['message'] += " [Gained FIRE element!]"
-        
-        elif action == "RageBuff":
-            if self.state.enemy_resources.spend_mp(25):
-                self.state.add_status("enemy", StatusEffect(StatusAilment.RAGE_BUFF, 3))
-                result['status_applied'] = "Rage Buff"
-                result['message'] = "Enemy enrages! Attack +40% for 3 turns"
+                # Apply Burn DoT (10 dmg/turn for 3 turns)
+                self.state.add_status("player", StatusEffect(StatusAilment.BURN, 3, 10))
+                result['status_applied'] = "Burn"
+                result['message'] += " [Burn: 10 dmg/turn for 3 turns!]"
         
         return result
     
@@ -592,7 +558,7 @@ class CombatEngine:
         result = {'action': action, 'damage': 0, 'heal': 0, 'status_applied': None, 'message': '', 'telegraphed': None}
         
         if action == "FrostTouch":
-            if self.state.enemy_resources.spend_tp(10):
+            if self.state.enemy_resources.spend_mp(10):
                 result['damage'] = self._calculate_damage(18, Element.NEUTRAL, "enemy")
                 result['message'] = f"Enemy touches for {result['damage']} damage"
         
@@ -619,55 +585,7 @@ class CombatEngine:
             if self.state.enemy_resources.spend_mp(20):
                 self.state.add_status("player", StatusEffect(StatusAilment.ATTACK_DOWN, 3))
                 result['status_applied'] = "Attack Down"
-                result['message'] = "Enemy curses you! Attack -30% for 3 turns"
-        
-        return result
-    
-    def _execute_thunder_drake_action(self, action: str) -> Dict:
-        """Execute Thunder Drake specific action"""
-        result = {'action': action, 'damage': 0, 'heal': 0, 'status_applied': None, 'message': '', 'telegraphed': None}
-        
-        if action == "ClawSwipe":
-            if self.state.enemy_resources.spend_tp(10):
-                result['damage'] = self._calculate_damage(23, Element.NEUTRAL, "enemy")
-                result['message'] = f"Enemy swipes for {result['damage']} damage"
-        
-        elif action == "LightningSpell":
-            if self.state.enemy_resources.spend_mp(20):
-                result['damage'] = self._calculate_damage(28, Element.LIGHTNING, "enemy")
-                result['message'] = f"Enemy casts Lightning Spell for {result['damage']} damage"
-                # LightningSpell grants Lightning element (3 turns)
-                if self.state.enemy:
-                    self.state.enemy.element = Element.LIGHTNING
-                    self.state.enemy_element_duration = 3
-                    result['message'] += " [Gained LIGHTNING element!]"
-                # 25% paralyze chance
-                if random.random() < 0.25:
-                    self.state.add_status("player", StatusEffect(StatusAilment.PARALYZE, 2))
-                    result['status_applied'] = "Paralyze"
-        
-        elif action == "TailSweep":
-            if self.state.enemy_resources.spend_tp(15):
-                result['damage'] = self._calculate_damage(25, Element.NEUTRAL, "enemy")
-                result['message'] = f"Enemy tail sweeps for {result['damage']} damage"
-        
-        elif action == "ThunderStrike":
-            if self.state.enemy_resources.spend_tp(35):
-                result['damage'] = self._calculate_damage(50, Element.NEUTRAL, "enemy")
-                result['message'] = f"Enemy thunder strikes for {result['damage']} damage"
-                result['telegraphed'] = "Enemy crackles with energy!"
-                # ThunderStrike grants Lightning element (3 turns) - RISKY!
-                if self.state.enemy:
-                    self.state.enemy.element = Element.LIGHTNING
-                    self.state.enemy_element_duration = 3
-                    result['message'] += " [Gained LIGHTNING element!]"
-        
-        elif action == "StormCharge":
-            if self.state.enemy_resources.spend_mp(25):
-                self.state.add_status("enemy", StatusEffect(StatusAilment.STORM_CHARGE, 1))
-                result['status_applied'] = "Storm Charge"
-                result['message'] = "Enemy charges storm power! Next Lightning Spell 2x damage"
-                result['telegraphed'] = "Enemy channels storm power!"
+                result['message'] = "Enemy curses you! Attack -20% for 3 turns"
         
         return result
     
@@ -699,11 +617,11 @@ class CombatEngine:
                 if self.state.enemy:
                     self.state.enemy.element = Element.NEUTRAL
         
-        # Apply DoT damage
+        # Apply DoT damage (bypasses defense)
         for ailment, damage in player_dots:
-            self.state.player.take_damage(damage)
+            self.state.player.current_hp = max(0, self.state.player.current_hp - damage)
         for ailment, damage in enemy_dots:
-            self.state.enemy.take_damage(damage)
+            self.state.enemy.current_hp = max(0, self.state.enemy.current_hp - damage)
         
         # Player turn (reacts to telegraphed action from previous turn)
         player_result = self.execute_player_action(player_action)
@@ -730,14 +648,25 @@ class CombatEngine:
 
 
 def create_enemy(enemy_type: EnemyType) -> CombatStats:
-    """Create enemy - now always starts as Neutral (Elemental Shifter)"""
-    # Single enemy type: Elemental Shifter
-    # Starts Neutral, gains element when using elemental skills
+    """Create enemy with type-specific stats"""
+    if enemy_type == EnemyType.ICE_WRAITH:
+        defense = 8
+        max_hp = 200
+    elif enemy_type == EnemyType.FIRE_GOLEM:
+        defense = 5
+        max_hp = 180
+        base_attack = 17
+    else:
+        defense = 6
+        max_hp = 180
+    
+    base_attack_value = base_attack if enemy_type == EnemyType.FIRE_GOLEM else 15
+    
     return CombatStats(
-        max_hp=180,
-        current_hp=180,
-        base_attack=15,
-        defense=8,
+        max_hp=max_hp,
+        current_hp=max_hp,
+        base_attack=base_attack_value,
+        defense=defense,
         element=Element.NEUTRAL  # Always starts Neutral!
     )
 
@@ -757,11 +686,9 @@ class DungeonGame:
         
         # Set enemy resources based on type
         if enemy_type == EnemyType.FIRE_GOLEM:
-            self.state.enemy_resources = Resources(tp=50, mp=40, max_tp=100, max_mp=40, tp_regen=20, mp_regen=8)
+            self.state.enemy_resources = Resources(mp=40, max_mp=40, mp_regen=8)
         elif enemy_type == EnemyType.ICE_WRAITH:
-            self.state.enemy_resources = Resources(tp=50, mp=100, max_tp=100, max_mp=100, tp_regen=12, mp_regen=15)
-        elif enemy_type == EnemyType.THUNDER_DRAKE:
-            self.state.enemy_resources = Resources(tp=50, mp=70, max_tp=100, max_mp=70, tp_regen=15, mp_regen=12)
+            self.state.enemy_resources = Resources(mp=100, max_mp=100, mp_regen=15)
         
         self.engine = CombatEngine(self.state)
         self.game_over = False

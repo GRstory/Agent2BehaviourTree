@@ -1,0 +1,77 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: HeavySlam -> 45 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+Player: HP 55%, MP 75, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: Slam -> 17 dmg
+
+=== TURN 2 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 38%, MP 55, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: HeavySlam
+
+=== TURN 3 ===
+Player: HP 38%, MP 35, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: Slam -> 17 dmg
+
+=== TURN 4 ===
+Player: HP 21%, MP 15, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 5 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 4%, MP 20
+Enemy: HP 93%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 6 ===
+Player: HP 4%, MP 25
+Enemy: HP 85%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: HeavySlam
+
+=== TURN 7 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 4%, MP 5, Ailments: PowerBoost
+Enemy: HP 85%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam -> 45 dmg -> Healed 9 HP [TELEGRAPH: Enemy raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 8
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 147/180 (81%)
+
+Enemy: FireGolem (Neutral)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 10/100

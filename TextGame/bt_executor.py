@@ -1,8 +1,7 @@
 """
-Behaviour Tree Executor
+Behaviour Tree Executor - Simplified (Action Only)
 
-Executes behaviour trees against game state to determine player actions.
-Integrates the existing BT parser with game-specific nodes.
+Executes behaviour trees against game state to determine player action.
 """
 
 from typing import Optional
@@ -18,7 +17,7 @@ from .bt_nodes import create_condition_node, create_action_node, BTCondition, BT
 
 
 class BTExecutor:
-    """Executes behaviour trees to determine player actions"""
+    """Executes behaviour trees to determine player action"""
     
     def __init__(self, bt_root: BTNode):
         self.bt_root = bt_root
@@ -99,8 +98,14 @@ class BTExecutor:
             return False
         
         try:
-            # Parse condition parameter (e.g., "IsPlayerHPLow(30)")
-            param_str = node.param
+            # Parse condition parameter (e.g., "IsPlayerHPLow(30)" or "NOT HasStatus(CHARGED)")
+            param_str = node.param.strip()
+            
+            # Check for NOT operator
+            is_negated = False
+            if param_str.startswith("NOT "):
+                is_negated = True
+                param_str = param_str[4:].strip()  # Remove "NOT "
             
             # Extract node type and parameter
             if '(' in param_str:
@@ -112,7 +117,10 @@ class BTExecutor:
             
             # Create and evaluate condition
             condition = create_condition_node(node_type, param)
-            return condition.evaluate(state)
+            result = condition.evaluate(state)
+            
+            # Apply NOT if present
+            return not result if is_negated else result
         
         except Exception as e:
             self.execution_trace.append(f"Error evaluating condition {node.param}: {e}")
@@ -124,7 +132,7 @@ class BTExecutor:
             return None
         
         try:
-            # Parse action parameter (e.g., "LightAttack")
+            # Parse action parameter (e.g., "Attack()")
             action_type = node.param.strip()
             
             # Remove parentheses if present
@@ -153,56 +161,3 @@ def create_bt_executor_from_dsl(dsl_text: str) -> Optional[BTExecutor]:
     if bt_tree is None:
         return None
     return BTExecutor(bt_tree)
-
-
-# ============================================================================
-# EXAMPLE BTs FOR TESTING
-# ============================================================================
-
-EXAMPLE_BT_AGGRESSIVE = """
-root :
-    selector :
-        sequence :
-            condition : IsPlayerHPLow(20)
-            condition : CanHeal()
-            task : Heal()
-        sequence :
-            condition : HasComboReady(TripleLight)
-            task : LightAttack()
-        sequence :
-            condition : IsEnemyHPLow(30)
-            task : HeavyAttack()
-        task : LightAttack()
-"""
-
-EXAMPLE_BT_DEFENSIVE = """
-root :
-    selector :
-        sequence :
-            condition : IsPlayerHPLow(40)
-            condition : CanHeal()
-            task : Heal()
-        sequence :
-            condition : IsPlayerHPLow(50)
-            task : Defend()
-        sequence :
-            condition : HasComboReady(CounterStrike)
-            task : HeavyAttack()
-        sequence :
-            condition : IsEnemyHPLow(25)
-            task : HeavyAttack()
-        task : LightAttack()
-"""
-
-EXAMPLE_BT_BALANCED = """
-root :
-    selector :
-        sequence :
-            condition : IsPlayerHPLow(30)
-            condition : CanHeal()
-            task : Heal()
-        sequence :
-            condition : IsEnemyHPLow(30)
-            task : HeavyAttack()
-        task : LightAttack()
-"""

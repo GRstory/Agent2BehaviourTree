@@ -1,0 +1,231 @@
+================================================================================
+GENERATOR LLM LOG
+Iteration: 18
+Timestamp: 20251215_023805
+Temperature: 1.2
+No improvement count: 12
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert AI strategist specializing in turn-based RPG combat and Behaviour Tree design.
+
+CRITICAL: The Behaviour Tree executes ONE action per turn.
+
+AVAILABLE ACTIONS:
+- Attack: Free, 9 damage
+- Charge: 15 MP, 7 damage + next turn all damage x2
+- FireSpell: 20 MP, 7 damage (11 vs IceWraith), Burn 25%
+- IceSpell: 20 MP, 10 damage (15 vs FireGolem), Freeze 25%
+- Defend: Free, 50% damage reduction for 1 turn
+- Heal: 30 MP, +45 HP, 3 turn cooldown
+- Scan: 15 MP, reveals enemy weakness
+- Cleanse: 25 MP, removes Burn/AttackDown, +10% damage for 1 turn
+
+ELEMENTAL SYSTEM:
+- Fire ↔ Ice (mutual weakness, 1.5x damage)
+- Status effects: Freeze 25%, Burn from FireGolem (10 dmg/turn × 3 turns, bypasses defense!)
+
+ENEMY MECHANICS:
+- FireGolem (HP 180, Def 4): FireSpell adds Burn (10/turn × 3 = 30 total, bypasses defense!)
+- IceWraith (HP 200, Def 8): Debuff gives AttackDown -20% for 3 turns
+
+RESOURCES:
+- MP only, regenerates 5 per turn
+- Start with 100 MP
+
+Your expertise includes:
+- Elemental weakness exploitation (1.5x damage!)
+- Cleanse timing (use when Burn/AttackDown active for huge value)
+- MP management (Cleanse 25, Spells 20, Heal 30, Scan 15)
+- Telegraph defense (Defend against HeavySlam/Debuff)
+- DoT awareness (Burn bypasses defense, 30 total damage!)
+
+Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation.
+You must ONLY use the control nodes (root, selector, sequence), conditions, and tasks listed in the DSL specification.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Generate an IMPROVED Behaviour Tree based on feedback.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Mandatory Scan on Turn 1
+        sequence :
+            NOT HasScannedEnemy()
+            condition : HasMP(15)
+            task : Scan()
+
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # IceSpell if FireGolem is Fire
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # FireSpell if enemy is Ice
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Cleanse Burn
+        sequence :
+            condition : EnemyHasBuff(Burn)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Cleanse Freeze
+        sequence :
+            condition : EnemyHasBuff(Freeze)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal if low HP
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse AttackDown
+        sequence :
+            condition : EnemyHasBuff(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Improvement Feedback
+## Analysis
+
+The combat highlighted several key issues with the current BT design when facing IceWraith. The BT consistently relied on scanning *after* the enemy had already inflicted significant damage and applied debilitating effects like Freeze and AttackDown. The BT failed to proactively address the IceWraith's aggressive tactics, primarily reacting rather than anticipating. The reliance on scanning after each turn was inefficient, especially considering the enemy’s telegraphing behavior (FrostTouch, FrostTouch, FrostTouch). Furthermore, the BT didn't consistently capitalize on the IceWraith’s Ice element, leading to missed opportunities for damage amplification. Finally, the BT’s heal timing was suboptimal, often triggered too late to mitigate the cumulative damage.
+
+## Improvement Suggestions
+
+1. **Proactive Scanning:** Implement a scan on turn 1. This would immediately reveal the IceWraith’s element and allow for a more strategic approach from the outset.  This should be a priority, as it addresses the biggest weakness in the current BT.
+
+2. **IceSpell Prioritization:**  Modify the BT to *always* prioritize IceSpell when the IceWraith has the Ice element.  Specifically, add a condition: "EnemyElement == Ice" before executing the IceSpell task. This will ensure the BT uses its most effective attack.
+
+3. **Heal Threshold Adjustment:** Increase the heal trigger threshold from 40% to 50%. This will allow the BT to heal earlier, preventing the player from reaching critical health levels and reducing the impact of the IceWraith's attacks. This is necessary given the BT's delayed healing response.
+
+4. **Telegraph Defense:** Add a Defend() task when the enemy telegraphs FrostTouch (HeavySlam). This would mitigate the damage from the initial FrostTouch attack and buy the BT time to assess the situation.
+
+5. **Scan Delay Reduction:** Reduce the delay between scanning and using IceSpell. Currently, the BT waits for the enemy element to become known before using IceSpell, which is too late. Ideally, scanning should be integrated into the IceSpell task itself, or at least executed immediately after the enemy’s attack.
+
+
+# COMPLETE LIST OF AVAILABLE SYNTAX
+
+**Control Nodes (ONLY these 3):**
+- `root :` - Must be first line, has one child
+- `selector :` - Tries children until one succeeds
+- `sequence :` - All conditions must pass, executes final task
+
+**Conditions (ONLY these):**
+- `IsPlayerHPLow(30)` - Player HP < threshold%
+- `IsEnemyHPLow(30)` - Enemy HP < threshold%
+- `HasMP(20)` - Player has >= amount MP
+- `CanHeal()` - Heal is off cooldown AND MP >= 30
+- `EnemyWeakTo(Fire)` or `EnemyWeakTo(Ice)` - Enemy weak to element (DYNAMIC! Can change during combat)
+- `HasScannedEnemy()` - Enemy has been scanned
+- `EnemyHasBuff(Enrage)` - Enemy has specific buff
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy will execute this action THIS turn (telegraphed at end of last turn)
+- `HasStatus(CHARGED)` - Player has CHARGED status (from Charge action)
+- `NOT <condition>` - Negates a condition
+
+**Actions/Tasks (ONLY these):**
+- `Attack()` - Free, 9 damage
+- `Charge()` - 15 MP, 7 damage + next turn all damage x2
+- `FireSpell()` - 20 MP, 7 damage, 1.5x vs Ice
+- `IceSpell()` - 20 MP, 10 damage, 1.5x vs Fire
+- `Defend()` - Free, 50% damage reduction for 1 turn
+- `Heal()` - 30 MP, +45 HP, 3 turn cooldown
+- `Scan()` - 15 MP, reveals enemy weakness
+- `Cleanse()` - 25 MP, removes Burn/AttackDown, +10% damage 1 turn
+
+# CRITICAL RULES
+
+1. **ONE ACTION PER TURN**: The BT executes ONLY ONE action per turn. Once a task is selected, the turn ends.
+2. **USE ONLY LISTED SYNTAX ABOVE**: You must use ONLY the control nodes, conditions, and tasks listed above. No other syntax exists.
+3. **Indentation**: Use exactly 4 spaces per level
+4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
+5. **Fallback**: Always end selector with `task : Attack()`
+
+# Your Task
+
+Apply the feedback to create an improved BT using ONLY the syntax listed above. Output ONLY the BT DSL, no explanations. Start with `root :`.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+```
+root :
+    selector :
+        # Mandatory Scan on Turn 1
+        sequence :
+            NOT HasScannedEnemy()
+            condition : HasMP(15)
+            task : Scan()
+
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # IceSpell if enemy is Ice
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # FireSpell if enemy is Ice
+        sequence :
+            HasScannedEnemy()
+            EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Cleanse Burn
+        sequence :
+            condition : EnemyHasBuff(Burn)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Cleanse Freeze
+        sequence :
+            condition : EnemyHasBuff(Freeze)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal if low HP
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse AttackDown
+        sequence :
+            condition : EnemyHasBuff(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Default: Attack
+        task : Attack()
+```
+
+================================================================================
+Prompt length: 5488 chars
+Response length: 1335 chars
+================================================================================

@@ -1,0 +1,259 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 15
+Timestamp: 20251214_192617
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: The Behaviour Tree executes ONE action per turn.
+
+AVAILABLE ACTIONS:
+- Attack: Free, 9 damage
+- Charge: 15 MP, 7 damage + NEXT TURN all damage x2
+- FireSpell: 20 MP, 7 dmg (11 vs IceWraith), Burn 25%
+- IceSpell: 20 MP, 10 dmg (15 vs FireGolem), Freeze 25%
+- Defend: Free, 50% damage reduction
+- Heal: 30 MP, +45 HP, 3 turn cooldown
+- Scan: 15 MP, reveals enemy weakness
+- Cleanse: 25 MP, removes Burn/AttackDown, +10% damage for 1 turn
+
+CRITICAL MECHANICS:
+- Elemental weakness: Fire ↔ Ice (1.5x damage)
+- **DYNAMIC ELEMENTS**: Enemy elements can CHANGE during combat!
+  - Enemies start as Neutral (no weakness)
+  - FireGolem: Phase 2 (HP < 50%) permanently becomes Fire element
+  - IceWraith: Using IceSpell grants Ice element for 3 turns, then returns to Neutral
+  - Elements can expire and return to Neutral
+- FireGolem: FireSpell adds Burn (10 dmg/turn × 3 turns = 30 total, bypasses defense!)
+- IceWraith: Debuff gives AttackDown -20% for 3 turns
+- DoT bypasses defense (Burn is guaranteed 10 dmg/turn)
+- MP regenerates 5 per turn, starts at 100
+
+OPTIMAL STRATEGIES:
+- vs FireGolem: Use IceSpell (15 dmg) ONLY when enemy has Fire element (Phase 2)
+- vs IceWraith: Use FireSpell (11 dmg) ONLY when enemy has Ice element (after IceSpell)
+- Cleanse value: Removes Burn (30 dmg saved) OR AttackDown (damage restored) + 10% boost
+- Wrong spell = damage loss (7 vs 11-15)
+- **CRITICAL**: Check enemy element BEFORE using elemental spells!
+
+Your task is to analyze combat logs and identify:
+- **Dynamic element awareness** (did they wait for enemy to gain element before using weakness spell?)
+- Elemental advantage (did they use correct spell when enemy had element?)
+- Cleanse timing (did they remove Burn/AttackDown when active?)
+- MP efficiency (Cleanse 25, Spells 20, Heal 30, Scan 15)
+- Defensive timing (Defend against telegraphed HeavySlam/Debuff)
+- Heal timing (considering 3 turn cooldown)
+- DoT awareness (Burn does 30 total damage, Cleanse saves it all!)
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Defend against telegraphed HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Scan on turn 1
+        sequence :
+            condition : HasMP(15)
+            task : Scan()
+
+        # FireSpell if enemy is weak to Ice after scanning
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # IceSpell if enemy is weak to Fire after scanning
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Cleanse debuffs immediately
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# This Combat Result
+DEFEAT vs FireGolem: 10 turns
+
+# Combat Summary
+=== COMBAT LOG FOR ANALYSIS ===
+
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+Player: HP 81%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: Slam -> 17 dmg
+
+=== TURN 2 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 64%, MP 85
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 3 ===
+Player: HP 64%, MP 90
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam
+
+=== TURN 4 ===
+Player: HP 64%, MP 80
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: Slam -> 17 dmg
+
+=== TURN 5 ===
+Player: HP 47%, MP 70
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam -> 45 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 6 ===
+Player: HP 2%, MP 60
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: Slam
+
+=== TURN 7 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 2%, MP 50
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 8 ===
+Player: HP 2%, MP 55
+Enemy: HP 100%, Element: Neutral
+
+Action: Scan (MP -15)
+Enemy: HeavySlam
+
+=== TURN 9 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 2%, MP 45
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg [TELEGRAPH: Enemy raises its fists!]
+
+
+=== PATTERN ANALYSIS HINTS ===
+
+Enemy Action History (last 5): HeavySlam, Slam, HeavySlam, HeavySlam, HeavySlam
+Enemy Last Action: HeavySlam
+
+Final Enemy Element: Neutral
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 10
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 180/180 (100%)
+
+Enemy: FireGolem (Neutral)
+Weakness: None (scanned)
+
+Resources Remaining: MP 50/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Telegraph Reactions**: Did they defend against telegraphed heavy attacks?
+2. **Elemental Strategy**: Did they scan? Did they use the right spell?
+3. **Resource Management**: MP usage efficiency
+4. **Defensive Decisions**: Heal/Defend timing
+5. **BT Issues**: What parts of the tree caused problems?
+
+**CRITICAL CONSTRAINT**: 
+- Focus ONLY on improving strategy against **FireGolem**
+- Do NOT add or modify logic for other enemy types you haven't fought
+- Only suggest changes based on what happened in THIS combat
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Add Defend() when enemy telegraphs HeavySlam"
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT consistently defended against the HeavySlam telegraph, but failed to capitalize on the FireGolem's eventual transformation into a Fire element. The BT didn't utilize the scan effectively, and the reliance on Defend against the telegraph was predictable and ineffective. MP was used inefficiently, primarily through scanning, when a more aggressive strategy could have been beneficial. The lack of proactive elemental assessment led to wasted spellcasting opportunities.
+
+## Improvement Suggestions
+1. **Prioritize Scan on Turn 1:** Immediately execute Scan on turn 1 to reveal the FireGolem's potential for Fire element transformation. This should be the first action taken.
+2. **Aggressive Elemental Response:** If Scan reveals Fire element (Phase 2), immediately use IceSpell. This directly addresses the enemy's weakness and prevents the Burn DoT from accumulating.
+3. **Defend Only on HeavySlam Telegraph:**  Strictly limit Defend to only when the HeavySlam telegraph is observed. This avoids unnecessary MP expenditure and wasted turns.  Remove the conditional from the Defend task.
+4. **Reduce Scan MP Cost:** Lower the MP cost of Scan to 10 instead of 15. This increases its frequency and the likelihood of revealing the Fire element early.
+5. **Adjust Heal Threshold:** Increase the HP threshold for Heal from 40% to 50%. This allows for more frequent healing and prevents the player from reaching critical health.
+
+================================================================================
+Prompt length: 4136 chars
+Response length: 1441 chars
+================================================================================

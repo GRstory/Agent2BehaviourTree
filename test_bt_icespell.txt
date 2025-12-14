@@ -1,0 +1,23 @@
+root :
+    selector :
+        # Scan early
+        sequence :
+            condition : IsTurnEarly(1)
+            condition : HasMP(15)
+            task : Scan()
+        
+        # Use IceSpell against FireGolem
+        sequence :
+            condition : HasScannedEnemy()
+            condition : EnemyWeakTo(Ice)
+            condition : HasMP(20)
+            task : IceSpell()
+        
+        # Heal when low
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Default: Attack
+        task : Attack()

@@ -1,0 +1,194 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 1 ===
+Player: HP 78%, MP 100
+Enemy: HP 94%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 2 ===
+Player: HP 56%, MP 100
+Enemy: HP 88%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 44 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 3 ===
+Player: HP 88%, MP 70
+Enemy: HP 88%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 4 ===
+Player: HP 66%, MP 75
+Enemy: HP 82%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 5 ===
+Player: HP 54%, MP 80
+Enemy: HP 76%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 6 ===
+Player: HP 32%, MP 85
+Enemy: HP 70%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 7 ===
+Player: HP 65%, MP 60
+Enemy: HP 70%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 8 ===
+Player: HP 53%, MP 65
+Enemy: HP 64%, Element: Ice (1 turns)
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 9 ===
+Player: HP 41%, MP 70
+Enemy: HP 57%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 10 ===
+Player: HP 28%, MP 75
+Enemy: HP 52%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: Debuff
+
+=== TURN 11 ===
+Player: HP 74%, MP 50, Ailments: AttackDown
+Enemy: HP 52%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 12 ===
+Player: HP 62%, MP 55, Ailments: AttackDown
+Enemy: HP 48%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 13 ===
+Player: HP 50%, MP 60, Ailments: AttackDown
+Enemy: HP 44%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 14 ===
+Player: HP 38%, MP 65
+Enemy: HP 38%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 15 ===
+Player: HP 71%, MP 40
+Enemy: HP 38%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 16 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 59%, MP 45
+Enemy: HP 32%, Element: Neutral
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 17 ===
+Player: HP 59%, MP 50, Ailments: AttackDown
+Enemy: HP 32%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 18 ===
+Player: HP 37%, MP 55, Ailments: AttackDown, Freeze
+Enemy: HP 28%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 19 ===
+Player: HP 70%, MP 30, Ailments: AttackDown
+Enemy: HP 28%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 20 ===
+Player: HP 48%, MP 35, Ailments: Freeze
+Enemy: HP 22%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 21 ===
+Player: HP 36%, MP 40
+Enemy: HP 16%, Element: Ice (2 turns)
+
+Action: Attack -> 12 dmg
+Enemy: Debuff
+
+=== TURN 22 ===
+Player: HP 36%, MP 45, Ailments: AttackDown
+Enemy: HP 10%, Element: Ice (1 turns)
+
+Action: Heal (MP -30) -> Healed 45 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 23 ===
+Player: HP 69%, MP 20, Ailments: AttackDown
+Enemy: HP 10%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: IceSpell -> 22 dmg
+
+=== TURN 24 ===
+Player: HP 47%, MP 25, Ailments: AttackDown, Freeze
+Enemy: HP 6%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: None
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: VICTORY
+Turns: 25
+Final Player HP: 47/100 (47%)
+Final Enemy HP: 0/200 (0%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 30/100

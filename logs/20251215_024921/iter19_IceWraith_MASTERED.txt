@@ -1,0 +1,9 @@
+=== MASTERY ACHIEVED: IceWraith ===
+
+Validation: 5/5 wins (100%)
+
+Battle 1: WIN - 34 turns
+Battle 2: WIN - 33 turns
+Battle 3: WIN - 32 turns
+Battle 4: WIN - 32 turns
+Battle 5: WIN - 28 turns

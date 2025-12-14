@@ -276,13 +276,6 @@ task : Scan()
 
 ### Common Patterns
 
-**Scan Early:**
-```
-sequence :
-    condition : IsTurnEarly(2)
-    task : Scan()
-```
-
 **Exploit Weakness:**
 ```
 sequence :

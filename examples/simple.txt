@@ -1,0 +1,10 @@
+root :
+    selector :
+        # HP 50% 이하면 회복 시도
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+        
+        # 기본 공격
+        task : Attack()
