@@ -1,0 +1,40 @@
+Rolled back to iteration 9
+Best score: 18/40
+
+root :
+    selector :
+        # Defend against telegraphs
+        sequence :
+            selector :
+                condition : EnemyIsTelegraphing(HeavySlam)
+                condition : EnemyIsTelegraphing(FlameStrike)
+                condition : EnemyIsTelegraphing(Debuff)
+                condition : EnemyIsTelegraphing(FrostTouch)
+            task : Defend()
+
+        # Heal when HP is low
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit Fire weakness
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit Ice weakness
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Low MP defense
+        sequence :
+            condition : HasMP(30)
+            NOT : HasMP(30)
+            task : Defend()
+
+        # Default: Attack
+        task : Attack()

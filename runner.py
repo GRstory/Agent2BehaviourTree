@@ -19,9 +19,9 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from TextGame.game_engine import DungeonGame, PlayerAction, EnemyType
 from TextGame.abstract_logger import AbstractLogger
 from TextGame.bt_executor import create_bt_executor_from_dsl
-from TextGame.llm_agent import LLMAgent, MockLLMAgent
-from TextGame.ollama_agent import OllamaLLMAgent
-from TextGame.hybrid_agent import HybridLLMAgent
+from Agent.llm_agent import LLMAgent, MockLLMAgent
+from Agent.ollama_agent import OllamaLLMAgent
+from Agent.hybrid_agent import HybridLLMAgent
 from config import DEFAULT_LLM_CONFIG, DEFAULT_RUNNER_CONFIG
 
 

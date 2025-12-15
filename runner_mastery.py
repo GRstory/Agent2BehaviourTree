@@ -20,65 +20,78 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from TextGame.game_engine import DungeonGame, PlayerAction, EnemyType
 from TextGame.abstract_logger import AbstractLogger
 from TextGame.bt_executor import create_bt_executor_from_dsl
-from TextGame.llm_agent import LLMAgent, MockLLMAgent
-from TextGame.ollama_agent import OllamaLLMAgent
-from TextGame.hybrid_agent import HybridLLMAgent
+from Agent.llm_agent import LLMAgent, MockLLMAgent
+from Agent.ollama_agent import OllamaLLMAgent
+from Agent.hybrid_agent import HybridLLMAgent
+from Agent.single_stage_agent import SingleStageLLMAgent
 from config import DEFAULT_LLM_CONFIG, DEFAULT_RUNNER_CONFIG
 
 
 class ValidationTester:
-    """Runs 5-battle validation test for a specific enemy"""
+    """Runs 5-battle validation test against ALL enemies"""
     
-    def __init__(self, bt_dsl: str, enemy_type: EnemyType):
+    def __init__(self, bt_dsl: str):
         self.bt_dsl = bt_dsl
-        self.enemy_type = enemy_type
     
-    def run_validation(self) -> dict:
-        """Run 5 battles and return results"""
-        results = []
+    def run_validation_all_enemies(self) -> dict:
+        """Run 20 battles against each enemy type and return results"""
+        all_results = {}
         
-        for i in range(5):
-            game = DungeonGame(enemy_type=self.enemy_type)
-            executor = create_bt_executor_from_dsl(self.bt_dsl)
+        for enemy_type in [EnemyType.FIRE_GOLEM, EnemyType.ICE_WRAITH]:
+            results = []
             
-            if not executor:
-                return {'success': False, 'error': 'Failed to parse BT'}
-            
-            turn = 0
-            max_turns = 35
-            
-            # Pre-telegraph
-            if game.state.enemy:
-                game.engine.telegraph_enemy_action()
-            
-            while not game.game_over and turn < max_turns:
-                turn += 1
-                action = executor.execute(game.state)
-                if not action:
-                    action = PlayerAction.ATTACK
+            for i in range(20):
+                game = DungeonGame(enemy_type=enemy_type)
+                executor = create_bt_executor_from_dsl(self.bt_dsl)
                 
-                result = game.take_action(action)
+                if not executor:
+                    return {'success': False, 'error': 'Failed to parse BT'}
                 
-                if game.game_over:
-                    break
+                turn = 0
+                max_turns = 35
+                
+                # Pre-telegraph
+                if game.state.enemy:
+                    game.engine.telegraph_enemy_action()
+                
+                while not game.game_over and turn < max_turns:
+                    turn += 1
+                    action = executor.execute(game.state)
+                    if not action:
+                        action = PlayerAction.ATTACK
+                    
+                    result = game.take_action(action)
+                    
+                    if game.game_over:
+                        break
+                
+                results.append({
+                    'victory': game.victory,
+                    'turns': turn,
+                    'player_hp': game.state.player.current_hp,
+                    'enemy_hp': game.state.enemy.current_hp if game.state.enemy else 0
+                })
             
-            results.append({
-                'victory': game.victory,
-                'turns': turn,
-                'player_hp': game.state.player.current_hp,
-                'enemy_hp': game.state.enemy.current_hp if game.state.enemy else 0
-            })
+            wins = sum(1 for r in results if r['victory'])
+            all_results[enemy_type] = {
+                'wins': wins,
+                'total': 20,
+                'win_rate': wins / 20.0,
+                'results': results
+            }
         
-        wins = sum(1 for r in results if r['victory'])
-        win_rate = wins / 5.0
+        # Calculate overall stats
+        total_wins = sum(r['wins'] for r in all_results.values())
+        total_battles = sum(r['total'] for r in all_results.values())
+        overall_win_rate = total_wins / total_battles if total_battles > 0 else 0
         
         return {
             'success': True,
-            'wins': wins,
-            'total': 5,
-            'win_rate': win_rate,
-            'results': results,
-            'mastered': win_rate == 1.0
+            'enemy_results': all_results,
+            'total_wins': total_wins,
+            'total_battles': total_battles,
+            'overall_win_rate': overall_win_rate,
+            'perfect': overall_win_rate == 1.0
         }
 
 
@@ -155,22 +168,23 @@ class GameRunner:
 class EnemyMasteryLoop:
     """LLM-driven BT improvement with enemy mastery system"""
     
-    def __init__(self, config=None, use_mock=False, use_ollama=False, use_hybrid=False, ollama_model="gemma3:4b"):
+    def __init__(self, config=None, agent=None):
         self.config = config or DEFAULT_RUNNER_CONFIG
         self.llm_config = DEFAULT_LLM_CONFIG
         
-        if use_hybrid:
-            self.llm = HybridLLMAgent(self.llm_config, ollama_model=ollama_model)
-        elif use_ollama:
-            self.llm = OllamaLLMAgent(model=ollama_model)
-        elif use_mock or self.config.use_mock_llm:
-            self.llm = MockLLMAgent(self.llm_config)
-        else:
-            self.llm = LLMAgent(self.llm_config)
+        if agent is None:
+            raise ValueError("An LLM agent must be provided to EnemyMasteryLoop.")
+        self.llm = agent
         
         self.iteration_results = []
         self.mastered_enemies: Set[EnemyType] = set()
         self.active_enemies: Set[EnemyType] = set(EnemyType)
+        
+        # Rollback tracking
+        self.best_bt = None
+        self.best_score = 0.0  # Total wins out of 40 (20 per enemy)
+        self.iterations_without_improvement = 0
+        self.best_iteration = -1
         
         # Create timestamp-based directories
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -185,31 +199,26 @@ class EnemyMasteryLoop:
     
     def run_iteration(self, iteration: int, bt_dsl: str) -> dict:
         """Run one iteration: game + optional validation"""
-        print(f"\n{'='*70}")
-        print(f"ITERATION {iteration}")
-        print(f"{'='*70}\n")
-        
         # Select enemy from active pool
         if not self.active_enemies:
             print("[!] All enemies mastered!")
             return None
         
         enemy_type = random.choice(list(self.active_enemies))
-        print(f"Active enemies: {[e.value for e in self.active_enemies]}")
-        print(f"Selected enemy: {enemy_type.value}")
         
         # Run game
         runner = GameRunner(bt_dsl, enemy_type=enemy_type, verbose=self.config.verbose)
         result = runner.run_game()
         
-        print(f"\nResult: {'VICTORY' if result['victory'] else 'DEFEAT'}")
-        print(f"Enemy: {result['enemy_type']}")
-        print(f"Turns: {result['turns']}")
-        print(f"Final Player HP: {result['player_hp']}/100")
-        print(f"Final Enemy HP: {result['enemy_hp']}")
-        print(f"Scanned: {result['scanned']}")
+        # Get enemy max HP for display
+        enemy_max_hp = result.get('enemy_hp', 0)
+        if result['enemy_type'] == 'FireGolem':
+            enemy_max_hp_total = 180
+        else:  # IceWraith
+            enemy_max_hp_total = 200
         
         # Save logs
+        validation_status = ""
         if self.config.save_logs:
             log_file = os.path.join(
                 self.log_dir,
@@ -219,7 +228,6 @@ class EnemyMasteryLoop:
                 f.write(result['combat_log'])
                 f.write("\n\n")
                 f.write(result['summary'])
-            print(f"Saved log: {log_file}")
         
         # Save BT
         if self.config.save_bts:
@@ -229,72 +237,128 @@ class EnemyMasteryLoop:
             )
             with open(bt_file, 'w', encoding='utf-8') as f:
                 f.write(bt_dsl)
-            print(f"Saved BT: {bt_file}")
         
-        # If victory, run validation test
+        # Run validation test against ALL enemies (for both WIN and LOSS)
         validation_result = None
-        if result['victory']:
-            print(f"\n[!] Victory detected! Running 5-battle validation test...")
-            tester = ValidationTester(bt_dsl, enemy_type)
-            validation_result = tester.run_validation()
+        should_stop = False
+        
+        # Always run validation test
+        tester = ValidationTester(bt_dsl)
+        validation_result = tester.run_validation_all_enemies()
+        
+        if validation_result['success']:
+            # Format: FIREGOLEM[4/5], ICEWRAITH[3/5]
+            enemy_results = validation_result['enemy_results']
+            fg_result = enemy_results[EnemyType.FIRE_GOLEM]
+            iw_result = enemy_results[EnemyType.ICE_WRAITH]
             
-            if validation_result['success']:
-                print(f"Validation: {validation_result['wins']}/5 wins ({validation_result['win_rate']*100:.0f}%)")
+            validation_status = f"FIREGOLEM[{fg_result['wins']}/{fg_result['total']}], ICEWRAITH[{iw_result['wins']}/{iw_result['total']}]"
+            
+            # Update log file with validation status
+            if self.config.save_logs:
+                with open(log_file, 'a', encoding='utf-8') as f:
+                    f.write(f"\n\n{'='*70}\n")
+                    f.write(f"VALIDATION TEST: {validation_status}\n")
+                    f.write(f"{'='*70}\n")
+            
+            # Check if both enemies have 80%+ win rate (4/5 or better)
+            fg_win_rate = fg_result['wins'] / fg_result['total']
+            iw_win_rate = iw_result['wins'] / iw_result['total']
+            both_80_percent = fg_win_rate >= 0.8 and iw_win_rate >= 0.8
+            
+            # Stop if both enemies achieve 80%+ win rate (only on victory)
+            if result['victory'] and both_80_percent:
+                should_stop = True
                 
-                if validation_result['mastered']:
-                    print(f"[★] MASTERED {enemy_type.value}! Removing from active pool.")
-                    self.mastered_enemies.add(enemy_type)
-                    self.active_enemies.remove(enemy_type)
-                    
-                    # Save validation log
-                    val_log_file = os.path.join(
-                        self.log_dir,
-                        f"iter{iteration:02d}_{enemy_type.value}_MASTERED.txt"
-                    )
-                    with open(val_log_file, 'w', encoding='utf-8') as f:
-                        f.write(f"=== MASTERY ACHIEVED: {enemy_type.value} ===\n\n")
-                        f.write(f"Validation: {validation_result['wins']}/5 wins (100%)\n\n")
-                        for i, r in enumerate(validation_result['results']):
-                            f.write(f"Battle {i+1}: {'WIN' if r['victory'] else 'LOSS'} - {r['turns']} turns\n")
-                    print(f"Saved mastery log: {val_log_file}")
+                # Determine if it's perfect (100%) or excellent (80%+)
+                is_perfect = validation_result['perfect']
+                log_suffix = "PERFECT_100_PERCENT" if is_perfect else "EXCELLENT_80_PERCENT"
+                
+                # Save achievement log
+                achievement_log_file = os.path.join(
+                    self.log_dir,
+                    f"iter{iteration:02d}_{log_suffix}.txt"
+                )
+                with open(achievement_log_file, 'w', encoding='utf-8') as f:
+                    if is_perfect:
+                        f.write(f"=== 100% WIN RATE ACHIEVED ===\n\n")
+                    else:
+                        f.write(f"=== 80%+ WIN RATE ACHIEVED ===\n\n")
+                    f.write(f"Iteration: {iteration}\n")
+                    f.write(f"Validation: {validation_status}\n\n")
+                    f.write(f"FireGolem: {fg_result['wins']}/5 ({fg_win_rate*100:.0f}%)\n")
+                    f.write(f"IceWraith: {iw_result['wins']}/5 ({iw_win_rate*100:.0f}%)\n\n")
+                    for enemy_type_key, enemy_result in enemy_results.items():
+                        f.write(f"\n{enemy_type_key.value} Details:\n")
+                        for i, r in enumerate(enemy_result['results']):
+                            f.write(f"  Battle {i+1}: {'WIN' if r['victory'] else 'LOSS'} - {r['turns']} turns\n")
+        
+        # Compact console output
+        result_str = "WIN" if result['victory'] else "LOSS"
+        hp_str = f"Player: {result['player_hp']}/100, Enemy: {result['enemy_hp']}/{enemy_max_hp_total}"
+        
+        if validation_status:
+            print(f"[{iteration:02d}] {result['enemy_type']} {result_str} ({result['turns']} turns) | {hp_str} → {validation_status}")
+            if should_stop:
+                # Check if it's perfect or just excellent
+                if validation_result and validation_result.get('perfect'):
+                    print(f"     🎉 100% WIN RATE ACHIEVED!")
                 else:
-                    print(f"[!] Not yet mastered. Continue training against {enemy_type.value}.")
+                    print(f"     ⭐ 80%+ WIN RATE ACHIEVED!")
+        else:
+            print(f"[{iteration:02d}] {result['enemy_type']} {result_str} ({result['turns']} turns) | {hp_str}")
         
         result['bt_dsl'] = bt_dsl
         result['validation'] = validation_result
+        result['validation_status'] = validation_status
+        result['should_stop'] = should_stop
+        result['iteration'] = iteration  # Add iteration number to track
+        
+        # Track best BT based on validation score
+        if validation_result and validation_result['success']:
+            current_score = validation_result['total_wins']
+            if current_score > self.best_score:
+                self.best_score = current_score
+                self.best_bt = bt_dsl
+                self.best_iteration = iteration
+                self.iterations_without_improvement = 0
+                print(f"     ⭐ New best! Score: {current_score}/40 (iter {iteration})")
+            else:
+                self.iterations_without_improvement += 1
+        
         return result
+
     
     def run(self, initial_bt_path: str = "examples/example_bt_balanced.txt"):
         """Run complete improvement loop with enemy mastery"""
         print("="*70)
         print("ENEMY MASTERY TRAINING MODE")
         print("="*70)
+        print(f"Initial BT: {initial_bt_path}")
+        print(f"Max iterations: {self.config.max_iterations}")
+        print(f"LLM: {type(self.llm).__name__}")
+        print("="*70)
         
         # Load initial BT
         with open(initial_bt_path, 'r', encoding='utf-8') as f:
             current_bt = f.read()
-        
-        print(f"\nLoaded initial BT from: {initial_bt_path}")
-        print(f"Max iterations: {self.config.max_iterations}")
-        print(f"Using LLM: {type(self.llm).__name__}")
-        print(f"Total enemies: {len(self.active_enemies)}")
         
         # Run iterations
         for iteration in range(self.config.max_iterations):
             result = self.run_iteration(iteration, current_bt)
             
             if result is None:
-                print("\n[!] All enemies mastered! Running final comprehensive test...")
-                self._run_final_test(current_bt)
+                print("\n[!] All enemies mastered!")
                 break
             
             self.iteration_results.append(result)
             
-            # Generate improved BT using LLM
+            # Check if 100% win rate achieved
+            if result.get('should_stop', False):
+                break
+            
+            # Generate improved BT using LLM (silent)
             if iteration < self.config.max_iterations - 1 and self.active_enemies:
-                print(f"\nGenerating improved BT...")
-                
-                # Prepare context for LLM
                 previous_results = self.iteration_results[-3:] if len(self.iteration_results) >= 3 else self.iteration_results
                 
                 improved_bt = self.llm.improve_bt(
@@ -305,9 +369,19 @@ class EnemyMasteryLoop:
                 
                 if improved_bt:
                     current_bt = improved_bt
-                    print("[OK] BT improved")
-                else:
-                    print("[!] Failed to improve BT, keeping current")
+                
+                # Rollback check: If no improvement for 5 iterations, revert to best BT
+                if self.iterations_without_improvement >= 5 and self.best_bt is not None:
+                    print(f"\n[ROLLBACK] No improvement for 5 iterations. Reverting to best BT (iter {self.best_iteration}, score {self.best_score}/40)")
+                    current_bt = self.best_bt
+                    self.iterations_without_improvement = 0  # Reset counter
+                    
+                    # Save rollback event
+                    rollback_file = os.path.join(self.bt_dir, f"iter{iteration:02d}_ROLLBACK.txt")
+                    with open(rollback_file, 'w', encoding='utf-8') as f:
+                        f.write(f"Rolled back to iteration {self.best_iteration}\n")
+                        f.write(f"Best score: {self.best_score}/40\n\n")
+                        f.write(current_bt)
         
         # Print final summary
         self._print_summary()
@@ -392,26 +466,22 @@ class EnemyMasteryLoop:
         print(f"Victories: {victories}/{total} ({victories/total*100:.1f}%)")
         print(f"Average Turns: {sum(r['turns'] for r in self.iteration_results) / total:.1f}")
         
-        print(f"\nMastered Enemies: {len(self.mastered_enemies)}/{len(list(EnemyType))}")
-        for enemy in self.mastered_enemies:
-            print(f"  ★ {enemy.value}")
-        
-        if self.active_enemies:
-            print(f"\nRemaining Enemies:")
-            for enemy in self.active_enemies:
-                print(f"  - {enemy.value}")
-        
         print(f"\nIteration Details:")
-        for i, r in enumerate(self.iteration_results):
+        # Use actual iteration numbers from results to avoid duplicates
+        seen_iterations = set()
+        for r in self.iteration_results:
+            iter_num = r.get('iteration', -1)
+            # Skip duplicates
+            if iter_num in seen_iterations:
+                continue
+            seen_iterations.add(iter_num)
+            
             status = "WIN " if r['victory'] else "LOSS"
             val_str = ""
-            if r.get('validation'):
-                val = r['validation']
-                if val['mastered']:
-                    val_str = f" [MASTERED {val['wins']}/5]"
-                else:
-                    val_str = f" [Val: {val['wins']}/5]"
-            print(f"  {i}: {status} vs {r['enemy_type']:<15} - {r['turns']:2d} turns{val_str}")
+            if r.get('validation_status'):
+                val_str = f" [{r['validation_status']}]"
+            print(f"  {iter_num}: {status} vs {r['enemy_type']:<15} - {r['turns']:2d} turns{val_str}")
+
 
 
 def main():
@@ -421,9 +491,10 @@ def main():
     parser = argparse.ArgumentParser(description="Run Enemy Mastery Training Mode")
     parser.add_argument('--iterations', type=int, default=20, help='Max iterations')
     parser.add_argument('--mock', action='store_true', help='Use mock LLM')
-    parser.add_argument('--ollama', action='store_true', help='Use local Ollama LLM')
+    parser.add_argument('--ollama', action='store_true', help='Use Ollama for both critic and generator')
     parser.add_argument('--hybrid', action='store_true', help='Use hybrid mode (Ollama critic + Gemini generator)')
-    parser.add_argument('--ollama-model', type=str, default='gemma3:4b', help='Ollama model name')
+    parser.add_argument('--ollama-model', type=str, default='gemma3:4b', help='Ollama model to use')
+    parser.add_argument('--single-stage', action='store_true', help='Use single-stage LLM (combined critic+generator in one call)')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')
     parser.add_argument('--bt', type=str, default='examples/example_bt_balanced.txt', help='Initial BT file')
     parser.add_argument('--manual', action='store_true', help='Use examples/manual.txt as initial BT (manual mode)')
@@ -439,13 +510,24 @@ def main():
     config.max_iterations = args.iterations
     config.verbose = args.verbose
     
-    loop = EnemyMasteryLoop(
-        config,
-        use_mock=args.mock,
-        use_ollama=args.ollama,
-        use_hybrid=args.hybrid,
-        ollama_model=args.ollama_model
-    )
+    # Select agent based on mode
+    if args.mock:
+        print("[MODE] Mock LLM (no API calls)")
+        agent = MockLLMAgent()
+    elif args.single_stage:
+        print("[MODE] Single-Stage LLM (combined critic+generator)")
+        agent = SingleStageLLMAgent(DEFAULT_LLM_CONFIG)
+    elif args.hybrid:
+        print("[MODE] Hybrid (Ollama Critic + Gemini Generator)")
+        agent = HybridLLMAgent(DEFAULT_LLM_CONFIG, ollama_model=args.ollama_model)
+    elif args.ollama:
+        print(f"[MODE] Ollama Only (model: {args.ollama_model})")
+        agent = OllamaLLMAgent(model=args.ollama_model)
+    else:
+        print("[MODE] Full Gemini (Critic + Generator)")
+        agent = LLMAgent(DEFAULT_LLM_CONFIG)
+    
+    loop = EnemyMasteryLoop(config, agent=agent)
     loop.run(args.bt)
 
 

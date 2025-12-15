@@ -180,15 +180,16 @@ class IsEnemy(BTCondition):
         return f"IsEnemy({self.enemy_name})"
 
 
-class EnemyWeakTo(BTCondition):
-    """Check if enemy is weak to specific element"""
+class EnemyHasElement(BTCondition):
+    """Check if enemy currently has a specific element"""
     
     def __init__(self, element: str):
         self.element_str = element.strip()
         # Map string to Element
         element_map = {
             "Fire": Element.FIRE,
-            "Ice": Element.ICE
+            "Ice": Element.ICE,
+            "Neutral": Element.NEUTRAL
         }
         self.element = element_map.get(self.element_str)
     
@@ -196,13 +197,11 @@ class EnemyWeakTo(BTCondition):
         if not state.enemy or not self.element:
             return False
         
-        # Check weakness
-        from .game_engine import ELEMENTAL_WEAKNESS
-        weakness = ELEMENTAL_WEAKNESS.get(state.enemy.element)
-        return weakness == self.element
+        # Check if enemy currently has this element
+        return state.enemy.element == self.element
     
     def __repr__(self):
-        return f"EnemyWeakTo({self.element_str})"
+        return f"EnemyHasElement({self.element_str})"
 
 
 class EnemyResistantTo(BTCondition):
@@ -568,8 +567,10 @@ def create_condition_node(node_type: str, param: Optional[str] = None) -> BTCond
     # Enemy type conditions
     elif node_type == "IsEnemy":
         return IsEnemy(param if param else "FireGolem")
-    elif node_type == "EnemyWeakTo":
-        return EnemyWeakTo(param if param else "Fire")
+    elif node_type == "EnemyHasElement":
+        return EnemyHasElement(param if param else "Fire")
+    elif node_type == "EnemyWeakTo":  # Legacy support
+        return EnemyHasElement(param if param else "Fire")
     elif node_type == "EnemyResistantTo":
         return EnemyResistantTo(param if param else "Fire")
     elif node_type == "HasScannedEnemy":

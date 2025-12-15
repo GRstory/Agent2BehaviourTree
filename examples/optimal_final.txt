@@ -1,0 +1,33 @@
+root :
+    selector :
+        # Critical Heal (HP < 20%)
+        sequence :
+            condition : IsPlayerHPLow(20)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Defend HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        
+        # IceSpell when enemy weak to Ice
+        sequence :
+            condition : HasMP(20)
+            condition : EnemyWeakTo(Ice)
+            task : IceSpell()
+        
+        # FireSpell when enemy weak to Fire  
+        sequence :
+            condition : HasMP(20)
+            condition : EnemyWeakTo(Fire)
+            task : FireSpell()
+        
+        # Moderate Heal (HP < 40%)
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Default Attack
+        task : Attack()

@@ -1,0 +1,206 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+Player: HP 81%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 2 ===
+Player: HP 64%, MP 100
+Enemy: HP 93%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 3 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 47%, MP 100
+Enemy: HP 86%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 4 ===
+Player: HP 47%, MP 100
+Enemy: HP 86%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 5 ===
+Player: HP 30%, MP 100
+Enemy: HP 80%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 6 ===
+Player: HP 13%, MP 100
+Enemy: HP 73%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: HeavySlam
+
+=== TURN 7 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 53%, MP 70
+Enemy: HP 73%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 8 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 53%, MP 75
+Enemy: HP 73%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg -> Healed 3 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 9 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 34%, MP 80
+Enemy: HP 75%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 10 ===
+Player: HP 34%, MP 85
+Enemy: HP 75%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 11 ===
+Player: HP 17%, MP 100
+Enemy: HP 68%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 12 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 40%, MP 70
+Enemy: HP 70%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 13 ===
+Player: HP 40%, MP 75
+Enemy: HP 70%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 14 ===
+Player: HP 40%, MP 90
+Enemy: HP 61%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 15 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 23%, MP 100
+Enemy: HP 55%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: HeavySlam -> 45 dmg -> Healed 9 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 16 ===
+Player: HP 18%, MP 70
+Enemy: HP 60%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 17 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 18%, MP 85
+Enemy: HP 51%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 18 ===
+Player: HP 18%, MP 90
+Enemy: HP 51%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 19 ===
+Player: HP 18%, MP 100
+Enemy: HP 43%, Element: Fire (999 turns)
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: HeavySlam -> 45 dmg -> Healed 4 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 20 ===
+Player: HP 13%, MP 70
+Enemy: HP 45%, Element: Fire (998 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam
+
+=== TURN 21 ===
+Player: HP 13%, MP 55
+Enemy: HP 36%, Element: Fire (997 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: FlameStrike
+
+=== TURN 22 ===
+Player: HP 13%, MP 40
+Enemy: HP 27%, Element: Fire (996 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam
+
+=== TURN 23 ===
+Player: HP 13%, MP 25
+Enemy: HP 18%, Element: Fire (995 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: FlameStrike -> 11 dmg -> Healed 1 HP
+
+=== TURN 24 ===
+Player: HP 2%, MP 10, Ailments: Burn
+Enemy: HP 10%, Element: Fire (994 turns)
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 25
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 4/180 (2%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 25/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[4/20], ICEWRAITH[2/20]
+======================================================================

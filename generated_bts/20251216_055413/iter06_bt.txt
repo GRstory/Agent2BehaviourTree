@@ -1,0 +1,39 @@
+root :
+    selector :
+        # Defend against HeavySlam or FlameStrike
+        sequence :
+            selector :
+                condition : EnemyIsTelegraphing(HeavySlam)
+                condition : EnemyIsTelegraphing(FlameStrike)
+            task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Defend against Debuff
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            task : Defend()
+
+        # Defend against FrostTouch
+        sequence :
+            condition : EnemyIsTelegraphing(FrostTouch)
+            task : Defend()
+
+        # Exploit Fire weakness
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit Ice weakness
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Default: Attack
+        task : Attack()

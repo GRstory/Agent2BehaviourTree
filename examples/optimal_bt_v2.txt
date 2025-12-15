@@ -1,0 +1,33 @@
+root :
+    selector :
+        # Emergency Heal (HP < 25%)
+        sequence :
+            condition : IsPlayerHPLow(25)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        
+        # Use IceSpell vs Fire element (FireGolem Phase 2)
+        sequence :
+            condition : HasMP(20)
+            condition : EnemyWeakTo(Ice)
+            task : IceSpell()
+        
+        # Use FireSpell vs Ice element (IceWraith after IceSpell)
+        sequence :
+            condition : HasMP(20)
+            condition : EnemyWeakTo(Fire)
+            task : FireSpell()
+        
+        # Heal at moderate HP (< 45%)
+        sequence :
+            condition : IsPlayerHPLow(45)
+            condition : CanHeal()
+            task : Heal()
+        
+        # Default: Attack
+        task : Attack()

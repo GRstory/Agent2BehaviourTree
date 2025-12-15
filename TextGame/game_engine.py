@@ -53,6 +53,8 @@ class StatusAilment(Enum):
     FROST_AURA = "FrostAura"   # 30% freeze on attack, passive
     CHARGED = "Charged"        # Next attack 2x damage, 1 turn
     POWER_BOOST = "PowerBoost" # +10% damage, 1 turn
+    DEFENSE_BUFF = "DefenseBuff" # +25% defense, 1 turn
+    POWER_CHARGE = "PowerCharge" # +20% damage, 1 turn
 
 
 # Enemy Types
@@ -247,7 +249,11 @@ class CombatEngine:
         if action == PlayerAction.ATTACK:
             result['success'] = True
             result['damage'] = self._calculate_damage(20, Element.NEUTRAL, "player")
-            result['message'] = f"Attack dealt {result['damage']} damage"
+            # Restore 10 MP on Attack
+            old_mp = self.state.player_resources.mp
+            self.state.player_resources.mp = min(self.state.player_resources.max_mp, self.state.player_resources.mp + 10)
+            mp_restored = self.state.player_resources.mp - old_mp
+            result['message'] = f"Attack dealt {result['damage']} damage (+{mp_restored} MP)"
         
         elif action == PlayerAction.CHARGE:
             if self.state.player_resources.spend_mp(15):
@@ -299,7 +305,7 @@ class CombatEngine:
             elif self.state.player_resources.spend_mp(30):
                 result['success'] = True
                 result['cost_mp'] = 30
-                result['heal'] = self.state.player.heal(45)
+                result['heal'] = self.state.player.heal(40)
                 self.state.heal_cooldown = 3
                 result['message'] = f"Healed {result['heal']} HP"
             else:
@@ -335,7 +341,12 @@ class CombatEngine:
         
         # Apply damage to enemy
         if result['damage'] > 0 and self.state.enemy:
-            actual_damage = self.state.enemy.take_damage(result['damage'])
+            # Calculate defense with buff
+            defense = self.state.enemy.defense
+            if self.state.has_status("enemy", StatusAilment.DEFENSE_BUFF):
+                defense = int(defense * 1.25)
+            actual_damage = max(0, result['damage'] - defense)
+            self.state.enemy.current_hp = max(0, self.state.enemy.current_hp - actual_damage)
             result['damage'] = actual_damage
         
         return result
@@ -353,6 +364,9 @@ class CombatEngine:
             # Apply power boost
             if self.state.has_status("player", StatusAilment.POWER_BOOST):
                 attack_stat = int(attack_stat * 1.1)
+            # Apply power charge
+            if self.state.has_status("player", StatusAilment.POWER_CHARGE):
+                attack_stat = int(attack_stat * 1.2)
         else:
             attack_stat = self.state.enemy.base_attack
             # Apply enemy buffs
@@ -360,6 +374,9 @@ class CombatEngine:
                 attack_stat = int(attack_stat * 1.4)
             if self.state.has_status("enemy", StatusAilment.ENRAGE):
                 attack_stat = int(attack_stat * 1.5)
+            # Apply power charge
+            if self.state.has_status("enemy", StatusAilment.POWER_CHARGE):
+                attack_stat = int(attack_stat * 1.2)
         
         # Scale with attack stat
         damage = int(damage * (attack_stat / 15))
@@ -450,7 +467,12 @@ class CombatEngine:
                 result['damage'] = int(result['damage'] * 0.5)
                 result['message'] += " (Reduced by Defend!)"
             
-            actual_damage = self.state.player.take_damage(result['damage'])
+            # Calculate defense with buff
+            defense = self.state.player.defense
+            if self.state.has_status("player", StatusAilment.DEFENSE_BUFF):
+                defense = int(defense * 1.25)
+            actual_damage = max(0, result['damage'] - defense)
+            self.state.player.current_hp = max(0, self.state.player.current_hp - actual_damage)
             result['damage'] = actual_damage
             
             # FireGolem lifesteal: heal based on actual damage dealt (after defense)
@@ -494,36 +516,44 @@ class CombatEngine:
                     weights=[60, 40]
                 )[0]
             else:
-                # Phase 2 (HP < 50%): Fire element + FireSpell
+                # Phase 2 (HP < 50%): Fire element + FlameStrike
                 # Activate permanent Fire element if not already
                 if self.state.enemy and self.state.enemy.element != Element.FIRE:
                     self.state.enemy.element = Element.FIRE
                     self.state.enemy_element_duration = 999  # Permanent
                 
                 return random.choices(
-                    ["FireSpell", "HeavySlam"],
+                    ["FlameStrike", "HeavySlam"],
                     weights=[70, 30]
                 )[0]
         
         elif self.state.enemy_type == EnemyType.ICE_WRAITH:
-            # Phase 1 (HP > 60%): Only IceSpell and FrostTouch, no Debuff
+            # Phase 1 (HP > 60%): FrostTouch 80%, FrostBlast 20%
             if hp_pct > 60:
                 return random.choices(
-                    ["IceSpell", "FrostTouch"],
-                    weights=[60, 40]
-                )[0]
-            # Phase 2 (30% < HP <= 60%): FrostTouch + 20% Debuff
-            elif hp_pct > 30:
-                return random.choices(
-                    ["FrostTouch", "Debuff"],
+                    ["FrostTouch", "FrostBlast"],
                     weights=[80, 20]
                 )[0]
-            # Phase 3 (HP <= 30%): IceSpell, FrostTouch, Debuff
+            # Phase 2 (30% < HP <= 60%): FrostTouch 45%, FrostBlast 20%, Debuff 20%, DefensiveStance 15%
+            elif hp_pct > 30:
+                action = random.choices(
+                    ["FrostTouch", "FrostBlast", "Debuff", "DefensiveStance"],
+                    weights=[45, 20, 20, 15]
+                )[0]
+                # Don't use Debuff if player already has AttackDown
+                if action == "Debuff" and self.state.has_status("player", StatusAilment.ATTACK_DOWN):
+                    return "FrostTouch"
+                return action
+            # Phase 3 (HP <= 30%): FrostBlast, FrostTouch, Debuff
             else:
-                return random.choices(
-                    ["IceSpell", "FrostTouch", "Debuff"],
+                action = random.choices(
+                    ["FrostBlast", "FrostTouch", "Debuff"],
                     weights=[45, 35, 20]
                 )[0]
+                # Don't use Debuff if player already has AttackDown
+                if action == "Debuff" and self.state.has_status("player", StatusAilment.ATTACK_DOWN):
+                    return "FrostTouch"
+                return action
         
         return "Slam"
     
@@ -542,10 +572,10 @@ class CombatEngine:
                 result['message'] = f"Enemy heavy slams for {result['damage']} damage"
                 result['telegraphed'] = "Enemy raises its fists!"
         
-        elif action == "FireSpell":
+        elif action == "FlameStrike":
             if self.state.enemy_resources.spend_mp(20):
                 result['damage'] = self._calculate_damage(15, Element.FIRE, "enemy")
-                result['message'] = f"Enemy casts Fire Spell for {result['damage']} damage"
+                result['message'] = f"Enemy casts Flame Strike for {result['damage']} damage"
                 # Apply Burn DoT (10 dmg/turn for 3 turns)
                 self.state.add_status("player", StatusEffect(StatusAilment.BURN, 3, 10))
                 result['status_applied'] = "Burn"
@@ -562,11 +592,11 @@ class CombatEngine:
                 result['damage'] = self._calculate_damage(18, Element.NEUTRAL, "enemy")
                 result['message'] = f"Enemy touches for {result['damage']} damage"
         
-        elif action == "IceSpell":
+        elif action == "FrostBlast":
             if self.state.enemy_resources.spend_mp(20):
                 result['damage'] = self._calculate_damage(28, Element.ICE, "enemy")
-                result['message'] = f"Enemy casts Ice Spell for {result['damage']} damage"
-                # IceSpell grants Ice element (3 turns)
+                result['message'] = f"Enemy casts Frost Blast for {result['damage']} damage"
+                # FrostBlast grants Ice element (3 turns) - ONLY when enemy uses it
                 if self.state.enemy:
                     self.state.enemy.element = Element.ICE
                     self.state.enemy_element_duration = 3
@@ -586,6 +616,15 @@ class CombatEngine:
                 self.state.add_status("player", StatusEffect(StatusAilment.ATTACK_DOWN, 3))
                 result['status_applied'] = "Attack Down"
                 result['message'] = "Enemy curses you! Attack -20% for 3 turns"
+        
+        elif action == "DefensiveStance":
+            if self.state.enemy_resources.spend_mp(15):
+                # Apply defense buff for 1 turn
+                self.state.add_status("enemy", StatusEffect(StatusAilment.DEFENSE_BUFF, 1))
+                # Apply power charge for next turn (2 turns duration so it lasts through this turn + next)
+                self.state.add_status("enemy", StatusEffect(StatusAilment.POWER_CHARGE, 2))
+                result['status_applied'] = "Defensive Stance"
+                result['message'] = "Enemy takes a defensive stance! Defense +25%, next attack +20%"
         
         return result
     

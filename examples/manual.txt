@@ -1,48 +1,44 @@
 root :
     selector :
+        # Defend against HeavySlam (FireGolem) - Highest Priority
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+            
+        # Defend against Debuff (IceWraith)
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            task : Defend()
+
+        # Defend against FrostBlast
+        sequence :
+            condition : EnemyIsTelegraphing(FrostBlast)
+            task : Defend()
+
         # Mandatory Scan on Turn 1
         sequence :
-            NOT HasScannedEnemy()
+            NOT condition : HasScannedEnemy()
             condition : HasMP(15)
             task : Scan()
 
-        # Defend against IceSpell
+        # IceSpell when enemy has Fire element
         sequence :
-            condition : EnemyIsTelegraphing(IceSpell)
-            task : Defend()
-
-        # FireSpell if enemy is Ice and Scanned
-        sequence :
-            HasScannedEnemy()
-            EnemyWeakTo(Ice)
-            condition : HasMP(20)
-            task : FireSpell()
-
-        # Cleanse Burn
-        sequence :
-            HasScannedEnemy()
-            condition : EnemyHasBuff(Burn)
-            condition : HasMP(25)
-            task : Cleanse()
-
-        # IceSpell if enemy is Fire and Scanned
-        sequence :
-            HasScannedEnemy()
-            EnemyWeakTo(Fire)
+            condition : EnemyHasElement(Fire)
             condition : HasMP(20)
             task : IceSpell()
-
-        # Cleanse AttackDown
+        
+        # Cleanse Burn/AttackDown
         sequence :
-            condition : EnemyHasBuff(AttackDown)
+            condition : HasStatus(Burn)
+            condition : HasStatus(AttackDown)
             condition : HasMP(25)
             task : Cleanse()
 
-        # Heal if low HP
+        # Heal when HP is low
         sequence :
-            condition : IsPlayerHPLow(80)
+            condition : IsPlayerHPLow(70)
             condition : CanHeal()
             task : Heal()
-
+            
         # Default: Attack
         task : Attack()

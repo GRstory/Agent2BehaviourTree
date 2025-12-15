@@ -1,0 +1,454 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 13
+Timestamp: 20251216_055607
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: The Behaviour Tree executes ONE action per turn.
+
+AVAILABLE ACTIONS (7 total):
+- Attack: Free, 9 damage, +10 MP (resource recovery!)
+- Charge: 15 MP, 7 damage + NEXT TURN all damage x2
+- FireSpell: 20 MP, 7 dmg (1.5x when enemy has Ice element), Burn 25%
+- IceSpell: 20 MP, 10 dmg (1.5x when enemy has Fire element), Freeze 25%
+- Defend: Free, 50% damage reduction
+- Heal: 30 MP, +40 HP, 3 turn cooldown
+- Cleanse: 25 MP, removes Burn/AttackDown, +10% damage for 1 turn
+
+CRITICAL MECHANICS:
+- **ELEMENTAL SYSTEM**:
+  - Fire attacks deal 1.5x damage to Ice element enemies
+  - Ice attacks deal 1.5x damage to Fire element enemies
+  - Enemies start as Neutral (no weakness)
+- **DYNAMIC ELEMENTS**: Enemy elements can CHANGE during combat!
+  - Enemies may gain Fire or Ice element during battle
+  - Elements can expire and return to Neutral
+  - **CRITICAL: Player attacks do NOT change enemy element**
+- **IceWraith Element Change**:
+  - Starts as Neutral (no weakness)
+  - When IceWraith uses **FrostBlast** → Gains Ice element for 3 turns
+  - When Ice element expires → Returns to Neutral
+  - **USE FIRESPELL WHEN ENEMY HAS ICE ELEMENT!**
+- **FireGolem Element Change**:
+  - Phase 1 (HP > 50%): Neutral element
+  - Phase 2 (HP < 50%): Automatically gains Fire element (permanent)
+  - **USE ICESPELL WHEN ENEMY HAS FIRE ELEMENT!**
+- FireGolem: FlameStrike adds Burn (10 dmg/turn × 3 turns = 30 total, bypasses defense!)
+- IceWraith: Debuff gives AttackDown -20% for 3 turns, DefensiveStance (+25% def 1 turn, +20% dmg next turn)
+- DoT bypasses defense (Burn is guaranteed 10 dmg/turn)
+- MP regenerates 5 per turn, starts at 100
+- Attack restores +10 MP (total +15 MP per turn when using Attack!)
+
+ENEMY PATTERNS:
+
+FireGolem (180 HP, Def 5):
+- Phase 1 (HP > 50%): Neutral element, uses Slam/HeavySlam
+- Phase 2 (HP < 50%): Permanently gains Fire element, uses FlameStrike
+- FlameStrike inflicts Burn: 10 dmg/turn × 3 turns = 30 total damage
+- Lifesteal: 20% in Phase 1, 10% in Phase 2
+- Telegraphs HeavySlam (45 dmg before defense)
+
+IceWraith (200 HP, Def 8):
+- Starts Neutral, gains Ice element for 3 turns after using FrostBlast
+- FrostBlast: 22 dmg, grants Ice element (3 turns)
+- Debuff: Inflicts AttackDown (-20% damage for 3 turns)
+- DefensiveStance: +25% defense for 1 turn, +20% damage next turn
+- High defense makes spells more efficient than basic attacks
+
+Your task is to analyze combat logs and identify:
+- **Dynamic element awareness** (did they understand when enemy gains/loses element?)
+- **Elemental advantage** (did they use correct spell when enemy had element?)
+  - Enemy has Ice → Use FireSpell (1.5x damage)
+  - Enemy has Fire → Use IceSpell (1.5x damage)
+  - Enemy has Neutral → Use Attack (no spell bonus)
+- **Wrong spell usage** (IceSpell vs Ice element = 0.5x damage, TERRIBLE!)
+- Cleanse timing (did they remove Burn/AttackDown when active?)
+- MP efficiency (Cleanse 25, Spells 20, Heal 30)
+- Defensive timing (Defend against telegraphed HeavySlam/Debuff)
+- Heal timing (considering 3 turn cooldown)
+- DoT awareness (Burn does 30 total damage, Cleanse saves it all!)
+
+Provide specific, actionable insights for BT improvement.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Defend against telegraphs
+        sequence :
+            selector :
+                condition : EnemyIsTelegraphing(HeavySlam)
+                condition : EnemyIsTelegraphing(FlameStrike)
+                condition : EnemyIsTelegraphing(Debuff)
+                condition : EnemyIsTelegraphing(FrostTouch)
+            task : Defend()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            condition : HasStatus(BURN)
+            condition : HasMP(25)
+            task : Cleanse()
+        sequence :
+            condition : HasStatus(ATTACKDOWN)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal when HP is low
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Exploit Fire weakness
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit Ice weakness
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Low MP defense
+        sequence :
+            condition : NOT HasMP(30)
+            task : Defend()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# This Combat Result
+DEFEAT vs IceWraith: 33 turns
+
+# Combat Summary
+=== COMBAT LOG FOR ANALYSIS ===
+
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 1 ===
+Player: HP 88%, MP 100
+Enemy: HP 94%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 2 ===
+Player: HP 76%, MP 100
+Enemy: HP 88%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 3 ===
+Player: HP 54%, MP 100, Ailments: Freeze
+Enemy: HP 82%, Element: Ice (3 turns)
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!] [Burn]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 4 ===
+Player: HP 42%, MP 80
+Enemy: HP 78%, Element: Ice (2 turns), Buffs: Burn
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 5 ===
+Player: HP 70%, MP 55
+Enemy: HP 76%, Element: Ice (1 turns), Buffs: Burn
+
+Action: FireSpell (MP -20) -> 2 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 6 ===
+Player: HP 57%, MP 40
+Enemy: HP 72%, Element: Neutral, Buffs: Burn
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 7 ===
+Player: HP 46%, MP 55
+Enemy: HP 64%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: Debuff
+
+=== TURN 8 ===
+Player: HP 46%, MP 70, Ailments: AttackDown
+Enemy: HP 57%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 9 ===
+Player: HP 74%, MP 45, Ailments: AttackDown
+Enemy: HP 57%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 10 ===
+Player: HP 62%, MP 60, Ailments: AttackDown
+Enemy: HP 54%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: DefensiveStance
+
+=== TURN 11 ===
+Player: HP 62%, MP 75
+Enemy: HP 48%, Element: Neutral, Buffs: DefenseBuff, PowerCharge
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 27 dmg
+
+=== TURN 12 ===
+Player: HP 35%, MP 90
+Enemy: HP 42%, Element: Ice (3 turns), Buffs: PowerCharge
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 13 ===
+Player: HP 53%, MP 65, Ailments: Freeze
+Enemy: HP 42%, Element: Ice (3 turns)
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!]
+Enemy: Debuff
+
+=== TURN 14 ===
+Player: HP 53%, MP 50, Ailments: AttackDown
+Enemy: HP 38%, Element: Ice (2 turns)
+
+Action: FireSpell (MP -20) -> 4 dmg [SUPER EFFECTIVE!] [Burn]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 15 ===
+Player: HP 41%, MP 35, Ailments: AttackDown
+Enemy: HP 36%, Element: Ice (1 turns), Buffs: Burn
+
+Action: FireSpell (MP -20) [Burn]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 16 ===
+Player: HP 28%, MP 20, Ailments: AttackDown
+Enemy: HP 34%, Element: Neutral, Buffs: Burn
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 17 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 26%, MP 25
+Enemy: HP 31%, Element: Neutral, Buffs: Burn
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 18 ===
+Player: HP 26%, MP 30, Ailments: AttackDown
+Enemy: HP 28%, Element: Neutral, Buffs: Burn
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 19 ===
+Player: HP 44%, MP 5, Ailments: AttackDown, Freeze
+Enemy: HP 26%, Element: Ice (3 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 20 ===
+Player: HP 41%, MP 10, Ailments: AttackDown
+Enemy: HP 26%, Element: Ice (2 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 21 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 38%, MP 15
+Enemy: HP 26%, Element: Ice (1 turns)
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 22 ===
+Player: HP 38%, MP 20, Ailments: AttackDown
+Enemy: HP 26%, Element: Neutral
+
+Action: Defend
+Enemy: FrostBlast -> 8 dmg
+
+=== TURN 23 ===
+Player: HP 30%, MP 25, Ailments: AttackDown, Freeze
+Enemy: HP 26%, Element: Ice (3 turns)
+
+Action: FireSpell (MP -20) -> 4 dmg [SUPER EFFECTIVE!]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 24 ===
+Player: HP 18%, MP 10, Ailments: AttackDown
+Enemy: HP 24%, Element: Ice (2 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 25 ===
+Player: HP 15%, MP 15
+Enemy: HP 24%, Element: Ice (1 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 26 ===
+Player: HP 12%, MP 20
+Enemy: HP 24%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 27 ===
+Player: HP 9%, MP 25
+Enemy: HP 24%, Element: Neutral
+
+Action: Defend
+Enemy: FrostBlast -> 8 dmg
+
+=== TURN 28 ===
+Player: HP 1%, MP 30, Ailments: Freeze
+Enemy: HP 24%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 29 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 19%, MP 5
+Enemy: HP 24%, Element: Ice (3 turns)
+
+Action: Defend
+Enemy: Debuff
+
+=== TURN 30 ===
+Player: HP 19%, MP 10, Ailments: AttackDown
+Enemy: HP 24%, Element: Ice (2 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 31 ===
+Player: HP 16%, MP 15, Ailments: AttackDown
+Enemy: HP 24%, Element: Ice (1 turns)
+
+Action: Defend
+Enemy: FrostBlast -> 8 dmg
+
+=== TURN 32 ===
+Player: HP 8%, MP 20, Ailments: AttackDown
+Enemy: HP 24%, Element: Ice (3 turns)
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!]
+Enemy: FrostTouch -> 12 dmg
+
+
+=== PATTERN ANALYSIS HINTS ===
+
+Enemy Action History (last 5): FrostBlast, Debuff, FrostTouch, FrostBlast, FrostTouch
+Enemy Last Action: FrostTouch
+
+Final Enemy Element: Ice
+Element Duration Remaining: 2 turns
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 33
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 42/200 (21%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 5/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Telegraph Reactions**: Did they defend against telegraphed heavy attacks?
+2. **Elemental Strategy**: Did they scan? Did they use the right spell?
+3. **Resource Management**: MP usage efficiency
+4. **Defensive Decisions**: Heal/Defend timing
+5. **BT Issues**: What parts of the tree caused problems?
+
+**CRITICAL CONSTRAINT**: 
+- Focus ONLY on improving strategy against **IceWraith**
+- Do NOT add or modify logic for other enemy types you haven't fought
+- Only suggest changes based on what happened in THIS combat
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Add Defend() when enemy telegraphs HeavySlam"
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+The BT struggled to effectively counter IceWraith’s aggressive tactics and didn’t consistently leverage elemental advantages. The primary issue was a reactive, rather than proactive, approach. The BT frequently defaulted to ‘Attack’ without considering the enemy’s current element or potential threats. The lack of scanning on turn 1 was a critical failure, preventing the BT from recognizing IceWraith’s FrostBlast and subsequent Ice element gain. Furthermore, the BT’s reliance on ‘Defend’ was often misplaced, failing to anticipate telegraphed attacks like HeavySlam and Debuff. Finally, the MP usage was inefficient, with several ‘Attack’ actions occurring when a more strategic spell could have been employed.
+
+## Improvement Suggestions
+1. **Scan on Turn 1**: Add a task to scan the enemy at the start of combat. This task should identify the enemy’s initial element (Neutral) and immediately trigger the ‘FireSpell’ when Ice element is detected. This addresses the core failure of not recognizing FrostBlast.
+
+2. **Prioritize Elemental Advantage**: Modify the ‘IceSpell’ condition to be more aggressive. Instead of just ‘EnemyHasElement(Ice)’, add a condition: “EnemyHasElement(Ice) AND EnemyHasElement(Fire) is FALSE”. This ensures the BT uses IceSpell when the enemy is vulnerable and doesn’t waste MP on a useless FireSpell.
+
+3. **Telegraph Defense**: Add a ‘Defend’ task triggered *immediately* when the enemy telegraphs HeavySlam or Debuff. This should be a high-priority task to mitigate the damage from these telegraphed attacks.
+
+4. **Adjust Heal Threshold**: Increase the HP threshold for the ‘Heal’ task from 50% to 40%. This allows the BT to initiate healing sooner, preventing the player from dropping to critical health.
+
+5. **MP Prioritization**: Revise the MP allocation. If the enemy is Ice element, prioritize the ‘IceSpell’ over ‘Attack’ to maximize damage output. If the enemy is not Ice, ‘Attack’ should be the default.
+
+================================================================================
+Prompt length: 7895 chars
+Response length: 1958 chars
+================================================================================

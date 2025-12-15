@@ -1,9 +1,0 @@
-=== FINAL COMPREHENSIVE TEST: FireGolem ===
-
-Win Rate: 1/5 (20%)
-
-Battle 1: LOSS - 26 turns, Player HP: 0, Enemy HP: 45
-Battle 2: LOSS - 35 turns, Player HP: 67, Enemy HP: 11
-Battle 3: WIN - 31 turns, Player HP: 9, Enemy HP: 0
-Battle 4: LOSS - 19 turns, Player HP: 0, Enemy HP: 99
-Battle 5: LOSS - 22 turns, Player HP: 0, Enemy HP: 51

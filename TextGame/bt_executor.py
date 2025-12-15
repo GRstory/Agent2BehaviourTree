@@ -5,13 +5,8 @@ Executes behaviour trees against game state to determine player action.
 """
 
 from typing import Optional
-import sys
-import os
 
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from bt_parser import BTNode, parse_bt_dsl
+from .bt_parser import BTNode, parse_bt_dsl
 from .game_engine import GameState, PlayerAction
 from .bt_nodes import create_condition_node, create_action_node, BTCondition, BTAction
 

@@ -1,0 +1,37 @@
+root :
+    selector :
+        # Defend against telegraphs
+        sequence :
+            selector :
+                condition : EnemyIsTelegraphing(HeavySlam)
+                condition : EnemyIsTelegraphing(FlameStrike)
+                condition : EnemyIsTelegraphing(Debuff)
+                condition : EnemyIsTelegraphing(FrostTouch)
+            task : Defend()
+
+        # Exploit Ice weakness
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Exploit Fire weakness
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when HP is low
+        sequence :
+            condition : IsPlayerHPLow(70)
+            condition : CanHeal()
+            task : Heal()
+
+        # Low MP defense
+        sequence :
+            condition : HasMP(30)
+            NOT : HasMP(30)
+            task : Defend()
+
+        # Default: Attack
+        task : Attack()
