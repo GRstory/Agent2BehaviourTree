@@ -1,0 +1,366 @@
+================================================================================
+CRITIC LLM LOG
+Iteration: 2
+Timestamp: 20251216_125432
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are a tactical analyst for turn-based RPG combat.
+
+CRITICAL: The Behaviour Tree executes ONE action per turn.
+
+AVAILABLE ACTIONS (7 total):
+- Attack: Free, 9 damage, +10 MP (resource recovery!)
+- Charge: 15 MP, 7 damage + NEXT TURN all damage x2
+- FireSpell: 20 MP, 7 dmg (1.5x when enemy has Ice element), Burn 25%
+- IceSpell: 20 MP, 10 dmg (1.5x when enemy has Fire element), Freeze 25%
+- Defend: Free, 50% damage reduction (ONLY blocks damage, NOT status effects like Debuff/Burn!)
+- Heal: 30 MP, +40 HP, 3 turn cooldown
+- Cleanse: 25 MP, removes Burn/AttackDown, +10% damage for 1 turn
+
+VICTORY REQUIREMENTS:
+- **FireGolem**: 180 HP / 35 turns = **5.1+ DPS minimum**
+- **IceWraith**: 200 HP / 35 turns = **5.7+ DPS minimum**
+- **Baseline**: Attack alone = 9 dmg/turn (sufficient if no wasted turns)
+- **Target**: 5-6+ effective DPS for consistent wins
+
+CRITICAL MECHANICS:
+- **CHARGE STRATEGY**:
+  - Charge gives CHARGED status (visible in combat log as "Ailments: Charged")
+  - CHARGED status doubles damage on NEXT turn ONLY
+  - **CRITICAL**: Use HasStatus(CHARGED) condition to detect and cash in the buff!
+  - **Common mistake**: Using Charge but never following up with attack → wasted MP and damage
+  - **Correct pattern**: Charge → (next turn) Attack/Spell with 2x damage
+  - **Example waste**: "Turn 5: Charge → Turn 6: Defend" = CHARGED buff wasted!
+  - **Math**: Charge (7 dmg) + CHARGED Attack (18 dmg) = 25 dmg / 2 turns = 12.5 DPS ✓
+  
+- **CLEANSE USAGE**:
+  - **ONLY use when HasStatus(Burn) OR HasStatus(AttackDown)**
+  - **Common bug**: Cleanse spam without debuffs → 0 damage output
+  - **Correct condition**: `HasStatus(Burn)` or `HasStatus(AttackDown)` MUST be checked
+  - **Value**: Cleanse removes Burn (saves 30 dmg) or AttackDown (restores 20% damage)
+  
+- **DEFEND MECHANICS**:
+  - Defend reduces damage by 50% (e.g., HeavySlam 45 dmg → 22 dmg)
+  - **Defend does NOT prevent status effects** (Debuff, Burn still applied!)
+  - **Primary use**: Defend against telegraphed HeavySlam (45 dmg → 22 dmg)
+  - **Debuff telegraph**: Defend CAN reduce Debuff turn damage, BUT:
+    - You still get AttackDown (-20% damage for 3 turns)
+    - **Better strategy**: Attack (deal damage) → next turn Cleanse (remove debuff)
+    - Defend = 0 damage dealt, Cleanse costs 25 MP anyway
+  
+- **ELEMENTAL SYSTEM**:
+  - Fire attacks deal 1.5x damage to Ice element enemies
+  - Ice attacks deal 1.5x damage to Fire element enemies
+  - Enemies start as Neutral (no weakness)
+- **DYNAMIC ELEMENTS**: Enemy elements can CHANGE during combat!
+  - Enemies may gain Fire or Ice element during battle
+  - Elements can expire and return to Neutral
+  - **CRITICAL: Player attacks do NOT change enemy element**
+- **IceWraith Element Change**:
+  - Starts as Neutral (no weakness)
+  - When IceWraith uses **FrostBlast** → Gains Ice element for 3 turns
+  - When Ice element expires → Returns to Neutral
+  - **USE FIRESPELL WHEN ENEMY HAS ICE ELEMENT!**
+- **FireGolem Element Change**:
+  - Phase 1 (HP > 50%): Neutral element
+  - **Phase 2 (HP < 50% = 90 HP)**: Automatically gains Fire element (permanent)
+  - **CRITICAL TIMING**: Push to 90 HP → Enemy gains Fire → USE ICESPELL!
+  - **USE ICESPELL WHEN ENEMY HAS FIRE ELEMENT!**
+- FireGolem: FlameStrike adds Burn (10 dmg/turn × 3 turns = 30 total, bypasses defense!)
+- IceWraith: Debuff gives AttackDown -20% for 3 turns, DefensiveStance (+25% def 1 turn, +20% dmg next turn)
+- DoT bypasses defense (Burn is guaranteed 10 dmg/turn)
+- MP regenerates 5 per turn, starts at 100
+- Attack restores +10 MP (total +15 MP per turn when using Attack!)
+
+ENEMY PATTERNS:
+
+FireGolem (180 HP, Def 5):
+- Phase 1 (HP > 50%): Neutral element, uses Slam/HeavySlam
+- Phase 2 (HP < 50%): Permanently gains Fire element, uses FlameStrike
+- FlameStrike inflicts Burn: 10 dmg/turn × 3 turns = 30 total damage
+- Lifesteal: 20% in Phase 1, 10% in Phase 2
+- Telegraphs HeavySlam (45 dmg before defense)
+
+IceWraith (200 HP, Def 8):
+- Starts Neutral, gains Ice element for 3 turns after using FrostBlast
+- FrostBlast: 22 dmg, grants Ice element (3 turns)
+- Debuff: Inflicts AttackDown (-20% damage for 3 turns)
+- DefensiveStance: +25% defense for 1 turn, +20% damage next turn
+- High defense makes spells more efficient than basic attacks
+
+COMMON FAILURE PATTERNS TO IDENTIFY:
+1. **"Heal spam"** - Using Heal when HP > 60% → wasted turns
+2. **"Passive play"** - Too much Defend without telegraphs → low DPS
+3. **"MP starvation"** - Not using Attack enough → can't afford spells
+4. **"Ignoring telegraphs"** - Not Defending against HeavySlam → taking 45 dmg
+5. **"Defend vs Debuff over-reliance"** - Defend reduces damage but better to Attack → Cleanse
+6. **"Phase blindness"** - Not adapting when enemy changes element
+7. **"Wasted turns"** - Defend when safe, Heal when full → closer to 35-turn limit
+
+Your task is to analyze combat logs and identify:
+- **DPS calculation** (Total damage / Total turns - is it above 5+?)
+- **Charge efficiency** (did they cash in CHARGED status? or waste it on Defend/Heal?)
+- **Cleanse bugs** (did they spam Cleanse without debuffs?)
+- **Dynamic element awareness** (did they understand when enemy gains/loses element?)
+- **Phase transition** (FireGolem HP < 50% → did they switch to IceSpell?)
+- **Elemental advantage** (did they use correct spell when enemy had element?)
+  - Enemy has Ice → Use FireSpell (1.5x damage)
+  - Enemy has Fire → Use IceSpell (1.5x damage)
+  - Enemy has Neutral → Use Attack (no spell bonus)
+- **Wrong spell usage** (IceSpell vs Ice element = 0.5x damage, TERRIBLE!)
+- **Turn efficiency** (Count wasted turns - every waste = closer to 35-turn limit)
+- **Defend strategy** (HeavySlam = must Defend, Debuff = situational, better to Attack → Cleanse)
+- MP efficiency (Cleanse 25, Spells 20, Heal 30)
+- Defensive timing (Defend against HeavySlam is critical!)
+- Heal timing (considering 3 turn cooldown)
+- DoT awareness (Burn does 30 total damage, Cleanse saves it all!)
+
+Provide specific, actionable insights for BT improvement with concrete examples from the combat log.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Analyze this combat and suggest BT improvements.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Proactive Telegraphed Defense
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : IsPlayerHPLow(30)
+            task : Defend()
+
+        # Exploit elemental weakness
+        selector :
+            sequence :
+                condition : EnemyHasElement(Ice)
+                condition : HasMP(20)
+                task : FireSpell()
+            sequence :
+                condition : EnemyHasElement(Fire)
+                condition : HasMP(20)
+                task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse AttackDown
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# This Combat Result
+DEFEAT vs FireGolem: 15 turns
+
+# Combat Summary
+=== COMBAT LOG FOR ANALYSIS ===
+
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam -> 45 dmg -> Healed 9 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+Player: HP 55%, MP 100
+Enemy: HP 96%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 2 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 38%, MP 100
+Enemy: HP 90%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: HeavySlam
+
+=== TURN 3 ===
+Player: HP 78%, MP 70
+Enemy: HP 90%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 4 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 78%, MP 85
+Enemy: HP 81%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam -> 45 dmg -> Healed 9 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 5 ===
+Player: HP 33%, MP 100
+Enemy: HP 78%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 6 ===
+Player: HP 33%, MP 100
+Enemy: HP 70%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: HeavySlam
+
+=== TURN 7 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 73%, MP 70
+Enemy: HP 70%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 8 ===
+Player: HP 73%, MP 85
+Enemy: HP 61%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 9 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 56%, MP 100
+Enemy: HP 55%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam -> 45 dmg -> Healed 4 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 10 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 11%, MP 100
+Enemy: HP 48%, Element: Fire (999 turns)
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 11 ===
+Player: HP 11%, MP 100
+Enemy: HP 48%, Element: Fire (998 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!] [Freeze]
+Enemy: 
+
+=== TURN 12 ===
+Player: HP 11%, MP 80
+Enemy: HP 40%, Element: Fire (997 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam
+
+=== TURN 13 ===
+Player: HP 11%, MP 65
+Enemy: HP 31%, Element: Fire (996 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!] [Freeze]
+Enemy: 
+
+=== TURN 14 ===
+Player: HP 11%, MP 50
+Enemy: HP 22%, Element: Fire (995 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: HeavySlam -> 45 dmg -> Healed 4 HP [TELEGRAPH: Enemy raises its fists!]
+
+
+=== PATTERN ANALYSIS HINTS ===
+
+Enemy Action History (last 5): Slam, HeavySlam, HeavySlam, HeavySlam, HeavySlam
+Enemy Last Action: HeavySlam
+
+Final Enemy Element: Fire
+Element Duration Remaining: 994 turns
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 15
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 28/180 (15%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 35/100
+
+
+# Your Task
+
+Analyze the combat and identify:
+
+1. **Telegraph Reactions**: Did they defend against telegraphed heavy attacks?
+2. **Elemental Strategy**: Did they scan? Did they use the right spell?
+3. **Resource Management**: MP usage efficiency
+4. **Defensive Decisions**: Heal/Defend timing
+5. **BT Issues**: What parts of the tree caused problems?
+
+**CRITICAL CONSTRAINT**: 
+- Focus ONLY on improving strategy against **FireGolem**
+- Do NOT add or modify logic for other enemy types you haven't fought
+- Only suggest changes based on what happened in THIS combat
+
+Provide 3-5 specific improvement suggestions.
+
+**IMPORTANT**: 
+- Describe logic changes in plain text, NOT code
+- Example: "Add Defend() when enemy telegraphs HeavySlam"
+- Example: "Scan on turn 1 instead of turn 2"
+- Example: "Increase heal threshold from 30% to 40%"
+
+**Output Format:**
+## Analysis
+[What went wrong or could be better]
+
+## Improvement Suggestions
+1. [Logic change description]
+2. [Logic change description]
+3. [Logic change description]
+
+Be concise and actionable.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+## Analysis
+
+The combat highlights several key issues with the BT’s strategy against the FireGolem. Primarily, the BT failed to consistently react to the telegraphed HeavySlam attacks, leading to significant damage taken. The BT also didn't utilize the FireGolem's vulnerability when it gained the Fire element, failing to use IceSpell. Finally, MP management was suboptimal, with too many wasted turns and insufficient use of attacks to replenish MP. The BT’s reliance on Defend when HeavySlam was telegraphed was a major contributor to the defeat.
+
+## Improvement Suggestions
+
+1. **Prioritize HeavySlam Defense:** Add a conditional task to the root BT: “Defend() when enemy telegraphs HeavySlam”. This should be the highest priority, ensuring the BT immediately blocks the attack.
+
+2. **Elemental Scanning & Spell Selection:** Modify the BT to scan the enemy for element changes on turn 1. If the enemy gains Fire, immediately execute “IceSpell()”. This needs to be a higher priority than the default attack.
+
+3. **MP Optimization - Attack Priority:** Adjust the BT to prioritize using “Attack()” more frequently. Add a condition to the root BT: "If MP > 20, execute Attack()". This will help replenish MP and allow for more efficient spellcasting.
+
+4. **Adjust Heal Threshold:** Increase the heal threshold from 30% to 40%. This will allow the BT to heal more proactively, reducing the risk of HP dropping below the critical threshold.
+
+5. **Refine Elemental Scanning Logic:**  Instead of scanning on turn 1, scan every 3 turns. This will provide more accurate element tracking and allow for a more responsive strategy. (This is a minor adjustment to improve consistency)
+
+
+================================================================================
+Prompt length: 5003 chars
+Response length: 1675 chars
+================================================================================

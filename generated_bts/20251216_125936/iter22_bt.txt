@@ -1,0 +1,46 @@
+root :
+    selector :
+        # Defend against Debuff
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            task : Defend()
+
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Cleanse Debuff
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # IceSpell when enemy has Fire
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # FireSpell when enemy has Ice
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Heal when HP is low AND not telegraphing
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            condition : NOT EnemyIsTelegraphing(HeavySlam)
+            condition : NOT EnemyIsTelegraphing(Debuff)
+            task : Heal()
+
+        # Low MP Attack
+        sequence :
+            condition : HasMP(40)
+            NOT : HasMP(41)
+            task : Attack()
+
+        # Default: Attack
+        task : Attack()

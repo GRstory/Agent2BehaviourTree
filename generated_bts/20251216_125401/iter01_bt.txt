@@ -1,0 +1,30 @@
+root :
+    selector :
+        # Defend against telegraphed attacks
+        condition : EnemyIsTelegraphing(FrostTouch)
+        task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse AttackDown
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Exploit elemental weakness
+        selector :
+            sequence :
+                condition : EnemyHasElement(Ice)
+                condition : HasMP(20)
+                task : FireSpell()
+            sequence :
+                condition : EnemyHasElement(Fire)
+                condition : HasMP(20)
+                task : IceSpell()
+            # Default: Attack
+            task : Attack()

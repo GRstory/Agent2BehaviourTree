@@ -1,0 +1,36 @@
+root :
+    selector :
+        # FireSpell against Ice element
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # IceSpell against Fire element
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(50)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            selector :
+                condition : HasStatus(BURN)
+                condition : HasStatus(ATTACKDOWN)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Defend against HeavySlam if no Fire element
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            condition : NOT EnemyHasElement(Fire)
+            task : Defend()
+
+        # Default: Attack
+        task : Attack()

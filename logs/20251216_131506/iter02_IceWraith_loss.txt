@@ -1,0 +1,101 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 1 ===
+Player: HP 88%, MP 100
+Enemy: HP 94%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 2 ===
+Player: HP 66%, MP 100
+Enemy: HP 88%, Element: Ice (3 turns)
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!] [Burn]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 3 ===
+Player: HP 54%, MP 80
+Enemy: HP 84%, Element: Ice (2 turns), Buffs: Burn
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 4 ===
+Player: HP 72%, MP 55
+Enemy: HP 82%, Element: Ice (3 turns), Buffs: Burn
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 5 ===
+Player: HP 60%, MP 40
+Enemy: HP 76%, Element: Ice (2 turns), Buffs: Burn
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!] [Burn]
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 6 ===
+Player: HP 38%, MP 25
+Enemy: HP 70%, Element: Ice (3 turns), Buffs: Burn
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 7 ===
+Player: HP 26%, MP 10
+Enemy: HP 64%, Element: Ice (2 turns), Buffs: Burn
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 8 ===
+Player: HP 14%, MP 25
+Enemy: HP 55%, Element: Ice (1 turns), Buffs: Burn
+
+Action: FireSpell (MP -20) -> 2 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 9 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 2%, MP 10
+Enemy: HP 52%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: Debuff
+
+=== TURN 10 ===
+Player: HP 2%, MP 25, Ailments: AttackDown
+Enemy: HP 46%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostBlast -> 22 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 11
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 84/200 (42%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 40/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[2/20], ICEWRAITH[7/20]
+======================================================================

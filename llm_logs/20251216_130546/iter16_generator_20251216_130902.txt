@@ -1,0 +1,222 @@
+================================================================================
+GENERATOR LLM LOG
+Iteration: 16
+Timestamp: 20251216_130902
+Temperature: 1.1
+No improvement count: 6
+================================================================================
+
+--------------------------------------------------------------------------------
+SYSTEM PROMPT
+--------------------------------------------------------------------------------
+You are an expert AI strategist specializing in turn-based RPG combat and Behaviour Tree design.
+
+CRITICAL: The Behaviour Tree executes ONE action per turn.
+
+AVAILABLE ACTIONS (7 total):
+- Attack: Free, 9 damage, +10 MP (resource recovery!)
+- Charge: 15 MP, 7 damage + next turn all damage x2
+- FireSpell: 20 MP, 7 damage (1.5x when enemy has Ice element), Burn 25%
+- IceSpell: 20 MP, 10 damage (1.5x when enemy has Fire element), Freeze 25%
+- Defend: Free, 50% damage reduction for 1 turn
+- Heal: 30 MP, +40 HP, 3 turn cooldown
+- Cleanse: 25 MP, removes Burn/AttackDown, +10% damage for 1 turn
+
+ELEMENTAL SYSTEM:
+- Fire attacks deal 1.5x damage to Ice element enemies
+- Ice attacks deal 1.5x damage to Fire element enemies
+- Enemies start as Neutral (no weakness), can gain Fire/Ice element during combat
+- **CRITICAL: Player attacks do NOT change enemy element**
+- **CRITICAL: Use FireSpell when enemy HAS Ice element (Fire beats Ice!)**
+- **CRITICAL: Use IceSpell when enemy HAS Fire element (Ice beats Fire!)**
+- Status effects: Freeze 25%, Burn from FireGolem (10 dmg/turn × 3 turns, bypasses defense!)
+
+ENEMY MECHANICS:
+- FireGolem (HP 180, Def 5): Phase 2 (HP < 50%) gains Fire element automatically, FlameStrike adds Burn (10/turn × 3 = 30 total, bypasses defense!)
+- IceWraith (HP 200, Def 8): Gains Ice element when it uses FrostBlast (3 turns), Debuff gives AttackDown -20% for 3 turns, DefensiveStance (+25% def 1 turn, +20% dmg next turn)
+
+RESOURCES:
+- MP only, regenerates 5 per turn
+- Start with 100 MP
+- Attack restores +10 MP (total +15 MP per turn when using Attack!)
+
+Your expertise includes:
+- Elemental weakness exploitation (1.5x damage!)
+- Cleanse timing (use when Burn/AttackDown active for huge value)
+- MP management (Cleanse 25, Spells 20, Heal 30)
+- Telegraph defense (Defend against HeavySlam/Debuff)
+- DoT awareness (Burn bypasses defense, 30 total damage!)
+- **Element checking**: Use EnemyHasElement(Fire/Ice/Neutral) to check enemy's current element
+
+Always output valid BT DSL following the specification exactly. Use 4 spaces for indentation.
+You must ONLY use the control nodes (root, selector, sequence), conditions, and tasks listed in the DSL specification.
+
+--------------------------------------------------------------------------------
+USER PROMPT
+--------------------------------------------------------------------------------
+Generate an IMPROVED Behaviour Tree based on feedback.
+
+# Current Behaviour Tree
+```
+root :
+    selector :
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # FireSpell against Ice element
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # IceSpell against Fire element
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            selector :
+                condition : HasStatus(BURN)
+                condition : HasStatus(ATTACKDOWN)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # MP Management - Attack when low on MP
+        sequence :
+            condition : NOT HasMP(50)
+            task : Attack()
+
+        # Default: Attack
+        task : Attack()
+```
+
+# Improvement Feedback
+## Analysis
+
+The combat resulted in a defeat against the FireGolem, primarily due to a failure to react effectively to the telegraphed HeavySlam attacks and a lack of elemental awareness. The BT consistently defaulted to defending against HeavySlam, which was a correct initial reaction, but didn’t adapt when the enemy transitioned to Slam attacks. There was no scanning to determine the enemy’s element, leading to ineffective spell usage. MP was used inefficiently, with the Heal being triggered too late to meaningfully impact the fight. The BT’s reliance on Defend without a strategic scan or elemental adaptation was a key weakness.
+
+## Improvement Suggestions
+
+1. **Scan on Turn 1:** Add a "Scan" task to the BT on turn 1. This task would immediately determine the enemy’s element and update the BT’s state accordingly. This is crucial for informed spell selection.
+
+2. **Prioritize Elemental Adaptation:** Modify the BT to prioritize using IceSpell when the FireGolem’s element is detected (Fire).  Add a condition: “EnemyHasElement(Fire)” and then a task: “IceSpell()”. This should be the *primary* action when the Fire element is active.
+
+3. **Telegraph-Based Defense:**  Enhance the Defend action. Add a condition: “EnemyIsTelegraphing(HeavySlam)” and then a task: “Defend()”. This ensures the BT *always* defends against the telegraph, regardless of the enemy's current element.  This is a foundational defensive strategy.
+
+4. **Adjust Heal Threshold:** Change the Heal trigger from 40% HP to 60% HP. This gives the player more time to react and allows for a more strategic Heal, rather than a desperate attempt to survive a single HeavySlam.
+
+5. **Implement a “Reset” Action:** Add a "Reset" action to the BT that is triggered on turn 1. This action would reset all element states to Neutral, ensuring the BT starts with a clean slate and doesn’t rely on outdated information.
+
+
+# COMPLETE LIST OF AVAILABLE SYNTAX
+
+**Control Nodes (ONLY these 3):**
+- `root :` - Must be first line, has one child
+- `selector :` - Tries children until one succeeds
+- `sequence :` - All conditions must pass, executes final task
+
+**Conditions (ONLY these):**
+- `IsPlayerHPLow(30)` - Player HP < threshold%
+- `IsEnemyHPLow(30)` - Enemy HP < threshold%
+- `HasMP(20)` - Player has >= amount MP
+- `CanHeal()` - Heal is off cooldown AND MP >= 30
+- `EnemyHasElement(Fire)`, `EnemyHasElement(Ice)`, or `EnemyHasElement(Neutral)` - Check enemy's current element (DYNAMIC! Changes during combat)
+- `EnemyHasBuff(Enrage)` - Enemy has specific buff
+- `EnemyIsTelegraphing(HeavySlam)` - Enemy will execute this action THIS turn (telegraphed at end of last turn)
+- `HasStatus(CHARGED)` - Player has CHARGED status (from Charge action)
+- `NOT <condition>` - Negates a condition
+
+**CRITICAL SPELL USAGE EXAMPLES:**
+```
+# When enemy HAS Ice element → Use FireSpell (Fire beats Ice!)
+sequence :
+    condition : EnemyHasElement(Ice)
+    condition : HasMP(20)
+    task : FireSpell()  # 1.5x damage!
+
+# When enemy HAS Fire element → Use IceSpell (Ice beats Fire!)
+sequence :
+    condition : EnemyHasElement(Fire)
+    condition : HasMP(20)
+    task : IceSpell()  # 1.5x damage!
+```
+
+**Tasks (ONLY these 7):**
+- `Attack()` - Basic attack
+- `Charge()` - Charge for next turn 2x damage
+- `FireSpell()` - Fire spell
+- `IceSpell()` - Ice spell
+- `Defend()` - Reduce damage 50%
+- `Heal()` - Heal 40 HP
+- `Cleanse()` - Remove debuffs
+
+# CRITICAL RULES
+
+3. **Indentation**: Use exactly 4 spaces per level
+4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
+5. **Fallback**: Always end selector with `task : Attack()`
+
+# Your Task
+
+Apply the feedback to create an improved BT using ONLY the syntax listed above. Output ONLY the BT DSL, no explanations. Start with `root :`.
+
+--------------------------------------------------------------------------------
+RESPONSE
+--------------------------------------------------------------------------------
+```
+root :
+    selector :
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # FireSpell against Ice element
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # IceSpell against Fire element
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(60)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            selector :
+                condition : HasStatus(BURN)
+                condition : HasStatus(ATTACKDOWN)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # MP Management - Attack when low on MP
+        sequence :
+            condition : NOT HasMP(50)
+            task : Attack()
+
+        # Default: Attack
+        task : Attack()
+```
+
+================================================================================
+Prompt length: 4935 chars
+Response length: 1076 chars
+================================================================================

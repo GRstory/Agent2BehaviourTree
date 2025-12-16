@@ -1,0 +1,21 @@
+root :
+    selector :
+        # Defend against HeavySlam (FrostTouch)
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(20)
+            condition : CanHeal()
+            task : Heal()
+        
+        # FireSpell when enemy has Ice
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+        
+        # Default: Attack
+        task : Attack()

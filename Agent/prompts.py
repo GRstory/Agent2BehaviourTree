@@ -72,11 +72,41 @@ AVAILABLE ACTIONS (7 total):
 - Charge: 15 MP, 7 damage + NEXT TURN all damage x2
 - FireSpell: 20 MP, 7 dmg (1.5x when enemy has Ice element), Burn 25%
 - IceSpell: 20 MP, 10 dmg (1.5x when enemy has Fire element), Freeze 25%
-- Defend: Free, 50% damage reduction
+- Defend: Free, 50% damage reduction (ONLY blocks damage, NOT status effects like Debuff/Burn!)
 - Heal: 30 MP, +40 HP, 3 turn cooldown
 - Cleanse: 25 MP, removes Burn/AttackDown, +10% damage for 1 turn
 
+VICTORY REQUIREMENTS:
+- **FireGolem**: 180 HP / 35 turns = **5.1+ DPS minimum**
+- **IceWraith**: 200 HP / 35 turns = **5.7+ DPS minimum**
+- **Baseline**: Attack alone = 9 dmg/turn (sufficient if no wasted turns)
+- **Target**: 5-6+ effective DPS for consistent wins
+
 CRITICAL MECHANICS:
+- **CHARGE STRATEGY**:
+  - Charge gives CHARGED status (visible in combat log as "Ailments: Charged")
+  - CHARGED status doubles damage on NEXT turn ONLY
+  - **CRITICAL**: Use HasStatus(CHARGED) condition to detect and cash in the buff!
+  - **Common mistake**: Using Charge but never following up with attack → wasted MP and damage
+  - **Correct pattern**: Charge → (next turn) Attack/Spell with 2x damage
+  - **Example waste**: "Turn 5: Charge → Turn 6: Defend" = CHARGED buff wasted!
+  - **Math**: Charge (7 dmg) + CHARGED Attack (18 dmg) = 25 dmg / 2 turns = 12.5 DPS ✓
+  
+- **CLEANSE USAGE**:
+  - **ONLY use when HasStatus(Burn) OR HasStatus(AttackDown)**
+  - **Common bug**: Cleanse spam without debuffs → 0 damage output
+  - **Correct condition**: `HasStatus(Burn)` or `HasStatus(AttackDown)` MUST be checked
+  - **Value**: Cleanse removes Burn (saves 30 dmg) or AttackDown (restores 20% damage)
+  
+- **DEFEND MECHANICS**:
+  - Defend reduces damage by 50% (e.g., HeavySlam 45 dmg → 22 dmg)
+  - **Defend does NOT prevent status effects** (Debuff, Burn still applied!)
+  - **Primary use**: Defend against telegraphed HeavySlam (45 dmg → 22 dmg)
+  - **Debuff telegraph**: Defend CAN reduce Debuff turn damage, BUT:
+    - You still get AttackDown (-20% damage for 3 turns)
+    - **Better strategy**: Attack (deal damage) → next turn Cleanse (remove debuff)
+    - Defend = 0 damage dealt, Cleanse costs 25 MP anyway
+  
 - **ELEMENTAL SYSTEM**:
   - Fire attacks deal 1.5x damage to Ice element enemies
   - Ice attacks deal 1.5x damage to Fire element enemies
@@ -92,7 +122,8 @@ CRITICAL MECHANICS:
   - **USE FIRESPELL WHEN ENEMY HAS ICE ELEMENT!**
 - **FireGolem Element Change**:
   - Phase 1 (HP > 50%): Neutral element
-  - Phase 2 (HP < 50%): Automatically gains Fire element (permanent)
+  - **Phase 2 (HP < 50% = 90 HP)**: Automatically gains Fire element (permanent)
+  - **CRITICAL TIMING**: Push to 90 HP → Enemy gains Fire → USE ICESPELL!
   - **USE ICESPELL WHEN ENEMY HAS FIRE ELEMENT!**
 - FireGolem: FlameStrike adds Burn (10 dmg/turn × 3 turns = 30 total, bypasses defense!)
 - IceWraith: Debuff gives AttackDown -20% for 3 turns, DefensiveStance (+25% def 1 turn, +20% dmg next turn)
@@ -116,20 +147,34 @@ IceWraith (200 HP, Def 8):
 - DefensiveStance: +25% defense for 1 turn, +20% damage next turn
 - High defense makes spells more efficient than basic attacks
 
+COMMON FAILURE PATTERNS TO IDENTIFY:
+1. **"Heal spam"** - Using Heal when HP > 60% → wasted turns
+2. **"Passive play"** - Too much Defend without telegraphs → low DPS
+3. **"MP starvation"** - Not using Attack enough → can't afford spells
+4. **"Ignoring telegraphs"** - Not Defending against HeavySlam → taking 45 dmg
+5. **"Defend vs Debuff over-reliance"** - Defend reduces damage but better to Attack → Cleanse
+6. **"Phase blindness"** - Not adapting when enemy changes element
+7. **"Wasted turns"** - Defend when safe, Heal when full → closer to 35-turn limit
+
 Your task is to analyze combat logs and identify:
+- **DPS calculation** (Total damage / Total turns - is it above 5+?)
+- **Charge efficiency** (did they cash in CHARGED status? or waste it on Defend/Heal?)
+- **Cleanse bugs** (did they spam Cleanse without debuffs?)
 - **Dynamic element awareness** (did they understand when enemy gains/loses element?)
+- **Phase transition** (FireGolem HP < 50% → did they switch to IceSpell?)
 - **Elemental advantage** (did they use correct spell when enemy had element?)
   - Enemy has Ice → Use FireSpell (1.5x damage)
   - Enemy has Fire → Use IceSpell (1.5x damage)
   - Enemy has Neutral → Use Attack (no spell bonus)
 - **Wrong spell usage** (IceSpell vs Ice element = 0.5x damage, TERRIBLE!)
-- Cleanse timing (did they remove Burn/AttackDown when active?)
+- **Turn efficiency** (Count wasted turns - every waste = closer to 35-turn limit)
+- **Defend strategy** (HeavySlam = must Defend, Debuff = situational, better to Attack → Cleanse)
 - MP efficiency (Cleanse 25, Spells 20, Heal 30)
-- Defensive timing (Defend against telegraphed HeavySlam/Debuff)
+- Defensive timing (Defend against HeavySlam is critical!)
 - Heal timing (considering 3 turn cooldown)
 - DoT awareness (Burn does 30 total damage, Cleanse saves it all!)
 
-Provide specific, actionable insights for BT improvement."""
+Provide specific, actionable insights for BT improvement with concrete examples from the combat log."""
 
 
 # ============================================================================
@@ -260,8 +305,26 @@ Provide 3-5 specific improvement suggestions.
 Be concise and actionable."""
 
 
-def create_generator_prompt(current_bt: str, critic_feedback: str) -> str:
-    """Create prompt for improved BT generation"""
+def create_generator_prompt(current_bt: str, critic_feedback: str, previous_bts: list = None) -> str:
+    """Create prompt for improved BT generation
+    
+    Args:
+        current_bt: Current BT DSL
+        critic_feedback: Feedback from critic
+        previous_bts: List of (iteration, bt_dsl, result) tuples from recent failed attempts
+    """
+    
+    # Build previous BTs section
+    previous_section = ""
+    if previous_bts and len(previous_bts) > 0:
+        previous_section = "\n# Previous Failed Attempts (AVOID THESE PATTERNS!)\n\n"
+        previous_section += "**CRITICAL**: The following BTs all FAILED. Do NOT just tweak thresholds!\n"
+        previous_section += "You must try FUNDAMENTALLY DIFFERENT strategies.\n\n"
+        
+        for i, (iter_num, bt_dsl, result_summary) in enumerate(previous_bts[-3:]):  # Last 3 attempts
+            previous_section += f"## Failed Attempt (Iteration {iter_num})\n"
+            previous_section += f"Result: {result_summary}\n"
+            previous_section += f"```\n{bt_dsl}\n```\n\n"
     
     return f"""Generate an IMPROVED Behaviour Tree based on feedback.
 
@@ -272,7 +335,7 @@ def create_generator_prompt(current_bt: str, critic_feedback: str) -> str:
 
 # Improvement Feedback
 {critic_feedback}
-
+{previous_section}
 # COMPLETE LIST OF AVAILABLE SYNTAX
 
 **Control Nodes (ONLY these 3):**
@@ -306,19 +369,17 @@ sequence :
     task : IceSpell()  # 1.5x damage!
 ```
 
-**Actions/Tasks (ONLY these):**
-- `Attack()` - Free, 9 damage, +10 MP (resource recovery!)
-- `Charge()` - 15 MP, 7 damage + next turn all damage x2
-- `FireSpell()` - 20 MP, 7 damage, 1.5x when enemy has Ice element
-- `IceSpell()` - 20 MP, 10 damage, 1.5x when enemy has Fire element
-- `Defend()` - Free, 50% damage reduction for 1 turn
-- `Heal()` - 30 MP, +40 HP, 3 turn cooldown
-- `Cleanse()` - 25 MP, removes Burn/AttackDown, +10% damage 1 turn
+**Tasks (ONLY these 7):**
+- `Attack()` - Basic attack
+- `Charge()` - Charge for next turn 2x damage
+- `FireSpell()` - Fire spell
+- `IceSpell()` - Ice spell
+- `Defend()` - Reduce damage 50%
+- `Heal()` - Heal 40 HP
+- `Cleanse()` - Remove debuffs
 
 # CRITICAL RULES
 
-1. **ONE ACTION PER TURN**: The BT executes ONLY ONE action per turn. Once a task is selected, the turn ends.
-2. **USE ONLY LISTED SYNTAX ABOVE**: You must use ONLY the control nodes, conditions, and tasks listed above. No other syntax exists.
 3. **Indentation**: Use exactly 4 spaces per level
 4. **Format**: `condition : IsPlayerHPLow(30)` and `task : Heal()`
 5. **Fallback**: Always end selector with `task : Attack()`

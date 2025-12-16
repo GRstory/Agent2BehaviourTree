@@ -1,0 +1,88 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+Player: HP 81%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 9 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 2 ===
+Player: HP 64%, MP 80
+Enemy: HP 96%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 9 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 3 ===
+Player: HP 47%, MP 65
+Enemy: HP 93%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 9 dmg [Freeze]
+Enemy: 
+
+=== TURN 4 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 47%, MP 50
+Enemy: HP 88%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 5 ===
+Player: HP 47%, MP 55
+Enemy: HP 88%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 9 dmg [Freeze]
+Enemy: 
+
+=== TURN 6 ===
+Player: HP 47%, MP 40
+Enemy: HP 83%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 9 dmg [Freeze]
+Enemy: 
+
+=== TURN 7 ===
+Player: HP 47%, MP 25
+Enemy: HP 78%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 9 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 8 ===
+Player: HP 30%, MP 10
+Enemy: HP 75%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam -> 45 dmg -> Healed 9 HP [TELEGRAPH: Enemy raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 9
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 129/180 (71%)
+
+Enemy: FireGolem (Neutral)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 25/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[0/20], ICEWRAITH[0/20]
+======================================================================

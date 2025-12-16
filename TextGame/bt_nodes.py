@@ -245,16 +245,17 @@ class HasAilment(BTCondition):
     
     def __init__(self, ailment_name: str):
         self.ailment_str = ailment_name.strip()
+        # Case-insensitive mapping
         ailment_map = {
-            "Burn": StatusAilment.BURN,
-            "Freeze": StatusAilment.FREEZE,
-            "Paralyze": StatusAilment.PARALYZE,
-            "AttackDown": StatusAilment.ATTACK_DOWN,
-            "Defending": StatusAilment.DEFENDING,
-            "CHARGED": StatusAilment.CHARGED,
-            "Charged": StatusAilment.CHARGED
+            "burn": StatusAilment.BURN,
+            "freeze": StatusAilment.FREEZE,
+            "paralyze": StatusAilment.PARALYZE,
+            "attackdown": StatusAilment.ATTACK_DOWN,
+            "defending": StatusAilment.DEFENDING,
+            "charged": StatusAilment.CHARGED,
         }
-        self.ailment = ailment_map.get(self.ailment_str)
+        # Normalize to lowercase for lookup
+        self.ailment = ailment_map.get(self.ailment_str.lower())
     
     def evaluate(self, state: GameState) -> bool:
         if not self.ailment:

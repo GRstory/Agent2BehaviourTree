@@ -1,0 +1,43 @@
+root :
+    selector :
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Exploit Fire weakness
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit Ice weakness
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Remove Burn/AttackDown
+        sequence :
+            condition : HasStatus(Burn)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal when HP is low
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # MP Management: Attack when low on MP
+        sequence :
+            condition : NOT HasMP(20)
+            task : Attack()
+
+        # Default: Attack
+        task : Attack()

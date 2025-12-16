@@ -1,0 +1,115 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 1 ===
+Player: HP 88%, MP 100
+Enemy: HP 94%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 2 ===
+Player: HP 76%, MP 100
+Enemy: HP 88%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 3 ===
+Player: HP 64%, MP 100
+Enemy: HP 82%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 4 ===
+Player: HP 52%, MP 100
+Enemy: HP 76%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 5 ===
+Player: HP 40%, MP 100
+Enemy: HP 70%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 6 ===
+Player: HP 28%, MP 100
+Enemy: HP 64%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 7 ===
+Player: HP 56%, MP 70
+Enemy: HP 64%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 8 ===
+Player: HP 44%, MP 85
+Enemy: HP 57%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: DefensiveStance
+
+=== TURN 9 ===
+Player: HP 44%, MP 100
+Enemy: HP 52%, Element: Neutral, Buffs: DefenseBuff, PowerCharge
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 27 dmg
+
+=== TURN 10 ===
+Player: HP 17%, MP 100
+Enemy: HP 46%, Element: Ice (3 turns), Buffs: PowerCharge
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 11 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 5%, MP 80
+Enemy: HP 42%, Element: Ice (2 turns)
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!] [Burn]
+Enemy: Debuff
+
+=== TURN 12 ===
+Player: HP 5%, MP 65, Ailments: AttackDown
+Enemy: HP 39%, Element: Ice (1 turns), Buffs: Burn
+
+Action: FireSpell (MP -20)
+Enemy: FrostTouch -> 12 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 13
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 73/200 (36%)
+
+Enemy: IceWraith (Neutral)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 50/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[0/20], ICEWRAITH[1/20]
+======================================================================

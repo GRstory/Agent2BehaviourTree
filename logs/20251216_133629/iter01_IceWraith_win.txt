@@ -1,0 +1,199 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 1 ===
+Player: HP 88%, MP 100
+Enemy: HP 94%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 2 ===
+Player: HP 76%, MP 100
+Enemy: HP 88%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 3 ===
+Player: HP 64%, MP 100
+Enemy: HP 82%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 4 ===
+Player: HP 52%, MP 100
+Enemy: HP 76%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 5 ===
+Player: HP 40%, MP 100
+Enemy: HP 70%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 6 ===
+Player: HP 28%, MP 100
+Enemy: HP 64%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 7 ===
+Player: HP 6%, MP 100
+Enemy: HP 57%, Element: Ice (3 turns)
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: Debuff
+
+=== TURN 8 ===
+Player: HP 46%, MP 70, Ailments: AttackDown
+Enemy: HP 57%, Element: Ice (2 turns)
+
+Action: FireSpell (MP -20) -> 4 dmg [SUPER EFFECTIVE!]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 9 ===
+Player: HP 34%, MP 55, Ailments: AttackDown
+Enemy: HP 56%, Element: Ice (1 turns)
+
+Action: FireSpell (MP -20)
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 10 ===
+Player: HP 22%, MP 40, Ailments: AttackDown
+Enemy: HP 56%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: Debuff
+
+=== TURN 11 ===
+Player: HP 22%, MP 55, Ailments: AttackDown
+Enemy: HP 50%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 12 ===
+Player: HP 10%, MP 70, Ailments: AttackDown
+Enemy: HP 46%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 13 ===
+Player: HP 38%, MP 45, Ailments: AttackDown
+Enemy: HP 46%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: Debuff
+
+=== TURN 14 ===
+Player: HP 38%, MP 60, Ailments: AttackDown
+Enemy: HP 40%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 15 ===
+Player: HP 26%, MP 75, Ailments: AttackDown
+Enemy: HP 36%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 16 ===
+Player: HP 14%, MP 90, Ailments: AttackDown
+Enemy: HP 32%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: DefensiveStance
+
+=== TURN 17 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 54%, MP 65
+Enemy: HP 32%, Element: Neutral, Buffs: DefenseBuff, PowerCharge
+
+Action: Attack -> 12 dmg
+Enemy: Debuff
+
+=== TURN 18 ===
+Player: HP 54%, MP 80, Ailments: AttackDown
+Enemy: HP 26%, Element: Neutral, Buffs: PowerCharge
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 19 ===
+Player: HP 42%, MP 95, Ailments: AttackDown
+Enemy: HP 22%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 20 ===
+Player: HP 30%, MP 100, Ailments: AttackDown
+Enemy: HP 18%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 21 ===
+Player: HP 18%, MP 100
+Enemy: HP 12%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: Debuff
+
+=== TURN 22 ===
+Player: HP 57%, MP 70, Ailments: AttackDown
+Enemy: HP 12%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 23 ===
+Player: HP 46%, MP 85, Ailments: AttackDown
+Enemy: HP 8%, Element: Neutral
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 24 ===
+Player: HP 34%, MP 100, Ailments: AttackDown
+Enemy: HP 4%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: None
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: VICTORY
+Turns: 25
+Final Player HP: 34/100 (34%)
+Final Enemy HP: 0/200 (0%)
+
+Enemy: IceWraith (Neutral)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 100/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[1/20], ICEWRAITH[3/20]
+======================================================================

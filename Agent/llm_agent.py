@@ -228,7 +228,7 @@ class LLMAgent:
         print("[OK] Critic analysis complete")
         return feedback
     
-    def generate_improved_bt(self, current_bt: str, critic_feedback: str) -> Tuple[str, Optional[str]]:
+    def generate_improved_bt(self, current_bt: str, critic_feedback: str, previous_bts: list = None) -> Tuple[str, Optional[str]]:
         """
         Generate improved BT based on critic feedback
         
@@ -241,7 +241,7 @@ class LLMAgent:
         """
         print("[GENERATOR] Creating improved Behaviour Tree...")
         
-        prompt = create_generator_prompt(current_bt, critic_feedback)
+        prompt = create_generator_prompt(current_bt, critic_feedback, previous_bts)
         response = self._call_llm(SYSTEM_PROMPT_BT_GENERATOR, prompt, temperature=0.7)
         
         improved_bt = extract_bt_from_response(response).strip()
@@ -310,12 +310,24 @@ class LLMAgent:
         Args:
             current_bt: Current BT DSL
             combat_log: Combat summary
-            previous_results: List of previous combat results
+            previous_results: List of previous combat results (dicts with 'iteration', 'bt', 'victory', 'turns', etc.)
             
         Returns:
             Improved BT DSL or None if failed
         """
         print("[LLM] Improving BT...")
+        
+        # Build previous_bts list from previous_results
+        previous_bts = []
+        if previous_results:
+            for result in previous_results[-5:]:  # Last 5 results
+                if not result.get('victory', False):  # Only failed attempts
+                    iter_num = result.get('iteration', '?')
+                    bt_dsl = result.get('bt', '')
+                    turns = result.get('turns', 0)
+                    enemy = result.get('enemy_type', 'Unknown')
+                    result_summary = f"LOSS vs {enemy} in {turns} turns"
+                    previous_bts.append((iter_num, bt_dsl, result_summary))
         
         # Get critic feedback
         from .prompts import create_critic_prompt, SYSTEM_PROMPT_CRITIC
@@ -327,8 +339,8 @@ class LLMAgent:
             print(f"[ERROR] Critic failed: {feedback}")
             return None
         
-        # Generate improved BT
-        improved_bt, error = self.generate_improved_bt(current_bt, feedback)
+        # Generate improved BT with previous failed BTs
+        improved_bt, error = self.generate_improved_bt(current_bt, feedback, previous_bts)
         
         if error:
             print(f"[ERROR] Generator failed: {error}")

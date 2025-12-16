@@ -1,0 +1,50 @@
+root :
+    selector :
+        # Scan on Turn 1
+        sequence :
+            condition : EnemyHasElement(Neutral)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Defend against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Cleanse AttackDown or Burn
+        sequence :
+            selector :
+                condition : EnemyIsTelegraphing(Debuff)
+                condition : HasMP(25)
+                task : Cleanse()
+            
+            selector :
+                condition : EnemyHasBuff(Burn)
+                condition : HasMP(25)
+                task : Cleanse()
+
+        # Exploit Fire weakness
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit Ice weakness
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Heal when HP is low and sufficient MP
+        sequence :
+            condition : IsPlayerHPLow(30)
+            condition : CanHeal()
+            task : Heal()
+
+        # Charge if possible for burst damage
+        sequence :
+            condition : HasMP(15)
+            task : Charge()
+
+        # Default: Attack
+        task : Attack()

@@ -183,7 +183,6 @@ class EnemyMasteryLoop:
         # Rollback tracking
         self.best_bt = None
         self.best_score = 0.0  # Total wins out of 40 (20 per enemy)
-        self.iterations_without_improvement = 0
         self.best_iteration = -1
         
         # Create timestamp-based directories
@@ -369,19 +368,6 @@ class EnemyMasteryLoop:
                 
                 if improved_bt:
                     current_bt = improved_bt
-                
-                # Rollback check: If no improvement for 5 iterations, revert to best BT
-                if self.iterations_without_improvement >= 5 and self.best_bt is not None:
-                    print(f"\n[ROLLBACK] No improvement for 5 iterations. Reverting to best BT (iter {self.best_iteration}, score {self.best_score}/40)")
-                    current_bt = self.best_bt
-                    self.iterations_without_improvement = 0  # Reset counter
-                    
-                    # Save rollback event
-                    rollback_file = os.path.join(self.bt_dir, f"iter{iteration:02d}_ROLLBACK.txt")
-                    with open(rollback_file, 'w', encoding='utf-8') as f:
-                        f.write(f"Rolled back to iteration {self.best_iteration}\n")
-                        f.write(f"Best score: {self.best_score}/40\n\n")
-                        f.write(current_bt)
         
         # Print final summary
         self._print_summary()
@@ -484,6 +470,7 @@ class EnemyMasteryLoop:
 
 
 
+
 def main():
     """Main entry point"""
     import argparse
@@ -495,6 +482,7 @@ def main():
     parser.add_argument('--hybrid', action='store_true', help='Use hybrid mode (Ollama critic + Gemini generator)')
     parser.add_argument('--ollama-model', type=str, default='gemma3:4b', help='Ollama model to use')
     parser.add_argument('--single-stage', action='store_true', help='Use single-stage LLM (combined critic+generator in one call)')
+    parser.add_argument('--openai', action='store_true', help='Use OpenAI GPT models')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')
     parser.add_argument('--bt', type=str, default='examples/example_bt_balanced.txt', help='Initial BT file')
     parser.add_argument('--manual', action='store_true', help='Use examples/manual.txt as initial BT (manual mode)')
@@ -514,6 +502,11 @@ def main():
     if args.mock:
         print("[MODE] Mock LLM (no API calls)")
         agent = MockLLMAgent()
+    elif args.openai:
+        llm_config = DEFAULT_LLM_CONFIG
+        print(f"[MODE] OpenAI (Generator: {llm_config.openai_model}, Critic: {llm_config.openai_critic_model})")
+        from Agent.openai_agent import OpenAILLMAgent
+        agent = OpenAILLMAgent(llm_config)
     elif args.single_stage:
         print("[MODE] Single-Stage LLM (combined critic+generator)")
         agent = SingleStageLLMAgent(DEFAULT_LLM_CONFIG)
@@ -529,6 +522,7 @@ def main():
     
     loop = EnemyMasteryLoop(config, agent=agent)
     loop.run(args.bt)
+
 
 
 if __name__ == "__main__":

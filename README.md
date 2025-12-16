@@ -70,19 +70,32 @@ python test_bt.py examples/optimal_bt_final.txt
 python runner_mastery.py --iterations 20
 ```
 
-### 2. Mock LLM Mode
+### 2. OpenAI Mode (NEW!)
+OpenAI GPT 모델 사용:
+```bash
+# 환경 변수 설정
+export OPENAI_API_KEY=your_api_key_here
+
+# 기본 모드 (Generator: gpt-4o, Critic: gpt-4o-mini)
+python runner_mastery.py --openai --iterations 20
+
+# 커스텀 모델 지정
+python runner_mastery.py --openai --openai-model gpt-4o --openai-critic-model gpt-4o-mini
+```
+
+### 3. Mock LLM Mode
 API 호출 없이 테스트:
 ```bash
 python runner_mastery.py --mock --iterations 10
 ```
 
-### 3. Hybrid Mode
+### 4. Hybrid Mode
 Ollama (로컬) + Gemini (클라우드) 조합:
 ```bash
 python runner_mastery.py --hybrid --ollama-model gemma3:4b
 ```
 
-### 4. Manual Mode
+### 5. Manual Mode
 수동 BT 편집 및 테스트:
 ```bash
 # 1. examples/manual.txt 편집

@@ -1,0 +1,41 @@
+root :
+    selector :
+        # FireSpell against FrostBlast
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            selector :
+                condition : HasStatus(BURN)
+                condition : HasStatus(ATTACKDOWN)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # IceSpell when enemy has Fire element
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # FireSpell when enemy has Ice element
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Defend against HeavySlam
+        condition : EnemyIsTelegraphing(HeavySlam)
+        task : Defend()
+
+        # Default: Attack
+        task : Attack()

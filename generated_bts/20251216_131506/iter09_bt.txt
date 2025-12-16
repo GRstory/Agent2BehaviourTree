@@ -1,0 +1,27 @@
+root :
+    selector :
+        # Exploit Fire weakness
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Exploit Ice weakness
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # Defend against telegraph
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            task : Defend()
+
+        # Heal when HP is low
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Default: Attack
+        task : Attack()

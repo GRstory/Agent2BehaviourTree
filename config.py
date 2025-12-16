@@ -49,8 +49,18 @@ class GameConfig:
 class LLMConfig:
     """LLM agent configuration"""
     api_key: str = None
+    provider: str = "gemini"  # "gemini", "openai", "ollama"
+    
+    # Gemini settings
     model: str = "gemini-2.0-flash"
     critic_model: str = "gemini-2.0-flash"
+    
+    # OpenAI settings
+    openai_api_key: str = None
+    openai_model: str = "gpt-5.2"
+    openai_critic_model: str = "gpt-5.2"
+    
+    # Common settings
     temperature_generation: float = 0.7
     temperature_analysis: float = 0.5
     temperature_feedback: float = 0.6
@@ -58,7 +68,12 @@ class LLMConfig:
     
     def __post_init__(self):
         if self.api_key is None:
-            self.api_key = os.getenv("GEMINI_API_KEY")
+            if self.provider == "gemini":
+                self.api_key = os.getenv("GEMINI_API_KEY")
+            elif self.provider == "openai":
+                self.api_key = os.getenv("OPENAI_API_KEY")
+                if self.openai_api_key is None:
+                    self.openai_api_key = self.api_key
 
 
 @dataclass

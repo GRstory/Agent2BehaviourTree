@@ -1,0 +1,105 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 81%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 2 ===
+Player: HP 81%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: HeavySlam
+
+=== TURN 3 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 81%, MP 75, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 4 ===
+Player: HP 62%, MP 80
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: Slam -> 17 dmg
+
+=== TURN 5 ===
+Player: HP 45%, MP 60, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: HeavySlam
+
+=== TURN 6 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 45%, MP 40, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 7 ===
+Player: HP 45%, MP 45
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: Slam -> 17 dmg
+
+=== TURN 8 ===
+Player: HP 28%, MP 25, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse (MP -25)
+Enemy: Slam -> 17 dmg
+
+=== TURN 9 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 11%, MP 5, Ailments: PowerBoost
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 10 ===
+Player: HP 11%, MP 10
+Enemy: HP 100%, Element: Neutral
+
+Action: Cleanse
+Enemy: Slam -> 17 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 11
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 180/180 (100%)
+
+Enemy: FireGolem (Neutral)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 15/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[0/20], ICEWRAITH[0/20]
+======================================================================

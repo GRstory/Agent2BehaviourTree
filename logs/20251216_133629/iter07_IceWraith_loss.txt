@@ -1,0 +1,143 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 1 ===
+Player: HP 88%, MP 100
+Enemy: HP 94%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 2 ===
+Player: HP 76%, MP 100
+Enemy: HP 88%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 3 ===
+Player: HP 64%, MP 100
+Enemy: HP 82%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 4 ===
+Player: HP 52%, MP 100
+Enemy: HP 76%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 5 ===
+Player: HP 40%, MP 100
+Enemy: HP 70%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 6 ===
+Player: HP 68%, MP 70
+Enemy: HP 70%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 7 ===
+Player: HP 56%, MP 85
+Enemy: HP 64%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 8 ===
+Player: HP 34%, MP 100
+Enemy: HP 57%, Element: Ice (3 turns)
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!] [Burn]
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 9 ===
+Player: HP 22%, MP 80
+Enemy: HP 54%, Element: Ice (2 turns), Buffs: Burn
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 10 ===
+Player: HP 50%, MP 55
+Enemy: HP 52%, Element: Ice (1 turns), Buffs: Burn
+
+Action: FireSpell (MP -20) -> 2 dmg [Burn]
+Enemy: DefensiveStance
+
+=== TURN 11 ===
+Player: HP 50%, MP 40
+Enemy: HP 48%, Element: Neutral, Buffs: Burn, DefenseBuff, PowerCharge
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 27 dmg
+
+=== TURN 12 ===
+Player: HP 23%, MP 55, Ailments: Freeze
+Enemy: HP 40%, Element: Ice (3 turns), Buffs: Burn, PowerCharge
+
+Action: FireSpell (MP -20) -> 7 dmg [SUPER EFFECTIVE!] [Burn]
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 13 ===
+[!] ENEMY TELEGRAPHS: Debuff
+Player: HP 1%, MP 40
+Enemy: HP 34%, Element: Ice (3 turns), Buffs: Burn
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: Debuff
+
+=== TURN 14 ===
+Player: HP 41%, MP 15, Ailments: AttackDown
+Enemy: HP 31%, Element: Ice (2 turns), Buffs: Burn
+
+Action: Attack -> 8 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 15 ===
+Player: HP 28%, MP 30, Ailments: AttackDown
+Enemy: HP 25%, Element: Ice (1 turns), Buffs: Burn
+
+Action: FireSpell (MP -20)
+Enemy: FrostBlast -> 22 dmg
+
+=== TURN 16 ===
+Player: HP 7%, MP 15, Ailments: AttackDown, Freeze
+Enemy: HP 22%, Element: Ice (3 turns)
+
+Action: Attack -> 12 dmg
+Enemy: FrostBlast -> 22 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 17
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 33/200 (16%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 30/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[0/20], ICEWRAITH[3/20]
+======================================================================

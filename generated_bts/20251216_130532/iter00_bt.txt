@@ -1,0 +1,44 @@
+root :
+    selector :
+        # Defend against HeavySlam (FireGolem) - Highest Priority
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+            
+        # Defend against Debuff (IceWraith)
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            task : Defend()
+
+        # Defend against FrostBlast
+        sequence :
+            condition : EnemyIsTelegraphing(FrostBlast)
+            task : Defend()
+
+        # Mandatory Scan on Turn 1
+        sequence :
+            NOT condition : HasScannedEnemy()
+            condition : HasMP(15)
+            task : Scan()
+
+        # IceSpell when enemy has Fire element
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+        
+        # Cleanse Burn/AttackDown
+        sequence :
+            condition : HasStatus(Burn)
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Heal when HP is low
+        sequence :
+            condition : IsPlayerHPLow(70)
+            condition : CanHeal()
+            task : Heal()
+            
+        # Default: Attack
+        task : Attack()

@@ -1,0 +1,42 @@
+root :
+    selector :
+        # Defend against FrostTouch
+        sequence :
+            condition : EnemyIsTelegraphing(FrostTouch)
+            task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse Burn/AttackDown
+        sequence :
+            condition : HasStatus(BURN)
+            condition : HasMP(25)
+            task : Cleanse()
+        sequence :
+            condition : HasStatus(ATTACK_DOWN)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Fire spell when enemy has ice
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+            
+        # Ice spell when enemy has fire
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Prioritize Attack when low MP
+        sequence :
+            condition : NOT HasMP(20)
+            task : Attack()
+            
+        # Default: Attack
+        task : Attack()

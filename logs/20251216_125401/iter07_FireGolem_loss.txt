@@ -1,0 +1,118 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 1 ===
+Player: HP 83%, MP 100
+Enemy: HP 93%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 2 ===
+Player: HP 66%, MP 100
+Enemy: HP 86%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 3 ===
+Player: HP 49%, MP 100
+Enemy: HP 80%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 4 ===
+Player: HP 72%, MP 70
+Enemy: HP 81%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam -> 45 dmg -> Healed 9 HP [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 5 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 27%, MP 85
+Enemy: HP 78%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 6 ===
+Player: HP 27%, MP 90
+Enemy: HP 78%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 7 ===
+Player: HP 10%, MP 100
+Enemy: HP 71%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: HeavySlam
+
+=== TURN 8 ===
+Player: HP 50%, MP 70
+Enemy: HP 71%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 9 ===
+Player: HP 33%, MP 85
+Enemy: HP 65%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 10 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 16%, MP 100
+Enemy: HP 58%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 11 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 16%, MP 100
+Enemy: HP 58%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 12 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 16%, MP 100
+Enemy: HP 58%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg -> Healed 3 HP [TELEGRAPH: Enemy raises its fists!]
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 13
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 108/180 (60%)
+
+Enemy: FireGolem (Neutral)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 100/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[2/20], ICEWRAITH[0/20]
+======================================================================

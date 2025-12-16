@@ -1,0 +1,79 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 6 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 1 ===
+Player: HP 88%, MP 80
+Enemy: HP 97%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 6 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 2 ===
+Player: HP 76%, MP 65
+Enemy: HP 94%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 6 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 3 ===
+Player: HP 64%, MP 50
+Enemy: HP 91%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 6 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 4 ===
+Player: HP 52%, MP 35
+Enemy: HP 88%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 6 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 5 ===
+Player: HP 40%, MP 20
+Enemy: HP 85%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 6 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 6 ===
+Player: HP 28%, MP 5
+Enemy: HP 82%, Element: Neutral
+
+Action: Attack -> 12 dmg
+Enemy: FrostTouch -> 12 dmg
+
+=== TURN 7 ===
+Player: HP 16%, MP 20
+Enemy: HP 76%, Element: Neutral
+
+Action: IceSpell (MP -20) -> 6 dmg
+Enemy: FrostBlast -> 22 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 8
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 146/200 (73%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 5/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[0/20], ICEWRAITH[0/20]
+======================================================================

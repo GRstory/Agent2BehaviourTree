@@ -1,0 +1,69 @@
+root :
+    selector :
+        # Highest Priority: Defend against telegraphed attacks
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        sequence :
+            condition : EnemyIsTelegraphing(Debuff)
+            task : Defend()
+        sequence :
+            condition : EnemyIsTelegraphing(FrostBlast)
+            task : Defend()
+
+        # Exploit elemental weakness
+        selector :
+            sequence :
+                condition : EnemyHasElement(Ice)
+                condition : HasMP(20)
+                task : FireSpell()
+            sequence :
+                condition : EnemyHasElement(Fire)
+                condition : HasMP(20)
+                task : IceSpell()
+            sequence :
+                condition : EnemyHasElement(Neutral)
+                condition : HasMP(20)
+                task : IceSpell()
+
+        # FireGolem HP Watch
+        sequence :
+            condition : IsEnemyHPLow(90)
+            condition : EnemyHasElement(Neutral)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse AttackDown/Burn
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+        sequence :
+            condition : HasStatus(Burn)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Prioritize IceSpell if sufficient MP and enemy is Fire or Neutral
+        selector :
+            sequence :
+                condition : EnemyHasElement(Fire)
+                condition : HasMP(60)
+                task : IceSpell()
+            sequence :
+                condition : EnemyHasElement(Neutral)
+                condition : HasMP(60)
+                task : IceSpell()
+
+        # Replenish MP with Attack
+        sequence :
+            condition : HasMP(15)
+            task : Attack()
+
+        # Default: Attack
+        task : Attack()

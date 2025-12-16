@@ -1,0 +1,26 @@
+root :
+    selector :
+        # Defend against HeavySlam
+        condition : EnemyIsTelegraphing(HeavySlam)
+        task : Defend()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # FireSpell when enemy has Ice element
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+
+        # IceSpell when enemy has Fire element
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+
+        # Default: Attack
+        task : Attack()

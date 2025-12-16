@@ -1,0 +1,153 @@
+=== COMBAT START ===
+Enemy: FireGolem (Neutral)
+Player: 100 HP
+Enemy: 180 HP
+
+=== TURN 0 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam -> 19 dmg [TELEGRAPH: Enemy raises its fists!]
+
+=== TURN 1 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 81%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 2 ===
+Player: HP 81%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 3 ===
+Player: HP 64%, MP 100
+Enemy: HP 93%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 4 ===
+Player: HP 47%, MP 100
+Enemy: HP 86%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 5 ===
+Player: HP 30%, MP 100
+Enemy: HP 80%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 6 ===
+Player: HP 53%, MP 70
+Enemy: HP 81%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 7 ===
+Player: HP 36%, MP 85
+Enemy: HP 75%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: HeavySlam
+
+=== TURN 8 ===
+Player: HP 36%, MP 100
+Enemy: HP 66%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 9 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 19%, MP 100
+Enemy: HP 60%, Element: Neutral
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 10 ===
+Player: HP 19%, MP 100
+Enemy: HP 60%, Element: Neutral
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 11 ===
+Player: HP 42%, MP 70
+Enemy: HP 61%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: Slam -> 17 dmg -> Healed 3 HP
+
+=== TURN 12 ===
+Player: HP 25%, MP 85
+Enemy: HP 55%, Element: Neutral
+
+Action: Attack -> 15 dmg
+Enemy: FlameStrike -> 11 dmg -> Healed 1 HP
+
+=== TURN 13 ===
+Player: HP 14%, MP 100, Ailments: Burn
+Enemy: HP 47%, Element: Fire (999 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: FlameStrike
+
+=== TURN 14 ===
+Player: HP 4%, MP 80, Ailments: Burn
+Enemy: HP 38%, Element: Fire (998 turns)
+
+Action: Heal (MP -30) -> Healed 40 HP
+Enemy: FlameStrike -> 11 dmg -> Healed 1 HP
+
+=== TURN 15 ===
+[!] ENEMY TELEGRAPHS: HeavySlam
+Player: HP 28%, MP 55, Ailments: Burn
+Enemy: HP 38%, Element: Fire (997 turns)
+
+Action: Defend
+Enemy: HeavySlam
+
+=== TURN 16 ===
+Player: HP 19%, MP 60, Ailments: Burn
+Enemy: HP 38%, Element: Fire (996 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: FlameStrike
+
+=== TURN 17 ===
+Player: HP 9%, MP 45, Ailments: Burn
+Enemy: HP 30%, Element: Fire (995 turns)
+
+Action: IceSpell (MP -20) -> 16 dmg [SUPER EFFECTIVE!]
+Enemy: FlameStrike -> 11 dmg -> Healed 1 HP
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 18
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 39/180 (21%)
+
+Enemy: FireGolem (Fire)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 30/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[2/20], ICEWRAITH[2/20]
+======================================================================

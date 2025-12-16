@@ -1,0 +1,37 @@
+root :
+    selector :
+        # Proactive Defense against HeavySlam
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+
+        # Exploit elemental weakness
+        selector :
+            sequence :
+                condition : EnemyHasElement(Ice)
+                condition : HasMP(20)
+                task : FireSpell()
+            sequence :
+                condition : EnemyHasElement(Fire)
+                condition : HasMP(20)
+                task : IceSpell()
+
+        # Heal when critical
+        sequence :
+            condition : IsPlayerHPLow(40)
+            condition : CanHeal()
+            task : Heal()
+
+        # Cleanse AttackDown/Burn
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : HasMP(25)
+            task : Cleanse()
+
+        # Replenish MP with Attack
+        sequence :
+            condition : HasMP(20)
+            task : Attack()
+
+        # Default: Attack
+        task : Attack()

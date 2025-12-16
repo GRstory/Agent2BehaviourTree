@@ -1,0 +1,79 @@
+root :
+    selector :
+        # PRIORITY 1: Defend against HeavySlam (45 dmg → 22 dmg)
+        sequence :
+            condition : EnemyIsTelegraphing(HeavySlam)
+            task : Defend()
+        
+        # PRIORITY 2: Emergency heal (critical HP)
+        sequence :
+            condition : IsPlayerHPLow(25)
+            condition : CanHeal()
+            task : Heal()
+        
+        # PRIORITY 3: Cash in CHARGED status immediately
+        sequence :
+            condition : HasStatus(CHARGED)
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()  # 2x * 1.5x = 3x damage!
+        
+        sequence :
+            condition : HasStatus(CHARGED)
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()  # 2x * 1.5x = 3x damage!
+        
+        sequence :
+            condition : HasStatus(CHARGED)
+            task : Attack()  # 2x damage
+        
+        # PRIORITY 4: Remove critical debuffs
+        sequence :
+            condition : HasStatus(Burn)
+            condition : HasMP(25)
+            task : Cleanse()  # Saves 30 dmg total
+        
+        sequence :
+            condition : HasStatus(AttackDown)
+            condition : NOT IsPlayerHPLow(40)
+            condition : HasMP(25)
+            task : Cleanse()  # Restore 20% damage
+        
+        # PRIORITY 5: Exploit elemental weakness (1.5x damage)
+        sequence :
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+        
+        sequence :
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+        
+        # PRIORITY 6: Heal when safe (before critical)
+        sequence :
+            condition : IsPlayerHPLow(45)
+            condition : CanHeal()
+            condition : NOT EnemyIsTelegraphing(HeavySlam)
+            task : Heal()
+        
+        # PRIORITY 7: Kill confirm (enemy low HP)
+        sequence :
+            condition : IsEnemyHPLow(25)
+            condition : EnemyHasElement(Ice)
+            condition : HasMP(20)
+            task : FireSpell()
+        
+        sequence :
+            condition : IsEnemyHPLow(25)
+            condition : EnemyHasElement(Fire)
+            condition : HasMP(20)
+            task : IceSpell()
+        
+        sequence :
+            condition : IsEnemyHPLow(25)
+            task : Attack()
+        
+        # DEFAULT: Attack (9 dmg, +15 MP/turn total)
+        task : Attack()

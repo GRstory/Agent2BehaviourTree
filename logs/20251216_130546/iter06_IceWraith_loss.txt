@@ -1,0 +1,226 @@
+=== COMBAT START ===
+Enemy: IceWraith (Neutral)
+Player: 100 HP
+Enemy: 200 HP
+
+=== TURN 0 ===
+Player: HP 100%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 1 ===
+Player: HP 97%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 2 ===
+Player: HP 94%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostBlast -> 8 dmg
+
+=== TURN 3 ===
+Player: HP 86%, MP 100, Ailments: Freeze
+Enemy: HP 100%, Element: Ice (3 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 4 ===
+Player: HP 83%, MP 100
+Enemy: HP 100%, Element: Ice (2 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 5 ===
+Player: HP 80%, MP 100
+Enemy: HP 100%, Element: Ice (1 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 6 ===
+Player: HP 77%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 7 ===
+Player: HP 74%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostBlast -> 8 dmg
+
+=== TURN 8 ===
+Player: HP 66%, MP 100
+Enemy: HP 100%, Element: Ice (3 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 9 ===
+Player: HP 63%, MP 100
+Enemy: HP 100%, Element: Ice (2 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 10 ===
+Player: HP 60%, MP 100
+Enemy: HP 100%, Element: Ice (1 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 11 ===
+Player: HP 56%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 12 ===
+Player: HP 54%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 13 ===
+Player: HP 51%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 14 ===
+Player: HP 48%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 15 ===
+Player: HP 45%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 16 ===
+Player: HP 42%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 17 ===
+Player: HP 39%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 18 ===
+Player: HP 36%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 19 ===
+Player: HP 33%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 20 ===
+Player: HP 30%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 21 ===
+Player: HP 27%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 22 ===
+Player: HP 24%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 23 ===
+Player: HP 21%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 24 ===
+Player: HP 18%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 25 ===
+Player: HP 15%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 26 ===
+Player: HP 12%, MP 100
+Enemy: HP 100%, Element: Neutral
+
+Action: Defend
+Enemy: FrostBlast -> 8 dmg
+
+=== TURN 27 ===
+Player: HP 4%, MP 100
+Enemy: HP 100%, Element: Ice (3 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+=== TURN 28 ===
+Player: HP 1%, MP 100
+Enemy: HP 100%, Element: Ice (2 turns)
+
+Action: Defend
+Enemy: FrostTouch -> 3 dmg
+
+
+
+=== COMBAT SUMMARY ===
+
+Result: DEFEAT
+Turns: 29
+Final Player HP: 0/100 (0%)
+Final Enemy HP: 200/200 (100%)
+
+Enemy: IceWraith (Ice)
+Weakness: Unknown (not scanned)
+
+Resources Remaining: MP 100/100
+
+
+======================================================================
+VALIDATION TEST: FIREGOLEM[0/20], ICEWRAITH[0/20]
+======================================================================
